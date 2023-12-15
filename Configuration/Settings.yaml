@@ -1,0 +1,12 @@
+Neos:
+  Flow:
+    mvc:
+      routes:
+        'Sitegeist.Chatterbox':
+          position: 'before Neos.Neos'
+
+Sitegeist:
+  Chatterbox:
+    apis:
+      openAi:
+        token: ''

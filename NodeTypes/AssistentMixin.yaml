@@ -1,0 +1,12 @@
+Sitegeist.Chatterbox:Mixin.Assistant:
+  abstract: true
+  properties:
+    assistantId:
+      type: string
+      ui:
+        label: "Assistant ID"
+        inspector:
+          group: default
+          editor: Neos.Neos/Inspector/Editors/SelectBoxEditor
+          editorOptions:
+            dataSourceIdentifier: Sitegeist.Chatterbox:AssistantId

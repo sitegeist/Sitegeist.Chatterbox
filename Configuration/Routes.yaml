@@ -1,0 +1,28 @@
+##
+# Chatterbox
+
+-
+  name:  'Chatterbox Chat - start'
+  uriPattern: 'chatterbox/chat/start'
+  defaults:
+    '@package':    'Sitegeist.Chatterbox'
+    '@controller': 'Chat'
+    '@action': 'start'
+  httpMethods: ['POST']
+
+-
+  name:  'Chatterbox Chat - thread'
+  uriPattern: 'chatterbox/chat/history'
+  defaults:
+    '@package':    'Sitegeist.Chatterbox'
+    '@controller': 'Chat'
+    '@action': 'hostory'
+  httpMethods: ['GET']
+
+- name: 'Chatterbox Chat'
+  uriPattern: 'chatterbox/chat/post'
+  defaults:
+    '@package': 'Sitegeist.Chatterbox'
+    '@controller': 'Chat'
+    '@action': 'post'
+  httpMethods: ['POST']
