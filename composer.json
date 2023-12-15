@@ -1,0 +1,18 @@
+{
+    "description": "",
+    "type": "neos-package",
+    "name": "sitegeist/chatterbox",
+    "require": {
+        "neos/flow": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sitegeist\\Chatterbox\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "Sitegeist.Chatterbox"
+        }
+    }
+}
