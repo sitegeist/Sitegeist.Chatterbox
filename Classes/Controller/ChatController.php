@@ -8,7 +8,7 @@ use Neos\Flow\Mvc\Controller\ActionController;
 
 class ChatController extends ActionController
 {
-    public function startAction(): void
+    public function startAction(string $assistantId): void
     {
     }
 
