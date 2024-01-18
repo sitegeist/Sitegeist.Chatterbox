@@ -1,0 +1,101 @@
+include: resource://Neos.Fusion/Private/Fusion/Root.fusion
+include: resource://Neos.Fusion.Form/Private/Fusion/Root.fusion
+include: **/*.fusion
+
+Sitegeist.Chatterbox.AssistantModuleController.index = Sitegeist.Chatterbox:Assistant.List
+Sitegeist.Chatterbox.AssistantModuleController.edit = Sitegeist.Chatterbox:Assistant.Edit
+Sitegeist.Chatterbox.AssistantModuleController.new = Sitegeist.Chatterbox:Assistant.New
+
+prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component) {
+    renderer = afx`
+        <legend>Available assistants</legend>
+        <table class="neos-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            <Neos.Fusion:Loop items={assistants} itemName="assistant">
+                <tr>
+                    <td>{assistant.name}</td>
+                    <td>{assistant.description}</td>
+                    <td class="neos-priority1 neos-aCenter">
+                        <Neos.Fusion:Link.Action href.action="edit"  href.arguments.assistantId={assistant.id}>
+                            <i class="fas fa-pencil-alt icon-white"></i>
+                        </Neos.Fusion:Link.Action>
+                    </td>
+                </tr>
+            </Neos.Fusion:Loop>
+            </tbody>
+        </table>
+
+        <div class="neos-footer">
+            <Neos.Fusion:Link.Action href.action="new" class="neos-button" >Create new assistant</Neos.Fusion:Link.Action>
+        </div>
+
+    `
+}
+
+prototype(Sitegeist.Chatterbox:Assistant.New) < prototype(Neos.Fusion:Component) {
+    renderer = afx`
+        <legend>Create new assistant</legend>
+        <Neos.Fusion.Form:Form
+            form.target.action="create"
+        >
+            <div class="neos-control-group">
+                <label class="neos-control-label" >Name</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Input field.name="name" />
+                </div>
+            </div>
+            <div class="neos-footer">
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Create</Neos.Fusion.Form:Button>
+            </div>
+        </Neos.Fusion.Form:Form>
+    `
+}
+
+
+prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component) {
+    renderer = afx`
+        <legend>Edit assistant {assistant.name}</legend>
+        <Neos.Fusion.Form:Form
+            form.target.action="update"
+            form.data.assistant={assistant}
+        >
+            <Neos.Fusion.Form:Hidden field.name="assistant[id]" />
+            <Neos.Fusion.Form:Hidden field.name="assistant[model]" />
+
+            <div class="neos-control-group">
+                <label class="neos-control-label" >Name</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Input attributes.class="neos-span12" field.name="assistant[name]" />
+                </div>
+            </div>
+
+            <div class="neos-control-group">
+                <label class="neos-control-label" >Description</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Textarea attributes.rows="5" attributes.class="neos-span12" field.name="assistant[description]" />
+                </div>
+            </div>
+
+            <div class="neos-control-group">
+                <label class="neos-control-label" >Instructions</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Textarea attributes.rows="20" attributes.class="neos-span12" field.name="assistant[instructions]" />
+                </div>
+            </div>
+
+            <div class="neos-footer">
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Save</Neos.Fusion.Form:Button>
+            </div>
+
+        </Neos.Fusion.Form:Form>
+    `
+}

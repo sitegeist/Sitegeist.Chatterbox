@@ -2,10 +2,18 @@ privilegeTargets:
   'Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege':
     'Sitegeist.Kaleidoscope:DummyImage':
       matcher: 'method(Sitegeist\Chatterbox\Controller\ChatController->(start|messages|postMessage)Action())'
-
+  'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
+    'Sitegeist.Chatterbox:ManageAssistants':
+      matcher: 'management/chatterbox'
 roles:
   'Neos.Flow:Everybody':
     privileges:
       -
         privilegeTarget: 'Sitegeist.Kaleidoscope:DummyImage'
+        permission: GRANT
+
+  'Neos.Neos:Administrator':
+    privileges:
+      -
+        privilegeTarget: 'Sitegeist.Chatterbox:ManageAssistants'
         permission: GRANT
