@@ -6,6 +6,9 @@ Sitegeist.Chatterbox.AssistantModuleController.index = Sitegeist.Chatterbox:Assi
 Sitegeist.Chatterbox.AssistantModuleController.edit = Sitegeist.Chatterbox:Assistant.Edit
 Sitegeist.Chatterbox.AssistantModuleController.new = Sitegeist.Chatterbox:Assistant.New
 
+Sitegeist.Chatterbox.AssistantModuleController.newThread = Sitegeist.Chatterbox:Assistant.NewThread
+Sitegeist.Chatterbox.AssistantModuleController.showThread = Sitegeist.Chatterbox:Assistant.ShowThread
+
 prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component) {
     renderer = afx`
         <legend>Available assistants</legend>
@@ -23,8 +26,11 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
                     <td>{assistant.name}</td>
                     <td>{assistant.description}</td>
                     <td class="neos-priority1 neos-aCenter">
-                        <Neos.Fusion:Link.Action href.action="edit"  href.arguments.assistantId={assistant.id}>
+                        <Neos.Fusion:Link.Action href.action="edit" href.arguments.assistantId={assistant.id} class="neos-button">
                             <i class="fas fa-pencil-alt icon-white"></i>
+                        </Neos.Fusion:Link.Action>
+                        <Neos.Fusion:Link.Action href.action="newThread" href.arguments.assistantId={assistant.id} class="neos-button">
+                            <i class="fas fa-comments icon-white"></i>
                         </Neos.Fusion:Link.Action>
                     </td>
                 </tr>
@@ -96,6 +102,56 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
                 <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Save</Neos.Fusion.Form:Button>
             </div>
 
+        </Neos.Fusion.Form:Form>
+    `
+}
+
+prototype(Sitegeist.Chatterbox:Assistant.NewThread) < prototype(Neos.Fusion:Component) {
+    renderer = afx`
+        <legend>Create new assistant</legend>
+        <Neos.Fusion.Form:Form
+            form.target.action="createThread"
+        >
+            <Neos.Fusion.Form:Hidden field.name="assistantId" field.value={assistantId} />
+            <div class="neos-control-group">
+                <label class="neos-control-label">Message</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Input field.name="message" attributes.class="neos-span12" />
+                </div>
+            </div>
+            <div class="neos-footer">
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Create</Neos.Fusion.Form:Button>
+            </div>
+        </Neos.Fusion.Form:Form>
+    `
+}
+
+prototype(Sitegeist.Chatterbox:Assistant.ShowThread) < prototype(Neos.Fusion:Component) {
+    renderer = afx`
+        <legend>Thread {thread.id}</legend>
+        <ul>
+        <Neos.Fusion:Loop items={messages} itemName="message">
+            <li @if={message.type == 'text'}>
+                {message.content.text}
+            </li>
+        </Neos.Fusion:Loop>
+        </ul>
+
+        <Neos.Fusion.Form:Form
+            form.target.action="addThreadMessage"
+        >
+            <Neos.Fusion.Form:Hidden field.name="assistantId" field.value={assistantId} />
+            <div class="neos-control-group">
+                <label class="neos-control-label">Message</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Input field.name="message" attributes.class="neos-span12" />
+                </div>
+            </div>
+            <div class="neos-footer">
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Create</Neos.Fusion.Form:Button>
+            </div>
         </Neos.Fusion.Form:Form>
     `
 }

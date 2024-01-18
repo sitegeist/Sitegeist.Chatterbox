@@ -8,7 +8,9 @@ use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
 use OpenAI\Client;
 use OpenAI\Responses\Assistants\AssistantResponse;
+use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
+use Sitegeist\Chatterbox\Domain\MessageRecord;
 
 class AssistantModuleController extends  AbstractModuleController
 {
@@ -17,7 +19,7 @@ class AssistantModuleController extends  AbstractModuleController
     #[Flow\Inject]
     protected Client $client;
 
-    public function indexAction():void
+    public function indexAction(): void
     {
         $assistants = array_map(
             fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse),
@@ -27,27 +29,59 @@ class AssistantModuleController extends  AbstractModuleController
         $this->view->assign('assistants', $assistants);
     }
 
-    public function editAction(string $assistantId):void
+    public function editAction(string $assistantId): void
     {
         $assistantResponse = $this->client->assistants()->retrieve($assistantId);
         $this->view->assign('assistant', AssistantRecord::fromAssistantResponse($assistantResponse));
     }
 
-    public function updateAction(AssistantRecord $assistant):void
+    public function updateAction(AssistantRecord $assistant): void
     {
         $this->client->assistants()->modify($assistant->id, ['name' => $assistant->name, 'description' => $assistant->description, 'instructions' => $assistant->instructions]);
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
         $this->redirect('index');
     }
 
-    public function newAction():void
+    public function newAction(): void
     {
     }
 
-    public function createAction(string $name):void
+    public function createAction(string $name): void
     {
         $assistantResponse = $this->client->assistants()->create(['name' => $name, 'model' => 'gpt-4-1106-preview']);
         $this->redirect('edit', null, null, ['assistantId' => $assistantResponse->id]);
     }
 
+    public function newThreadAction(string $assistantId): void
+    {
+        $this->view->assign('assistantId', $assistantId);
+    }
+
+    public function createThreadAction(string $assistantId, string $message): void
+    {
+        $thread = $this->client->threads()->createAndRun(['assistant_id' => $assistantId, "thread"=> ['messages' => [['role' => 'user', 'content' => $message]]]]);
+        $this->redirect('showThread', null, null, ['threadId' => $thread->threadId, 'runId' => $thread->id]);
+    }
+
+    public function addThreadMessage(string $threadId, string $message): void
+    {
+        $thread = $this->client->threads()->retrieve($threadId);
+        $this->view->assign('showThread', $thread);
+    }
+
+    public function showThreadAction(string $threadId, string $runId): void
+    {
+        $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
+        while ($thread->status !== 'completed') {
+            sleep (1);
+            $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
+        }
+
+        $messages = array_map(
+            fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
+            $this->client->threads()->messages()->list($threadId)->data
+        );
+
+        $this->view->assign('messages', $messages);
+    }
 }
