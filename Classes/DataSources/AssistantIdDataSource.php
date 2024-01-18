@@ -7,16 +7,15 @@ namespace Sitegeist\Chatterbox\DataSources;
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Neos\Service\DataSource\AbstractDataSource;
-use OpenAi\Client;
+use OpenAI\Contracts\ClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
-use Psr\Http\Client\ClientInterface;
 
 class AssistantIdDataSource extends AbstractDataSource
 {
     protected static $identifier = 'Sitegeist.Chatterbox:AssistantId';
 
     public function __construct(
-        private readonly Client $client
+        private readonly ClientContract $client
     ) {
     }
 

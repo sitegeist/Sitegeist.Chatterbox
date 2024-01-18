@@ -5,7 +5,8 @@
     "license": "GPL-3.0-or-later",
     "require": {
         "neos/neos": "*",
-        "sitegeist/flow-openaiclientfactory": "*"
+        "sitegeist/flow-openaiclientfactory": "dev-main",
+        "symfony/http-client": "^6.4"
     },
     "require-dev": {
         "phpstan/phpstan": "~1.10.50",
@@ -31,6 +32,12 @@
         "allow-plugins": {
             "neos/composer-plugin": true,
             "php-http/discovery": true
+        }
+    },
+    "repositories": {
+        "clientFactory": {
+            "type": "vcs",
+            "url": "https://github.com/sitegeist/Sitegeist.Flow.OpenAiClientFactory.git"
         }
     }
 }

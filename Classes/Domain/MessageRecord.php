@@ -1,13 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
 use OpenAI\Responses\Assistants\AssistantResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
+use Neos\Flow\Annotations as Flow;
+use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentImageFileObject;
+use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 
-class MessageRecord
+#[Flow\Proxy(false)]
+final class MessageRecord
 {
+    /**
+     * @param array<int, ThreadMessageResponseContentImageFileObject|ThreadMessageResponseContentTextObject> $content
+     */
     public function __construct(
         public readonly string $id,
         public readonly string $role,
@@ -15,9 +23,9 @@ class MessageRecord
     ) {
     }
 
-    public static function fromThreadMessageResponse(ThreadMessageResponse $response): static
+    public static function fromThreadMessageResponse(ThreadMessageResponse $response): self
     {
-        return new static(
+        return new self(
             $response->id,
             $response->role,
             $response->content

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Controller;
@@ -7,17 +8,18 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
 use OpenAI\Client;
+use OpenAI\Contracts\ClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 
-class AssistantModuleController extends  AbstractModuleController
+class AssistantModuleController extends AbstractModuleController
 {
     protected $defaultViewObjectName = FusionView::class;
 
     #[Flow\Inject]
-    protected Client $client;
+    protected ClientContract $client;
 
     public function indexAction(): void
     {
@@ -59,7 +61,7 @@ class AssistantModuleController extends  AbstractModuleController
 
     public function createThreadAction(string $assistantId, string $message): void
     {
-        $runResponse = $this->client->threads()->createAndRun(['assistant_id' => $assistantId, "thread"=> ['messages' => [['role' => 'user', 'content' => $message]]]]);
+        $runResponse = $this->client->threads()->createAndRun(['assistant_id' => $assistantId, "thread" => ['messages' => [['role' => 'user', 'content' => $message]]]]);
         $this->waitForRun($runResponse->threadId, $runResponse->id);
         $this->redirect(actionName: 'showThread', arguments: ['threadId' => $runResponse->threadId, 'assistantId' => $assistantId]);
     }
@@ -92,7 +94,7 @@ class AssistantModuleController extends  AbstractModuleController
     {
         $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         while ($thread->status !== 'completed') {
-            sleep (5);
+            sleep(5);
             $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         }
     }
