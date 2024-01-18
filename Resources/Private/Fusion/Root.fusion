@@ -108,7 +108,7 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
 
 prototype(Sitegeist.Chatterbox:Assistant.NewThread) < prototype(Neos.Fusion:Component) {
     renderer = afx`
-        <legend>Create new assistant</legend>
+        <legend>Create new thread</legend>
         <Neos.Fusion.Form:Form
             form.target.action="createThread"
         >
@@ -130,15 +130,20 @@ prototype(Sitegeist.Chatterbox:Assistant.NewThread) < prototype(Neos.Fusion:Comp
 prototype(Sitegeist.Chatterbox:Assistant.ShowThread) < prototype(Neos.Fusion:Component) {
     renderer = afx`
         <legend>Thread {threadId}</legend>
-        <ul>
+
         <Neos.Fusion:Loop items={messages} itemName="message">
             <Neos.Fusion:Loop items={message.content} itemName="messageContent">
-            <li @if={messageContent.type == 'text'}>
-                {messageContent.text.value}
-            </li>
+            <Neos.Fusion:Fragment @if={messageContent.type == 'text'}>
+                <div style={['margin: 20px 0;', (message.role == 'user') ? 'padding-left:0px;' : 'padding-left:50px;']}>
+                    <p>{message.role}</p>
+                    <span style={['min-width: 460px; padding:10px; border-radius: 10px; display:inline-block;', (message.role == 'user') ? 'background-color: #00b5ff;' : 'background-color: grey;']}>
+                        <pre>{messageContent.text.value}</pre>
+                    </span>
+                    <br/>
+                </div>
+            </Neos.Fusion:Fragment>
             </Neos.Fusion:Loop>
         </Neos.Fusion:Loop>
-        </ul>
 
         <Neos.Fusion.Form:Form
             form.target.action="addThreadMessage"

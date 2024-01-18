@@ -74,9 +74,11 @@ class AssistantModuleController extends  AbstractModuleController
 
     public function showThreadAction(string $threadId, string $assistantId): void
     {
+        $data = $this->client->threads()->messages()->list($threadId)->data;
+
         $messages = array_reverse(array_map(
             fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
-            $this->client->threads()->messages()->list($threadId)->data
+            $data
         ));
 
         $this->view->assignMultiple([
@@ -90,7 +92,7 @@ class AssistantModuleController extends  AbstractModuleController
     {
         $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         while ($thread->status !== 'completed') {
-            sleep (1);
+            sleep (5);
             $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         }
     }
