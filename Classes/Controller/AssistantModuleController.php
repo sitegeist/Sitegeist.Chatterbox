@@ -59,29 +59,39 @@ class AssistantModuleController extends  AbstractModuleController
 
     public function createThreadAction(string $assistantId, string $message): void
     {
-        $thread = $this->client->threads()->createAndRun(['assistant_id' => $assistantId, "thread"=> ['messages' => [['role' => 'user', 'content' => $message]]]]);
-        $this->redirect('showThread', null, null, ['threadId' => $thread->threadId, 'runId' => $thread->id]);
+        $runResponse = $this->client->threads()->createAndRun(['assistant_id' => $assistantId, "thread"=> ['messages' => [['role' => 'user', 'content' => $message]]]]);
+        $this->waitForRun($runResponse->threadId, $runResponse->id);
+        $this->redirect(actionName: 'showThread', arguments: ['threadId' => $runResponse->threadId, 'assistantId' => $assistantId]);
     }
 
-    public function addThreadMessage(string $threadId, string $message): void
+    public function addThreadMessageAction(string $threadId, string $assistantId, string $message): void
     {
-        $thread = $this->client->threads()->retrieve($threadId);
-        $this->view->assign('showThread', $thread);
+        $this->client->threads()->messages()->create($threadId, ['role' => 'user', 'content' => $message]);
+        $runResponse = $this->client->threads()->runs()->create($threadId, ['assistant_id' => $assistantId]);
+        $this->waitForRun($threadId, $runResponse->id);
+        $this->redirect(actionName: 'showThread', arguments: ['threadId' => $threadId, 'assistantId' => $assistantId]);
     }
 
-    public function showThreadAction(string $threadId, string $runId): void
+    public function showThreadAction(string $threadId, string $assistantId): void
+    {
+        $messages = array_reverse(array_map(
+            fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
+            $this->client->threads()->messages()->list($threadId)->data
+        ));
+
+        $this->view->assignMultiple([
+            'messages' => $messages,
+            'threadId' => $threadId,
+            'assistantId' => $assistantId,
+        ]);
+    }
+
+    private function waitForRun(string $threadId, string $runId): void
     {
         $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         while ($thread->status !== 'completed') {
             sleep (1);
             $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         }
-
-        $messages = array_map(
-            fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
-            $this->client->threads()->messages()->list($threadId)->data
-        );
-
-        $this->view->assign('messages', $messages);
     }
 }

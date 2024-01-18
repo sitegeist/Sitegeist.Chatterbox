@@ -129,18 +129,21 @@ prototype(Sitegeist.Chatterbox:Assistant.NewThread) < prototype(Neos.Fusion:Comp
 
 prototype(Sitegeist.Chatterbox:Assistant.ShowThread) < prototype(Neos.Fusion:Component) {
     renderer = afx`
-        <legend>Thread {thread.id}</legend>
+        <legend>Thread {threadId}</legend>
         <ul>
         <Neos.Fusion:Loop items={messages} itemName="message">
-            <li @if={message.type == 'text'}>
-                {message.content.text}
+            <Neos.Fusion:Loop items={message.content} itemName="messageContent">
+            <li @if={messageContent.type == 'text'}>
+                {messageContent.text.value}
             </li>
+            </Neos.Fusion:Loop>
         </Neos.Fusion:Loop>
         </ul>
 
         <Neos.Fusion.Form:Form
             form.target.action="addThreadMessage"
         >
+            <Neos.Fusion.Form:Hidden field.name="threadId" field.value={threadId} />
             <Neos.Fusion.Form:Hidden field.name="assistantId" field.value={assistantId} />
             <div class="neos-control-group">
                 <label class="neos-control-label">Message</label>
