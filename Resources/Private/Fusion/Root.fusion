@@ -11,7 +11,7 @@ Sitegeist.Chatterbox.AssistantModuleController.showThread = Sitegeist.Chatterbox
 
 prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component) {
     renderer = afx`
-        <legend>Available assistants</legend>
+        <legend>Available AI-Assistants</legend>
         <table class="neos-table">
             <thead>
                 <tr>
@@ -39,7 +39,7 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
         </table>
 
         <div class="neos-footer">
-            <Neos.Fusion:Link.Action href.action="new" class="neos-button" >Create new assistant</Neos.Fusion:Link.Action>
+            <Neos.Fusion:Link.Action href.action="new" class="neos-button" >Create new AI-Assistant</Neos.Fusion:Link.Action>
         </div>
 
     `
@@ -47,7 +47,7 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
 
 prototype(Sitegeist.Chatterbox:Assistant.New) < prototype(Neos.Fusion:Component) {
     renderer = afx`
-        <legend>Create new assistant</legend>
+        <legend>Create new AI-Assistant</legend>
         <Neos.Fusion.Form:Form
             form.target.action="create"
         >
@@ -68,7 +68,7 @@ prototype(Sitegeist.Chatterbox:Assistant.New) < prototype(Neos.Fusion:Component)
 
 prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component) {
     renderer = afx`
-        <legend>Edit assistant {assistant.name}</legend>
+        <legend>Edit AI-Assistant {assistant.name}</legend>
         <Neos.Fusion.Form:Form
             form.target.action="update"
             form.data.assistant={assistant}
@@ -108,7 +108,7 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
 
 prototype(Sitegeist.Chatterbox:Assistant.NewThread) < prototype(Neos.Fusion:Component) {
     renderer = afx`
-        <legend>Create new thread</legend>
+        <legend>Start a new thread</legend>
         <Neos.Fusion.Form:Form
             form.target.action="createThread"
         >
@@ -121,7 +121,7 @@ prototype(Sitegeist.Chatterbox:Assistant.NewThread) < prototype(Neos.Fusion:Comp
             </div>
             <div class="neos-footer">
                 <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
-                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Create</Neos.Fusion.Form:Button>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Start Thread</Neos.Fusion.Form:Button>
             </div>
         </Neos.Fusion.Form:Form>
     `
@@ -129,7 +129,7 @@ prototype(Sitegeist.Chatterbox:Assistant.NewThread) < prototype(Neos.Fusion:Comp
 
 prototype(Sitegeist.Chatterbox:Assistant.ShowThread) < prototype(Neos.Fusion:Component) {
     renderer = afx`
-        <legend>Thread {threadId}</legend>
+        <legend>Show Thread {threadId}</legend>
 
         <Neos.Fusion:Loop items={messages} itemName="message">
             <Neos.Fusion:Loop items={message.content} itemName="messageContent">
@@ -158,7 +158,7 @@ prototype(Sitegeist.Chatterbox:Assistant.ShowThread) < prototype(Neos.Fusion:Com
             </div>
             <div class="neos-footer">
                 <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
-                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Create</Neos.Fusion.Form:Button>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Post Message</Neos.Fusion.Form:Button>
             </div>
         </Neos.Fusion.Form:Form>
     `

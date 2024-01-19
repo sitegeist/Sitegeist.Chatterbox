@@ -10,8 +10,8 @@ Neos:
       management:
         submodules:
           chatterbox:
-            label: 'Chatterbox Assistants'
-            description: 'Manage Assitants'
+            label: 'Chatterbox AI-Assistants'
+            description: 'Configure and test AI-Assitants'
             icon: 'icon-robot'
             controller: 'Sitegeist\Chatterbox\Controller\AssistantModuleController'
             privilegeTarget: 'Sitegeist.Chatterbox:ManageAssistants'
