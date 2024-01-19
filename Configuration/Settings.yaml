@@ -1,3 +1,9 @@
+Sitegeist:
+  Chatterbox:
+    earmark: "Sitegeist.Chatterbox"
+    tools: []
+    knowledge: []
+
 Neos:
   Flow:
     mvc:

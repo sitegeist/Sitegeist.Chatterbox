@@ -7,8 +7,7 @@ namespace Sitegeist\Chatterbox\Controller;
 use Neos\Flow\Annotations as Flow;
 use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
-use OpenAI\Client;
-use OpenAI\Contracts\ClientContract;
+use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
@@ -18,8 +17,10 @@ class AssistantModuleController extends AbstractModuleController
 {
     protected $defaultViewObjectName = FusionView::class;
 
-    #[Flow\Inject]
-    protected ClientContract $client;
+    public function __construct(
+        private OpenAiClientContract $client
+    ) {
+    }
 
     public function indexAction(): void
     {
