@@ -95,6 +95,11 @@ class AssistantModuleController extends AbstractModuleController
     {
         $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         while ($thread->status !== 'completed') {
+            if ($thread->status === 'in_progress') {
+                if ($thread->tools) {
+                    var_dump($thread->tools);
+                }
+            }
             sleep(5);
             $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
         }
