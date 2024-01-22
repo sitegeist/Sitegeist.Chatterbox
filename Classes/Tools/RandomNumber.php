@@ -10,7 +10,11 @@ use Sitegeist\Chatterbox\Contracts\ToolSpecificationContract;
 
 class RandomNumber implements ToolContract
 {
-    public function __construct(
+    /**
+     * @param string $name
+     * @param mixed[] $options
+     */
+    final public function __construct(
         public readonly string $name,
         public readonly array $options,
     ) {
@@ -40,6 +44,10 @@ class RandomNumber implements ToolContract
         ];
     }
 
+    /**
+     * @param array{min:int, max:int} $parameters
+     * @return array|\JsonSerializable|mixed[]
+     */
     public function execute(array $parameters): array|\JsonSerializable
     {
         return ['number' => rand($parameters['min'], $parameters['max'])];
