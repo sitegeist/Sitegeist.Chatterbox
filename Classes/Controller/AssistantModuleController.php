@@ -10,6 +10,7 @@ use Neos\Neos\Controller\Module\AbstractModuleController;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
+use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\Toolbox;
@@ -20,25 +21,22 @@ class AssistantModuleController extends AbstractModuleController
 
     public function __construct(
         private OpenAiClientContract $client,
-        private Toolbox $toolbox
+        private Toolbox $toolbox,
+        private AssistantDepartment $assistantDepartment,
     ) {
     }
 
     public function indexAction(): void
     {
-        $assistants = array_map(
-            fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse),
-            $this->client->assistants()->list()->data
-        );
-
+        $assistants = $this->assistantDepartment->findAll();
         $this->view->assign('assistants', $assistants);
     }
 
     public function editAction(string $assistantId): void
     {
-        $assistantResponse = $this->client->assistants()->retrieve($assistantId);
+        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
         $this->view->assign('availableTools', $this->toolbox->findAll());
-        $this->view->assign('assistant', AssistantRecord::fromAssistantResponse($assistantResponse));
+        $this->view->assign('assistant', $assistant);
     }
 
     public function initializeUpdateAction(): void
@@ -48,16 +46,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function updateAction(AssistantRecord $assistant): void
     {
-        $metadata = ['selectedTools' => json_encode($assistant->selectedTools), 'selectedFiles' => json_encode($assistant->selectedFiles)];
-        $this->client->assistants()->modify(
-            $assistant->id,
-            [
-                'name' => $assistant->name,
-                'description' => $assistant->description,
-                'instructions' => $assistant->instructions,
-                'metadata' => $metadata
-            ]
-        );
+        $this->assistantDepartment->updateAssistant($assistant);
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
         $this->redirect('index');
     }
@@ -68,7 +57,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function createAction(string $name): void
     {
-        $assistantResponse = $this->client->assistants()->create(['name' => $name, 'model' => 'gpt-4-1106-preview']);
+        $assistantResponse = $this->assistantDepartment->createAssistant($name);
         $this->redirect('edit', null, null, ['assistantId' => $assistantResponse->id]);
     }
 
