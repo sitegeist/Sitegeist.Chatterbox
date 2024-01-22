@@ -10,7 +10,6 @@ use Neos\Flow\Annotations as Flow;
 #[Flow\Proxy(false)]
 final class AssistantRecord
 {
-
     /**
      * @param string[] $selectedTools
      * @param string[] $selectedFiles
