@@ -32,20 +32,24 @@ class RandomNumber implements ToolContract
 
     public function getDescription(): string
     {
-        return "Generate random numbers";
+        return "Generate a random numbers";
     }
 
     public function getParameterSchema(): array
     {
         return [
-            "min" => [
-                "type" => "integer",
-                "description" => "the minimal number"
+            'type' => 'object',
+            'properties' => [
+                "min" => [
+                    "type" => "integer",
+                    "description" => "the minimal number"
+                ],
+                "max" => [
+                    "type" => "integer",
+                    "description" => "the maximal number"
+                ]
             ],
-            "max" => [
-                "type" => "integer",
-                "description" => "the maximal number"
-            ]
+            'required' => ["min", "max"]
         ];
     }
 
@@ -55,6 +59,6 @@ class RandomNumber implements ToolContract
      */
     public function execute(array $parameters): array|\JsonSerializable
     {
-        return ['number' => rand($parameters['min'], $parameters['max'])];
+        return ['number' => rand((int)$parameters['min'], (int)$parameters['max'])];
     }
 }

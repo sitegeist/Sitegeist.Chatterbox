@@ -6,11 +6,13 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
+use Sitegeist\Chatterbox\Tools\ToolContract;
 
 class AssistantDepartment
 {
     public function __construct(
         private OpenAiClientContract $client,
+        private Toolbox $toolbox,
     ) {
     }
 
@@ -38,15 +40,45 @@ class AssistantDepartment
 
     public function updateAssistant(AssistantRecord $assistantRecord): void
     {
-        $metadata = ['selectedTools' => json_encode($assistantRecord->selectedTools), 'selectedFiles' => json_encode($assistantRecord->selectedFiles)];
         $this->client->assistants()->modify(
             $assistantRecord->id,
             [
                 'name' => $assistantRecord->name,
                 'description' => $assistantRecord->description,
                 'instructions' => $assistantRecord->instructions,
-                'metadata' => $metadata
+                'tools' => $this->createToolConfiguration($assistantRecord),
+                'metadata' => $this->createMetadataConfiguration($assistantRecord)
             ]
         );
+    }
+
+    /**
+     * @return mixed[]
+     */
+    private function createMetadataConfiguration(AssistantRecord $assistantRecord): array
+    {
+        return ['selectedTools' => json_encode($assistantRecord->selectedTools), 'selectedFiles' => json_encode($assistantRecord->selectedFiles)];
+    }
+
+    /**
+     * @return mixed[]
+     */
+    private function createToolConfiguration(AssistantRecord $assistantRecord): array
+    {
+        $tools = [];
+        foreach ($assistantRecord->selectedTools as $toolId) {
+            $tool = $this->toolbox->findByName($toolId);
+            if ($tool instanceof ToolContract) {
+                $tools[] = [
+                    'type' => 'function',
+                    'function' => [
+                        'name' => $tool->getName(),
+                        'description' => $tool->getDescription(),
+                        'parameters' => $tool->getParameterSchema(),
+                    ]
+                ];
+            }
+        }
+        return $tools;
     }
 }

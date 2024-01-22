@@ -10,10 +10,14 @@ use Neos\Neos\Controller\Module\AbstractModuleController;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
+use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
+use OpenAI\Responses\Threads\Runs\ThreadRunResponseToolFunction;
+use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\Toolbox;
+use Sitegeist\Chatterbox\Tools\ToolContract;
 
 class AssistantModuleController extends AbstractModuleController
 {
@@ -99,15 +103,25 @@ class AssistantModuleController extends AbstractModuleController
 
     private function waitForRun(string $threadId, string $runId): void
     {
-        $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
-        while ($thread->status !== 'completed') {
-            if ($thread->status === 'in_progress') {
-                if ($thread->tools) {
-                    //var_dump($thread->tools);
+        $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
+        while ($threadRunResponse->status !== 'completed') {
+            if ($threadRunResponse->status === 'requires_action') {
+                if ($threadRunResponse->requiredAction) {
+                    $toolOutputs = [];
+                    foreach ($threadRunResponse->requiredAction->submitToolOutputs->toolCalls as $requiredToolCall) {
+                        if ($requiredToolCall instanceof ThreadRunResponseRequiredActionFunctionToolCall) {
+                            $toolInstance = $this->toolbox->findByName($requiredToolCall->function->name);
+                            if ($toolInstance instanceof ToolContract) {
+                                $toolResult = $toolInstance->execute(json_decode($requiredToolCall->function->arguments, true));
+                                $toolOutputs["tool_outputs"][] = ['tool_call_id' => $requiredToolCall->id, 'output' => json_encode($toolResult)];
+                            }
+                        }
+                    }
+                    $this->client->threads()->runs()->submitToolOutputs($threadId, $runId, $toolOutputs);
                 }
             }
             sleep(5);
-            $thread = $this->client->threads()->runs()->retrieve($threadId, $runId);
+            $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
         }
     }
 }

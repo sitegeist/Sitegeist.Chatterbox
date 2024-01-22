@@ -6,11 +6,16 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use OpenAI\Responses\Assistants\AssistantResponse;
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Responses\Assistants\AssistantResponseToolCodeInterpreter;
+use OpenAI\Responses\Assistants\AssistantResponseToolFunction;
+use OpenAI\Responses\Assistants\AssistantResponseToolRetrieval;
 
 #[Flow\Proxy(false)]
 final class AssistantRecord
 {
     /**
+     * @param mixed[] $tools
+     * @param string[] $metadata
      * @param string[] $selectedTools
      * @param string[] $selectedFiles
      */
@@ -20,6 +25,8 @@ final class AssistantRecord
         public readonly ?string $name,
         public readonly ?string $description,
         public readonly ?string $instructions,
+        public readonly ?array $tools = [],
+        public readonly ?array $metadata = [],
         public readonly array $selectedTools = [],
         public readonly array $selectedFiles = [],
     ) {
@@ -36,6 +43,8 @@ final class AssistantRecord
             $response->name,
             $response->description,
             $response->instructions,
+            array_map(fn(AssistantResponseToolCodeInterpreter|AssistantResponseToolRetrieval|AssistantResponseToolFunction $item) => $item->toArray(), $response->tools),
+            $response->metadata,
             $selectedTools,
             $selectedFiles,
         );
