@@ -97,6 +97,25 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
                 </div>
             </div>
 
+            <div class="neos-control-group">
+                <label class="neos-control-label" >Tools</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Select attributes.rows="20" attributes.class="neos-span12" field.name="assistant[selectedTools]" field.multiple>
+                        <Neos.Fusion:Loop items={availableTools} itemName="tool" >
+                            <Neos.Fusion.Form:Select.Option option.value={tool.name}>{tool.description}</Neos.Fusion.Form:Select.Option>
+                        </Neos.Fusion:Loop>
+                    </Neos.Fusion.Form:Select>
+                </div>
+            </div>
+
+            <div class="neos-control-group">
+                <label class="neos-control-label" >Files</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Select attributes.rows="20" attributes.class="neos-span12" field.name="assistant[selectedFiles]" field.multiple>
+                    </Neos.Fusion.Form:Select>
+                </div>
+            </div>
+
             <div class="neos-footer">
                 <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
                 <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Save</Neos.Fusion.Form:Button>

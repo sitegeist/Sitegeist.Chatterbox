@@ -17,6 +17,8 @@ interface ToolContract
      */
     public static function createFromConfiguration(string $name, array $options): static;
 
+    public function getName(): string;
+
     public function getDescription(): string;
 
     /**

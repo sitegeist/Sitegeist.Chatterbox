@@ -3,7 +3,7 @@ Sitegeist:
     earmark: "Sitegeist.Chatterbox"
     tools:
       random_number:
-        className: \Sitegeist\Chatterbox\Classes\Tools\RandomNumberProvider
+        className: \Sitegeist\Chatterbox\Tools\RandomNumber
         options: []
     knowledge: []
 

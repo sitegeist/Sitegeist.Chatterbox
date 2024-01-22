@@ -12,13 +12,15 @@ use OpenAI\Responses\Assistants\AssistantResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
+use Sitegeist\Chatterbox\Domain\Toolbox;
 
 class AssistantModuleController extends AbstractModuleController
 {
     protected $defaultViewObjectName = FusionView::class;
 
     public function __construct(
-        private OpenAiClientContract $client
+        private OpenAiClientContract $client,
+        private Toolbox $toolbox
     ) {
     }
 
@@ -35,12 +37,27 @@ class AssistantModuleController extends AbstractModuleController
     public function editAction(string $assistantId): void
     {
         $assistantResponse = $this->client->assistants()->retrieve($assistantId);
+        $this->view->assign('availableTools', $this->toolbox->findAll());
         $this->view->assign('assistant', AssistantRecord::fromAssistantResponse($assistantResponse));
+    }
+
+    public function initializeUpdateAction(): void
+    {
+        $this->arguments['assistant']->getPropertyMappingConfiguration()->allowAllProperties();
     }
 
     public function updateAction(AssistantRecord $assistant): void
     {
-        $this->client->assistants()->modify($assistant->id, ['name' => $assistant->name, 'description' => $assistant->description, 'instructions' => $assistant->instructions]);
+        $metadata = ['selectedTools' => json_encode($assistant->selectedTools), 'selectedFiles' => json_encode($assistant->selectedFiles)];
+        $this->client->assistants()->modify(
+            $assistant->id,
+            [
+                'name' => $assistant->name,
+                'description' => $assistant->description,
+                'instructions' => $assistant->instructions,
+                'metadata' => $metadata
+            ]
+        );
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
         $this->redirect('index');
     }
@@ -97,7 +114,7 @@ class AssistantModuleController extends AbstractModuleController
         while ($thread->status !== 'completed') {
             if ($thread->status === 'in_progress') {
                 if ($thread->tools) {
-                    var_dump($thread->tools);
+                    //var_dump($thread->tools);
                 }
             }
             sleep(5);

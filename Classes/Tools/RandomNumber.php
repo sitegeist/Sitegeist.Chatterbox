@@ -25,6 +25,11 @@ class RandomNumber implements ToolContract
         return new static($name, $options);
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     public function getDescription(): string
     {
         return "Generate random numbers";
