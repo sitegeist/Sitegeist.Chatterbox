@@ -26,7 +26,7 @@ class AssistantCommandController extends CommandController
 
     public function upskillAllCommand(): void
     {
-        foreach ($this->assistantDepartment->findAll() as $assistant) {
+        foreach ($this->assistantDepartment->findAllRecords() as $assistant) {
             $this->academy->upskillAssistant($assistant);
         }
     }

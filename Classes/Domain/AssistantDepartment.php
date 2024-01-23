@@ -6,7 +6,9 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
+use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
+use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 class AssistantDepartment
@@ -14,12 +16,33 @@ class AssistantDepartment
     public function __construct(
         private readonly OpenAiClientContract $client,
         private readonly Toolbox $toolbox,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
-    public function findAll(): AssistantCollection
+    public function findAssistantById(string $assistantId): ?Assistant
     {
-        return new AssistantCollection(
+        $assistantRecord = $this->findAssistantRecordById($assistantId);
+        if (!$assistantRecord) {
+            return null;
+        }
+
+        return new Assistant(
+            $assistantId,
+            new ToolCollection(...array_filter(
+                array_map(
+                    fn (string $toolName): ?ToolContract => $this->toolbox->findByName($toolName),
+                    $assistantRecord->selectedTools
+                )
+            )),
+            $this->client,
+            $this->logger
+        );
+    }
+
+    public function findAllRecords(): AssistantRecordCollection
+    {
+        return new AssistantRecordCollection(
             ...array_map(
                 fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse),
                 $this->client->assistants()->list()->data
@@ -33,7 +56,7 @@ class AssistantDepartment
         return AssistantRecord::fromAssistantResponse($assistantResponse);
     }
 
-    public function findAssistantById(string $assistantId): AssistantRecord
+    public function findAssistantRecordById(string $assistantId): AssistantRecord
     {
         $assistantResponse = $this->client->assistants()->retrieve($assistantId);
         return AssistantRecord::fromAssistantResponse($assistantResponse);

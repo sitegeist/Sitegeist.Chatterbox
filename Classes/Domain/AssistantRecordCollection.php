@@ -7,7 +7,7 @@ namespace Sitegeist\Chatterbox\Domain;
 /**
  * @implements \IteratorAggregate<int, AssistantRecord>
  */
-class AssistantCollection implements \IteratorAggregate
+class AssistantRecordCollection implements \IteratorAggregate
 {
     /**
      * @var AssistantRecord[]

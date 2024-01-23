@@ -2,8 +2,6 @@
 
 namespace Sitegeist\Chatterbox\Domain\Tools;
 
-use Exception;
-use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 use Traversable;
 
 /**
@@ -26,5 +24,16 @@ class ToolCollection implements \IteratorAggregate
     public function getIterator(): Traversable
     {
         yield from $this->items;
+    }
+
+    public function getToolByName(string $toolName): ?ToolContract
+    {
+        foreach ($this->items as $tool) {
+            if ($tool->getName() === $toolName) {
+                return $tool;
+            }
+        }
+
+        return null;
     }
 }

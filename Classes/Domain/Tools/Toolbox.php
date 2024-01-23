@@ -21,7 +21,7 @@ class Toolbox
         foreach ($this->toolConfig as $name => $config) {
             $tools[] = $this->instantiateTool($name);
         }
-        return new ToolCollection(...$tools);
+        return new ToolCollection(...array_filter($tools));
     }
 
     public function findByName(string $name): ?ToolContract
@@ -29,8 +29,11 @@ class Toolbox
         return $this->instantiateTool($name);
     }
 
-    private function instantiateTool(string $name): ToolContract
+    private function instantiateTool(string $name): ?ToolContract
     {
+        if (!array_key_exists($name, $this->toolConfig)) {
+            return null;
+        }
         $class = $this->toolConfig[$name]['className'];
         $description = $this->toolConfig[$name]['description'] ?? $name;
         $options = $this->toolConfig[$name]['options'] ?? [];

@@ -22,7 +22,7 @@ class Academy
 
     public function upskillAssistant(string|AssistantRecord $assistant): void
     {
-        $assistant = is_string($assistant) ? $this->assistantDepartment->findAssistantById($assistant) : $assistant;
+        $assistant = is_string($assistant) ? $this->assistantDepartment->findAssistantRecordById($assistant) : $assistant;
         $fileListResponse = $this->client->files()->list();
         $fileIds = [];
         foreach ($assistant->selectedSourcesOfKnowledge as $knowledgeSourceName) {
@@ -62,7 +62,7 @@ class Academy
         $filesListResponse = $this->client->files()->list();
 
         $usedFileIds = [];
-        foreach ($this->assistantDepartment->findAll() as $assistant) {
+        foreach ($this->assistantDepartment->findAllRecords() as $assistant) {
             $usedFileIds = array_merge($usedFileIds, $assistant->fileIds);
         }
 
