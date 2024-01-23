@@ -14,12 +14,18 @@ use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
 #[Flow\Proxy(false)]
 final class ContentRepositorySourceDesignator
 {
+    /**
+     * @param array<string,string> $dimensionValues
+     */
     private function __construct(
         private readonly NodeAggregateIdentifier|NodePath $root,
         private readonly array $dimensionValues,
     ) {
     }
 
+    /**
+     * @param array<string,mixed> $values
+     */
     public static function createFromConfiguration(array $values): self
     {
         $rootDesignator = $values['root'];

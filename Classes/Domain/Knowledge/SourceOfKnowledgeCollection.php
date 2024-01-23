@@ -20,9 +20,9 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
     }
 
     /**
-     * @return iterable<SourceOfKnowledgeContract>
+     * @return \Traversable<SourceOfKnowledgeContract>
      */
-    public function getIterator(): iterable
+    public function getIterator(): \Traversable
     {
         yield from $this->items;
     }

@@ -10,7 +10,7 @@ use Sitegeist\Chatterbox\Tools\ToolContract;
 class Toolbox
 {
     /**
-     * @var array<string,array{className:string, options:mixed[]}>
+     * @var array<string,array{className:string, description:string, options:mixed[]}>
      */
     #[Flow\InjectConfiguration(path:'tools')]
     protected array $toolConfig;
@@ -35,7 +35,7 @@ class Toolbox
         $description = $this->toolConfig[$name]['description'] ?? $name;
         $options = $this->toolConfig[$name]['options'] ?? [];
         if (class_exists($class) && is_a($class, ToolContract::class, true)) {
-            return $class::createFromConfiguration($name, $description,$options);
+            return $class::createFromConfiguration($name, $description, $options);
         } else {
             throw new \Exception('Class ' . $class . ' does not exist or does not implement the ToolContract');
         }
