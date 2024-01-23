@@ -8,6 +8,7 @@
     '@package':    'Sitegeist.Chatterbox'
     '@controller': 'Chat'
     '@action': 'start'
+    '@format': 'json'
   httpMethods: ['POST']
 
 -
@@ -16,7 +17,8 @@
   defaults:
     '@package':    'Sitegeist.Chatterbox'
     '@controller': 'Chat'
-    '@action': 'hostory'
+    '@action': 'history'
+    '@format': 'json'
   httpMethods: ['GET']
 
 - name: 'Chatterbox Chat'
@@ -25,4 +27,5 @@
     '@package': 'Sitegeist.Chatterbox'
     '@controller': 'Chat'
     '@action': 'post'
+    '@format': 'json'
   httpMethods: ['POST']
