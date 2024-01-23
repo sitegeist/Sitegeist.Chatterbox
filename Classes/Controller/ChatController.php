@@ -31,10 +31,12 @@ class ChatController extends ActionController
     public function startAction(string $assistantId, string $message): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $threadId = $assistant->startThread($message);
+        $threadId = $assistant->startThread();
+        $metadata = $assistant->continueThread($threadId, $message);
 
         $this->view->assign('value', [
-           'threadId' => $threadId
+            'threadId' => $threadId,
+            'metadata' => $metadata
         ]);
     }
 
@@ -61,7 +63,7 @@ class ChatController extends ActionController
     public function postAction(string $assistantId, string $threadId, string $message): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $assistant->continueThread($threadId, $message);
+        $metadata = $assistant->continueThread($threadId, $message);
 
         $messageResponse = $this->client->threads()->messages()->list($threadId)->data;
         /** @var ?ThreadMessageResponse $lastMessage */
@@ -69,7 +71,8 @@ class ChatController extends ActionController
 
         $this->view->assign('value', [
             'bot' => true,
-            'message' => $lastMessage?->content ?: ''
+            'message' => $lastMessage?->content ?: '',
+            'metadata' => $metadata
         ]);
     }
 }

@@ -8,6 +8,7 @@ Sitegeist.Chatterbox.AssistantModuleController.new = Sitegeist.Chatterbox:Assist
 
 Sitegeist.Chatterbox.AssistantModuleController.newThread = Sitegeist.Chatterbox:Assistant.NewThread
 Sitegeist.Chatterbox.AssistantModuleController.showThread = Sitegeist.Chatterbox:Assistant.ShowThread
+Sitegeist.Chatterbox.AssistantModuleController.addThreadMessage = Sitegeist.Chatterbox:Assistant.ShowThread
 
 prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component) {
     renderer = afx`
@@ -198,6 +199,8 @@ prototype(Sitegeist.Chatterbox:Assistant.ShowThread) < prototype(Neos.Fusion:Com
             </div>
             <pre @if={message.metadata}>{Json.stringify(message.metadata)}</pre>
         </Neos.Fusion:Loop>
+
+        <pre @if={metadata}>{Json.stringify(metadata)}</pre>
 
         <Neos.Fusion.Form:Form
             form.target.action="addThreadMessage"

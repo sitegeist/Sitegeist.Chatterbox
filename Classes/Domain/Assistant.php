@@ -23,7 +23,7 @@ final class Assistant
     ) {
     }
 
-    public function startThread(string $message): string
+    public function startThread(): string
     {
         $runResponse = $this->client->threads()->createAndRun([
             'assistant_id' => $this->id,
@@ -36,10 +36,6 @@ final class Assistant
                             'role' => 'system'
                         ]
                     ],
-                    [
-                        'role' => 'user',
-                        'content' => $message
-                    ]
                 ]
             ]
         ]);
@@ -48,7 +44,10 @@ final class Assistant
         return $runResponse->threadId;
     }
 
-    public function continueThread(string $threadId, string $message): void
+    /**
+     * @return array<int,mixed>
+     */
+    public function continueThread(string $threadId, string $message): array
     {
         $this->client->threads()->messages()->create(
             $threadId,
@@ -58,10 +57,13 @@ final class Assistant
             ]
         );
         $runResponse = $this->client->threads()->runs()->create($threadId, ['assistant_id' => $this->id]);
-        $this->completeRun($threadId, $runResponse->id);
+        return $this->completeRun($threadId, $runResponse->id);
     }
 
-    private function completeRun(string $threadId, string $runId): void
+    /**
+     * @return array<int,mixed>
+     */
+    private function completeRun(string $threadId, string $runId): array
     {
         $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
         $combinedMetadata = [];
@@ -69,7 +71,7 @@ final class Assistant
             if ($threadRunResponse->status === 'requires_action') {
                 $submitToolOutputs = $threadRunResponse->requiredAction?->submitToolOutputs;
                 if ($submitToolOutputs instanceof ThreadRunResponseRequiredActionSubmitToolOutputs) {
-                    $this->logger->info("chatbot tool calls", $submitToolOutputs->toArray());
+                    $this->logger?->info("chatbot tool calls", $submitToolOutputs->toArray());
                     $toolOutputs = [];
                     foreach ($submitToolOutputs->toolCalls as $requiredToolCall) {
                         if ($requiredToolCall instanceof ThreadRunResponseRequiredActionFunctionToolCall) {
@@ -77,11 +79,16 @@ final class Assistant
                             if ($toolInstance instanceof ToolContract) {
                                 $toolResult = $toolInstance->execute(json_decode($requiredToolCall->function->arguments, true));
                                 $toolOutputs["tool_outputs"][] = ['tool_call_id' => $requiredToolCall->id, 'output' => json_encode($toolResult->getData())];
-                                $combinedMetadata[] = ['tool_call_id' => $requiredToolCall->id, 'data' => $toolResult->getData(), 'metadata' => $toolResult->getMetadata()];
+                                $combinedMetadata[] = [
+                                    'tool_name' => $requiredToolCall->function->name,
+                                    'tool_call_id' => $requiredToolCall->id,
+                                    'data' => $toolResult->getData(),
+                                    'metadata' => $toolResult->getMetadata()
+                                ];
                             }
                         }
                     }
-                    $this->logger->info("chatbot tool submit", $toolOutputs);
+                    $this->logger?->info("chatbot tool submit", $toolOutputs);
                     if (!empty($toolOutputs)) {
                         $this->client->threads()->runs()->submitToolOutputs($threadId, $runId, $toolOutputs);
                     }
@@ -90,7 +97,9 @@ final class Assistant
             sleep(1);
             $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
         }
-        $this->logger->info("thread run response", $threadRunResponse->toArray());
+        $this->logger?->info("thread run response", $threadRunResponse->toArray());
+
+        return $combinedMetadata;
 
 //        // add tool metadata
 //        if ($combinedMetadata) {

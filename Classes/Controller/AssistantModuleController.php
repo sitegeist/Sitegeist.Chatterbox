@@ -75,20 +75,40 @@ class AssistantModuleController extends AbstractModuleController
     public function createThreadAction(string $assistantId, string $message): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $threadId = $assistant->startThread($message);
-
-        $this->redirect(actionName: 'showThread', arguments: ['threadId' => $threadId, 'assistantId' => $assistantId]);
+        $threadId = $assistant->startThread();
+        $this->forward('addThreadMessage', arguments: [
+            'threadId' => $threadId,
+            'assistantId' => $assistantId,
+            'message' => $message,
+        ]);
     }
 
     public function addThreadMessageAction(string $threadId, string $assistantId, string $message): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $assistant->continueThread($threadId, $message);
+        $metadata = $assistant->continueThread($threadId, $message);
 
-        $this->redirect(actionName: 'showThread', arguments: ['threadId' => $threadId, 'assistantId' => $assistantId]);
+        $this->view->assignMultiple([
+            'messages' => $this->fetchMessages($threadId),
+            'threadId' => $threadId,
+            'assistantId' => $assistantId,
+            'metadata' => $metadata
+        ]);
     }
 
     public function showThreadAction(string $threadId, string $assistantId): void
+    {
+        $this->view->assignMultiple([
+            'messages' => $this->fetchMessages($threadId),
+            'threadId' => $threadId,
+            'assistantId' => $assistantId,
+        ]);
+    }
+
+    /**
+     * @return array<MessageRecord>
+     */
+    private function fetchMessages(string $threadId): array
     {
         $threadMessageResponses = $this->client->threads()->messages()->list($threadId)->data;
 
@@ -97,17 +117,11 @@ class AssistantModuleController extends AbstractModuleController
             fn(ThreadMessageResponse $threadMessageResponse) => ($threadMessageResponse->metadata['role'] ?? null) !== 'system'
         );
 
-        $messages = array_reverse(
+        return array_reverse(
             array_map(
                 fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
                 $threadMessageResponsesFiltered
             ),
         );
-
-        $this->view->assignMultiple([
-            'messages' => $messages,
-            'threadId' => $threadId,
-            'assistantId' => $assistantId,
-        ]);
     }
 }
