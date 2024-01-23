@@ -32,9 +32,10 @@ class Toolbox
     private function instantiateTool(string $name): ToolContract
     {
         $class = $this->toolConfig[$name]['className'];
+        $description = $this->toolConfig[$name]['description'] ?? $name;
         $options = $this->toolConfig[$name]['options'] ?? [];
         if (class_exists($class) && is_a($class, ToolContract::class, true)) {
-            return $class::createFromConfiguration($name, $options);
+            return $class::createFromConfiguration($name, $description,$options);
         } else {
             throw new \Exception('Class ' . $class . ' does not exist or does not implement the ToolContract');
         }
