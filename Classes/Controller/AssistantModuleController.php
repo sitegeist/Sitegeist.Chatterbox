@@ -15,6 +15,7 @@ use OpenAI\Responses\Threads\Runs\ThreadRunResponseToolFunction;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
+use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\Toolbox;
 use Sitegeist\Chatterbox\Tools\ToolContract;
@@ -24,9 +25,10 @@ class AssistantModuleController extends AbstractModuleController
     protected $defaultViewObjectName = FusionView::class;
 
     public function __construct(
-        private OpenAiClientContract $client,
-        private Toolbox $toolbox,
-        private AssistantDepartment $assistantDepartment,
+        private readonly OpenAiClientContract $client,
+        private readonly Toolbox $toolbox,
+        private readonly KnowledgePool $knowledgePool,
+        private readonly AssistantDepartment $assistantDepartment,
     ) {
     }
 
@@ -40,6 +42,7 @@ class AssistantModuleController extends AbstractModuleController
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
         $this->view->assign('availableTools', $this->toolbox->findAll());
+        $this->view->assign('availableSourcesOfKnowledge', $this->knowledgePool->findAllSources());
         $this->view->assign('assistant', $assistant);
     }
 

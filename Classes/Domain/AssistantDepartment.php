@@ -57,7 +57,7 @@ class AssistantDepartment
      */
     private function createMetadataConfiguration(AssistantRecord $assistantRecord): array
     {
-        return ['selectedTools' => json_encode($assistantRecord->selectedTools), 'selectedFiles' => json_encode($assistantRecord->selectedFiles)];
+        return ['selectedTools' => json_encode($assistantRecord->selectedTools), 'selectedFiles' => json_encode($assistantRecord->fileIds)];
     }
 
     /**

@@ -17,7 +17,8 @@ final class AssistantRecord
      * @param mixed[] $tools
      * @param string[] $metadata
      * @param string[] $selectedTools
-     * @param string[] $selectedFiles
+     * @param string[] $selectedSourcesOfKnowledge
+     * @param string[] $fileIds
      */
     public function __construct(
         public readonly string $id,
@@ -28,14 +29,15 @@ final class AssistantRecord
         public readonly ?array $tools = [],
         public readonly ?array $metadata = [],
         public readonly array $selectedTools = [],
-        public readonly array $selectedFiles = [],
+        public readonly array $selectedSourcesOfKnowledge = [],
+        public readonly array $fileIds = [],
     ) {
     }
 
     public static function fromAssistantResponse(AssistantResponse $response): self
     {
         $selectedTools = array_key_exists('selectedTools', $response->metadata) ? json_decode($response->metadata['selectedTools'], true) : [];
-        $selectedFiles = array_key_exists('selectedFiles', $response->metadata) ? json_decode($response->metadata['selectedFiles'], true) : [];
+        $selectedSourcesOfKnowledge = array_key_exists('selectedSourcesOfKnowledge', $response->metadata) ? json_decode($response->metadata['selectedSourcesOfKnowledge'], true) : [];
 
         return new self(
             $response->id,
@@ -46,7 +48,8 @@ final class AssistantRecord
             array_map(fn(AssistantResponseToolCodeInterpreter|AssistantResponseToolRetrieval|AssistantResponseToolFunction $item) => $item->toArray(), $response->tools),
             $response->metadata,
             $selectedTools,
-            $selectedFiles,
+            $selectedSourcesOfKnowledge,
+            $response->fileIds,
         );
     }
 }
