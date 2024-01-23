@@ -1,10 +1,7 @@
 Sitegeist:
   Chatterbox:
     earmark: "Sitegeist.Chatterbox"
-    tools:
-      random_number:
-        className: \Sitegeist\Chatterbox\Tools\RandomNumber
-        options: []
+    tools: []
     knowledge: []
 
 Neos:
