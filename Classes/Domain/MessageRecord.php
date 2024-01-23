@@ -20,6 +20,7 @@ final class MessageRecord
         public readonly string $id,
         public readonly string $role,
         public readonly array $content,
+        public readonly array $metadata,
     ) {
     }
 
@@ -28,7 +29,8 @@ final class MessageRecord
         return new self(
             $response->id,
             $response->role,
-            $response->content
+            $response->content,
+            $response->metadata
         );
     }
 }

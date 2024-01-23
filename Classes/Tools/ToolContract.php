@@ -28,7 +28,6 @@ interface ToolContract
 
     /**
      * @param mixed[] $parameters
-     * @return mixed[]
      */
-    public function execute(array $parameters): array|\JsonSerializable;
+    public function execute(array $parameters): ToolResultContract;
 }
