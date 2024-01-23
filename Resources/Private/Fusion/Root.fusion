@@ -109,9 +109,12 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
             </div>
 
             <div class="neos-control-group">
-                <label class="neos-control-label" >Files</label>
+                <label class="neos-control-label" >Sources of knowledge</label>
                 <div class="neos-controls neos-controls-row">
-                    <Neos.Fusion.Form:Select attributes.rows="20" attributes.class="neos-span12" field.name="assistant[selectedFiles]" field.multiple>
+                    <Neos.Fusion.Form:Select attributes.rows="20" attributes.class="neos-span12" field.name="assistant[selectedSourcesOfKnowledge]" field.multiple>
+                        <Neos.Fusion:Loop items={availableSourcesOfKnowledge} itemName="source" >
+                            <Neos.Fusion.Form:Select.Option option.value={source.name}>{source.description}</Neos.Fusion.Form:Select.Option>
+                        </Neos.Fusion:Loop>
                     </Neos.Fusion.Form:Select>
                 </div>
             </div>

@@ -6,22 +6,16 @@ namespace Sitegeist\Chatterbox\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
-use Neos\Flow\Utility\Environment;
-use OpenAI\Contracts\ClientContract as OpenAiClientContract;
+use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
-use Sitegeist\Flow\OpenAiClientFactory\OpenAiClientFactory;
 
 #[Flow\Scope('singleton')]
 class KnowledgeCommandController extends CommandController
 {
-    private readonly OpenAiClientContract $client;
-
     public function __construct(
         private readonly KnowledgePool $knowledgePool,
-        private readonly Environment $environment,
-        OpenAiClientFactory $clientFactory
+        private readonly Academy $academy,
     ) {
-        $this->client = $clientFactory->createClient();
         parent::__construct();
     }
 
@@ -31,19 +25,19 @@ class KnowledgeCommandController extends CommandController
         $sources = $this->knowledgePool->findAllSources();
         $this->output->progressStart(count($sources));
         foreach ($sources as $sourceOfKnowledge) {
-            $content = $sourceOfKnowledge->getContent();
-
-            $path = $this->environment->getPathToTemporaryDirectory() . '/' . $sourceOfKnowledge->getName() . '-' . time() . '.jsonl';
-            \file_put_contents($path, (string)$content);
-
-            $this->client->files()->upload([
-                'file' => fopen($path, 'r'),
-                'purpose' => 'assistants'
-            ]);
-            \unlink($path);
+            $this->academy->updateSourceOfKnowledge($sourceOfKnowledge);
             $this->output->progressAdvance();
         }
         $this->output->progressFinish();
         $this->outputLine('');
+        $this->outputLine('Done');
+    }
+
+    public function cleanPoolCommand(): void
+    {
+        $this->outputLine('Cleaning knowledge pool');
+        $this->academy->cleanKnowledgePool();
+        $this->outputLine('');
+        $this->outputLine('Done');
     }
 }

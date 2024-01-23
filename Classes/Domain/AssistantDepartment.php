@@ -11,8 +11,8 @@ use Sitegeist\Chatterbox\Tools\ToolContract;
 class AssistantDepartment
 {
     public function __construct(
-        private OpenAiClientContract $client,
-        private Toolbox $toolbox,
+        private readonly OpenAiClientContract $client,
+        private readonly Toolbox $toolbox,
     ) {
     }
 
@@ -57,7 +57,10 @@ class AssistantDepartment
      */
     private function createMetadataConfiguration(AssistantRecord $assistantRecord): array
     {
-        return ['selectedTools' => json_encode($assistantRecord->selectedTools), 'selectedFiles' => json_encode($assistantRecord->fileIds)];
+        return [
+            'selectedTools' => json_encode($assistantRecord->selectedTools),
+            'selectedSourcesOfKnowledge' => json_encode($assistantRecord->selectedSourcesOfKnowledge)
+        ];
     }
 
     /**
