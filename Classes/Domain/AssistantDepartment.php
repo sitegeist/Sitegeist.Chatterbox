@@ -69,6 +69,11 @@ class AssistantDepartment
     private function createToolConfiguration(AssistantRecord $assistantRecord): array
     {
         $tools = [];
+        if (!empty($assistantRecord->selectedSourcesOfKnowledge)) {
+            $tools[] = [
+                'type' => 'retrieval'
+            ];
+        }
         foreach ($assistantRecord->selectedTools as $toolId) {
             $tool = $this->toolbox->findByName($toolId);
             if ($tool instanceof ToolContract) {

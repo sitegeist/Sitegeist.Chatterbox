@@ -15,6 +15,7 @@ use OpenAI\Responses\Threads\Runs\ThreadRunResponseToolFunction;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
+use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\Toolbox;
@@ -29,6 +30,7 @@ class AssistantModuleController extends AbstractModuleController
         private readonly Toolbox $toolbox,
         private readonly KnowledgePool $knowledgePool,
         private readonly AssistantDepartment $assistantDepartment,
+        private readonly Academy $academy,
     ) {
     }
 
@@ -54,6 +56,7 @@ class AssistantModuleController extends AbstractModuleController
     public function updateAction(AssistantRecord $assistant): void
     {
         $this->assistantDepartment->updateAssistant($assistant);
+        $this->academy->upskillAssistant($assistant);
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
         $this->redirect('index');
     }
