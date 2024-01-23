@@ -6,7 +6,8 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
-use Sitegeist\Chatterbox\Tools\ToolContract;
+use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
+use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 class AssistantDepartment
 {

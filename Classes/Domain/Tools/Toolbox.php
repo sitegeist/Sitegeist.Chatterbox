@@ -1,11 +1,11 @@
 <?php
 
-namespace Sitegeist\Chatterbox\Domain;
+namespace Sitegeist\Chatterbox\Domain\Tools;
 
 use Doctrine\ORM\Tools\Console\Command\ClearCache\CollectionRegionCommand;
 use Neos\Flow\Annotations as Flow;
-use Sitegeist\Chatterbox\Tools\ToolCollection;
-use Sitegeist\Chatterbox\Tools\ToolContract;
+use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
+use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 class Toolbox
 {

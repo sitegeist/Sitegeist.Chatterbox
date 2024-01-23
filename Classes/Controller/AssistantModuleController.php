@@ -12,6 +12,7 @@ use OpenAI\Responses\Assistants\AssistantResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Runs\Steps\ThreadRunStepResponseMessageCreationStepDetails;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
+use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutputs;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseToolFunction;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
@@ -19,8 +20,8 @@ use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
-use Sitegeist\Chatterbox\Domain\Toolbox;
-use Sitegeist\Chatterbox\Tools\ToolContract;
+use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
+use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 class AssistantModuleController extends AbstractModuleController
 {
@@ -111,7 +112,7 @@ class AssistantModuleController extends AbstractModuleController
 
         $messages = array_reverse(
             array_map(
-            fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
+                fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
                 $threadMessageResponsesFiltered
             ),
         );
@@ -129,10 +130,11 @@ class AssistantModuleController extends AbstractModuleController
         $combinedMetadata = [];
         while ($threadRunResponse->status !== 'completed') {
             if ($threadRunResponse->status === 'requires_action') {
-                if ($threadRunResponse->requiredAction?->submitToolOutputs) {
-                    $this->logger->info("chatbot tool calls", $threadRunResponse->requiredAction?->submitToolOutputs->toArray());
+                $submitToolOutputs = $threadRunResponse->requiredAction?->submitToolOutputs;
+                if ($submitToolOutputs instanceof ThreadRunResponseRequiredActionSubmitToolOutputs) {
+                    $this->logger->info("chatbot tool calls", $submitToolOutputs->toArray());
                     $toolOutputs = [];
-                    foreach ($threadRunResponse->requiredAction->submitToolOutputs->toolCalls as $requiredToolCall) {
+                    foreach ($submitToolOutputs->toolCalls as $requiredToolCall) {
                         if ($requiredToolCall instanceof ThreadRunResponseRequiredActionFunctionToolCall) {
                             $toolInstance = $this->toolbox->findByName($requiredToolCall->function->name);
                             if ($toolInstance instanceof ToolContract) {

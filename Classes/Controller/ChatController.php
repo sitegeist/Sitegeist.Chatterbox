@@ -9,8 +9,8 @@ use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
-use Sitegeist\Chatterbox\Domain\Toolbox;
-use Sitegeist\Chatterbox\Tools\ToolContract;
+use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
+use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 class ChatController extends ActionController
 {

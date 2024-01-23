@@ -1,9 +1,9 @@
 <?php
 
-namespace Sitegeist\Chatterbox\Tools;
+namespace Sitegeist\Chatterbox\Domain\Tools;
 
 use Exception;
-use Sitegeist\Chatterbox\Tools\ToolContract;
+use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 use Traversable;
 
 /**
