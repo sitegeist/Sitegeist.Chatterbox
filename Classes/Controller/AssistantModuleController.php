@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Controller;
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Mvc\View\ViewInterface;
 use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
@@ -28,6 +29,15 @@ class AssistantModuleController extends AbstractModuleController
         private readonly AssistantDepartment $assistantDepartment,
         private readonly Academy $academy,
     ) {
+    }
+
+    /**
+     * @param FusionView $view
+     */
+    public function initializeView(ViewInterface $view)
+    {
+        parent::initializeView($view);
+        $view->setFusionPathPattern('resource://@package/Private/BackendFusion');
     }
 
     public function indexAction(): void
