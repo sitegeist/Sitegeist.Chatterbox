@@ -1,0 +1,35 @@
+prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component) {
+    renderer = afx`
+        <legend>Available AI-Assistants</legend>
+        <table class="neos-table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <Neos.Fusion:Loop items={assistants} itemName="assistant">
+                <tr>
+                    <td>{assistant.name}</td>
+                    <td>{assistant.description}</td>
+                    <td class="neos-priority1 neos-aCenter">
+                        <Neos.Fusion:Link.Action href.action="edit" href.arguments.assistantId={assistant.id} class="neos-button">
+                            <i class="fas fa-pencil-alt icon-white"></i>
+                        </Neos.Fusion:Link.Action>
+                        <Neos.Fusion:Link.Action href.action="newThread" href.arguments.assistantId={assistant.id} class="neos-button">
+                            <i class="fas fa-comments icon-white"></i>
+                        </Neos.Fusion:Link.Action>
+                    </td>
+                </tr>
+            </Neos.Fusion:Loop>
+            </tbody>
+        </table>
+
+        <div class="neos-footer">
+            <Neos.Fusion:Link.Action href.action="new" class="neos-button" >Create new AI-Assistant</Neos.Fusion:Link.Action>
+        </div>
+
+    `
+}

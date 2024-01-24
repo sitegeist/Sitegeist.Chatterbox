@@ -1,0 +1,37 @@
+prototype(Sitegeist.Chatterbox:Thread.List) < prototype(Neos.Fusion:Component) {
+    renderer = afx`
+        <legend>Show Thread {threadId}</legend>
+
+        <Neos.Fusion:Loop items={messages} itemName="message">
+            <div style={['margin: 20px 0;', (message.role == 'user') ? 'padding-left:0px;' : 'padding-left:50px;']}>
+                <p>{message.role}</p>
+                <span style={['min-width: 460px; padding:10px; border-radius: 10px; display:inline-block;', (message.role == 'user') ? 'background-color: #00b5ff;' : 'background-color: grey;']}>
+                    <Neos.Fusion:Loop items={message.content} itemName="messageContent">
+                    <pre @if={messageContent.type == 'text'}>{messageContent.text.value}</pre>
+                    </Neos.Fusion:Loop>
+                </span>
+                <br/>
+            </div>
+            <pre @if={message.metadata}>{Json.stringify(message.metadata)}</pre>
+        </Neos.Fusion:Loop>
+
+        <pre @if={metadata}>{Json.stringify(metadata)}</pre>
+
+        <Neos.Fusion.Form:Form
+            form.target.action="addThreadMessage"
+        >
+            <Neos.Fusion.Form:Hidden field.name="threadId" field.value={threadId} />
+            <Neos.Fusion.Form:Hidden field.name="assistantId" field.value={assistantId} />
+            <div class="neos-control-group">
+                <label class="neos-control-label">Message</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Input field.name="message" attributes.class="neos-span12" />
+                </div>
+            </div>
+            <div class="neos-footer">
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Post Message</Neos.Fusion.Form:Button>
+            </div>
+        </Neos.Fusion.Form:Form>
+    `
+}

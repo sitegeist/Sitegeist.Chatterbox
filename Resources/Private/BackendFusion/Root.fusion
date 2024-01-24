@@ -1,0 +1,19 @@
+include: resource://Neos.Fusion/Private/Fusion/Root.fusion
+include: resource://Neos.Fusion.Form/Private/Fusion/Root.fusion
+include: **/*.fusion
+
+Sitegeist.Chatterbox.AssistantModuleController.index = Sitegeist.Chatterbox:Assistant.List
+Sitegeist.Chatterbox.AssistantModuleController.edit = Sitegeist.Chatterbox:Assistant.Edit
+Sitegeist.Chatterbox.AssistantModuleController.new = Sitegeist.Chatterbox:Assistant.Create
+
+Sitegeist.Chatterbox.AssistantModuleController.newThread = Sitegeist.Chatterbox:Thread.Create
+Sitegeist.Chatterbox.AssistantModuleController.showThread = Sitegeist.Chatterbox:Thread.List
+Sitegeist.Chatterbox.AssistantModuleController.addThreadMessage = Sitegeist.Chatterbox:Thread.List
+
+
+
+
+
+
+
+
