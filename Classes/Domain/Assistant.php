@@ -17,7 +17,7 @@ final class Assistant
 {
     public function __construct(
         private readonly string $id,
-        private readonly ToolCollection $toolCollection,
+        private readonly ToolCollection $tools,
         private readonly OpenAiClientContract $client,
         private readonly ?LoggerInterface $logger,
     ) {
@@ -67,7 +67,7 @@ final class Assistant
     {
         $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
         $combinedMetadata = [];
-        while ($threadRunResponse->status !== 'completed') {
+        while ($threadRunResponse->status !== 'completed' && $threadRunResponse->status !== 'failed') {
             if ($threadRunResponse->status === 'requires_action') {
                 $submitToolOutputs = $threadRunResponse->requiredAction?->submitToolOutputs;
                 if ($submitToolOutputs instanceof ThreadRunResponseRequiredActionSubmitToolOutputs) {
@@ -75,7 +75,7 @@ final class Assistant
                     $toolOutputs = [];
                     foreach ($submitToolOutputs->toolCalls as $requiredToolCall) {
                         if ($requiredToolCall instanceof ThreadRunResponseRequiredActionFunctionToolCall) {
-                            $toolInstance = $this->toolCollection->getToolByName($requiredToolCall->function->name);
+                            $toolInstance = $this->tools->getToolByName($requiredToolCall->function->name);
                             if ($toolInstance instanceof ToolContract) {
                                 $toolResult = $toolInstance->execute(json_decode($requiredToolCall->function->arguments, true));
                                 $toolOutputs["tool_outputs"][] = ['tool_call_id' => $requiredToolCall->id, 'output' => json_encode($toolResult->getData())];
