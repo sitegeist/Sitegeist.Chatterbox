@@ -34,7 +34,13 @@ class ChatController extends ActionController
         $threadId = $assistant->startThread();
         $metadata = $assistant->continueThread($threadId, $message);
 
+        $messageResponse = $this->client->threads()->messages()->list($threadId)->data;
+        /** @var ?ThreadMessageResponse $lastMessage */
+        $lastMessage = reset($messageResponse);
+
         $this->view->assign('value', [
+            'bot' => true,
+            'message' => $lastMessage?->content ?: '',
             'threadId' => $threadId,
             'metadata' => $metadata
         ]);
