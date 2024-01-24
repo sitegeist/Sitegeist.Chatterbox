@@ -90,13 +90,14 @@ class AssistantModuleController extends AbstractModuleController
             'threadId' => $threadId,
             'assistantId' => $assistantId,
             'message' => $message,
+            'additionalInstructions' => 'current date: ' . (new \DateTimeImmutable())->format('Y-m-d'),
         ]);
     }
 
-    public function addThreadMessageAction(string $threadId, string $assistantId, string $message): void
+    public function addThreadMessageAction(string $threadId, string $assistantId, string $message, ?string $additionalInstructions = null): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $metadata = $assistant->continueThread($threadId, $message);
+        $metadata = $assistant->continueThread($threadId, $message, $additionalInstructions);
 
         $this->view->assignMultiple([
             'messages' => $this->fetchMessages($threadId),

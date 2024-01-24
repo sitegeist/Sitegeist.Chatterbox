@@ -28,15 +28,7 @@ final class Assistant
         $runResponse = $this->client->threads()->createAndRun([
             'assistant_id' => $this->id,
             'thread' => [
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => 'current date: ' . (new \DateTimeImmutable())->format('Y-m-d'),
-                        'metadata' => [
-                            'role' => 'system'
-                        ]
-                    ],
-                ]
+                'messages' => []
             ]
         ]);
         $this->completeRun($runResponse->threadId, $runResponse->id);
@@ -47,7 +39,7 @@ final class Assistant
     /**
      * @return array<int,mixed>
      */
-    public function continueThread(string $threadId, string $message): array
+    public function continueThread(string $threadId, string $message, ?string $additionalInstructions = null): array
     {
         $this->client->threads()->messages()->create(
             $threadId,
@@ -56,7 +48,13 @@ final class Assistant
                 'content' => $message
             ]
         );
-        $runResponse = $this->client->threads()->runs()->create($threadId, ['assistant_id' => $this->id]);
+        $runResponse = $this->client->threads()->runs()->create(
+            $threadId,
+            array_filter([
+                'assistant_id' => $this->id,
+                'additional_instructions' => $additionalInstructions
+            ])
+        );
         return $this->completeRun($threadId, $runResponse->id);
     }
 

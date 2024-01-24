@@ -32,7 +32,7 @@ class ChatController extends ActionController
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
         $threadId = $assistant->startThread();
-        $metadata = $assistant->continueThread($threadId, $message);
+        $metadata = $assistant->continueThread($threadId, $message, 'current date: ' . (new \DateTimeImmutable())->format('Y-m-d'));
 
         $messageResponse = $this->client->threads()->messages()->list($threadId)->data;
         /** @var ?ThreadMessageResponse $lastMessage */
