@@ -29,12 +29,13 @@ class Academy
             $latestFilename = null;
             foreach ($fileListResponse->data as $fileResponse) {
                 $knowledgeFilename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
-                if ($knowledgeFilename && (!$latestFilename || $knowledgeFilename->isGreaterThan($latestFilename))) {
+                if ($knowledgeFilename?->takesPrecedenceOver($latestFilename, $knowledgeSourceName)) {
                     $latestFilename = $knowledgeFilename;
                     $fileIds[$knowledgeSourceName] = $fileResponse->id;
                 }
             }
         }
+
         $this->client->assistants()->modify(
             $assistant->id,
             [

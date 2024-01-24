@@ -52,9 +52,13 @@ final class KnowledgeFilename
         return $this->knowledgeSourceName . '-' . $this->timestamp . self::FILE_ENDING;
     }
 
-    public function isGreaterThan(self $other): bool
+    public function takesPrecedenceOver(?self $other, string $knowledgeSourceName): bool
     {
-        return $this->knowledgeSourceName === $other->knowledgeSourceName
-            && $this->timestamp > $other->timestamp;
+        if (!$other) {
+            return $this->knowledgeSourceName === $knowledgeSourceName;
+        }
+
+        return $this->knowledgeSourceName === $other?->knowledgeSourceName
+            && $this->timestamp > $other?->timestamp;
     }
 }
