@@ -4,18 +4,24 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use Neos\Flow\Annotations as Flow;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use Psr\Log\LoggerInterface;
+use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
+use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
+use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
+#[Flow\Scope('singleton')]
 class AssistantDepartment
 {
     public function __construct(
         private readonly OpenAiClientContract $client,
         private readonly Toolbox $toolbox,
+        private readonly Manual $manual,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -33,6 +39,12 @@ class AssistantDepartment
                 array_map(
                     fn (string $toolName): ?ToolContract => $this->toolbox->findByName($toolName),
                     $assistantRecord->selectedTools
+                )
+            )),
+            new InstructionCollection(...array_filter(
+                array_map(
+                    fn (string $instructionName): ?InstructionContract => $this->manual->findInstructionByName($instructionName),
+                    $assistantRecord->selectedInstructions
                 )
             )),
             $this->client,
@@ -83,7 +95,8 @@ class AssistantDepartment
     {
         return [
             'selectedTools' => json_encode($assistantRecord->selectedTools),
-            'selectedSourcesOfKnowledge' => json_encode($assistantRecord->selectedSourcesOfKnowledge)
+            'selectedSourcesOfKnowledge' => json_encode($assistantRecord->selectedSourcesOfKnowledge),
+            'selectedInstructions' => json_encode($assistantRecord->selectedInstructions),
         ];
     }
 

@@ -38,7 +38,7 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
                     </div>
                 </fieldset>
                 <fieldset class="neos-span6">
-                    <legend>Knowledge & Tools</legend>
+                    <legend>Knowledge, Tools & Instructions</legend>
                     <div class="neos-control-group">
                         <label class="neos-control-label" >Tools</label>
                         <table class="neos-table neos-span-6">
@@ -89,6 +89,35 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
                                     </td>
                                     <td>{source.name}</td>
                                     <td>{source.description}</td>
+                                </tr>
+                            </Neos.Fusion:Loop>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="neos-control-group">
+
+                        <label class="neos-control-label" >Instructions</label>
+
+                        <table class="neos-table neos-span-6">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>ID</th>
+                                <th>Description</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <Neos.Fusion:Loop items={availableInstructions} itemName="instruction">
+                                <tr>
+                                    <td>
+                                        <label class="neos-checkbox" for={"instruction-" + instruction.name}>
+                                            <Neos.Fusion.Form:Checkbox attributes.id={"instruction-" + instruction.name} field.name="assistant[selectedInstructions]" field.multiple field.value={instruction.name} />
+                                            <span></span>
+                                        </label>
+                                    </td>
+                                    <td>{instruction.name}</td>
+                                    <td>{instruction.description}</td>
                                 </tr>
                             </Neos.Fusion:Loop>
                             </tbody>

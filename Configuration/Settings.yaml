@@ -3,6 +3,11 @@ Sitegeist:
     earmark: "Sitegeist.Chatterbox"
     tools: []
     knowledge: []
+    instructions:
+      currentDate:
+        className: 'Sitegeist\Chatterbox\Domain\Instruction\CurrentDateInstruction'
+        options:
+          description: 'Instructs the assistant about the current date'
 
 Neos:
   Flow:

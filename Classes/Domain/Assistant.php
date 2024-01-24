@@ -9,6 +9,7 @@ use Neos\Flow\Annotations as Flow;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutputs;
 use Psr\Log\LoggerInterface;
+use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
@@ -18,6 +19,7 @@ final class Assistant
     public function __construct(
         private readonly string $id,
         private readonly ToolCollection $tools,
+        private readonly InstructionCollection $instructions,
         private readonly OpenAiClientContract $client,
         private readonly ?LoggerInterface $logger,
     ) {
@@ -39,7 +41,7 @@ final class Assistant
     /**
      * @return array<int,mixed>
      */
-    public function continueThread(string $threadId, string $message, ?string $additionalInstructions = null): array
+    public function continueThread(string $threadId, string $message, bool $withAdditionalInstructions = false): array
     {
         $this->client->threads()->messages()->create(
             $threadId,
@@ -48,11 +50,14 @@ final class Assistant
                 'content' => $message
             ]
         );
+
         $runResponse = $this->client->threads()->runs()->create(
             $threadId,
             array_filter([
                 'assistant_id' => $this->id,
-                'additional_instructions' => $additionalInstructions
+                'additional_instructions' => $withAdditionalInstructions
+                    ? $this->instructions->getContent()
+                    : null
             ])
         );
         return $this->completeRun($threadId, $runResponse->id);

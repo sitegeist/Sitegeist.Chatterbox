@@ -12,6 +12,7 @@ use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
+use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
@@ -26,6 +27,7 @@ class AssistantModuleController extends AbstractModuleController
         private readonly OpenAiClientContract $client,
         private readonly Toolbox $toolbox,
         private readonly KnowledgePool $knowledgePool,
+        private readonly Manual $manual,
         private readonly AssistantDepartment $assistantDepartment,
         private readonly Academy $academy,
     ) {
@@ -48,10 +50,12 @@ class AssistantModuleController extends AbstractModuleController
 
     public function editAction(string $assistantId): void
     {
-        $assistant = $this->assistantDepartment->findAssistantRecordById($assistantId);
-        $this->view->assign('availableTools', $this->toolbox->findAll());
-        $this->view->assign('availableSourcesOfKnowledge', $this->knowledgePool->findAllSources());
-        $this->view->assign('assistant', $assistant);
+        $this->view->assignMultiple([
+            'availableTools' => $this->toolbox->findAll(),
+            'availableSourcesOfKnowledge' => $this->knowledgePool->findAllSources(),
+            'availableInstructions' => $this->manual->findAll(),
+            'assistant' => $this->assistantDepartment->findAssistantRecordById($assistantId)
+        ]);
     }
 
     public function initializeUpdateAction(): void
@@ -90,14 +94,14 @@ class AssistantModuleController extends AbstractModuleController
             'threadId' => $threadId,
             'assistantId' => $assistantId,
             'message' => $message,
-            'additionalInstructions' => 'current date: ' . (new \DateTimeImmutable())->format('Y-m-d'),
+            'withAdditionalInstructions' => true,
         ]);
     }
 
-    public function addThreadMessageAction(string $threadId, string $assistantId, string $message, ?string $additionalInstructions = null): void
+    public function addThreadMessageAction(string $threadId, string $assistantId, string $message, bool $withAdditionalInstructions = false): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $metadata = $assistant->continueThread($threadId, $message, $additionalInstructions);
+        $metadata = $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
 
         $this->view->assignMultiple([
             'messages' => $this->fetchMessages($threadId),
