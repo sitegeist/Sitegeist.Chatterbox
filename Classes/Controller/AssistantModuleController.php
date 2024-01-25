@@ -101,13 +101,13 @@ class AssistantModuleController extends AbstractModuleController
     public function addThreadMessageAction(string $threadId, string $assistantId, string $message, bool $withAdditionalInstructions = false): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $metadata = $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
+        $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
 
         $this->view->assignMultiple([
             'messages' => $this->fetchMessages($threadId),
             'threadId' => $threadId,
             'assistantId' => $assistantId,
-            'metadata' => $metadata
+            'metadata' => $assistant->getCollectedMetadata()
         ]);
     }
 

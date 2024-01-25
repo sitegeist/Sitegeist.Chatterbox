@@ -16,6 +16,8 @@ use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 #[Flow\Proxy(false)]
 final class Assistant
 {
+    private $collectedMetadata = [];
+
     public function __construct(
         private readonly string $id,
         private readonly ToolCollection $tools,
@@ -25,23 +27,24 @@ final class Assistant
     ) {
     }
 
+    /**
+     * @return array<int,mixed>
+     */
+    public function getCollectedMetadata(): array
+    {
+        return $this->collectedMetadata;
+    }
+
     public function startThread(): string
     {
-        $runResponse = $this->client->threads()->createAndRun([
-            'assistant_id' => $this->id,
-            'thread' => [
-                'messages' => []
-            ]
-        ]);
-        $this->completeRun($runResponse->threadId, $runResponse->id);
-
-        return $runResponse->threadId;
+        $threadResponse = $this->client->threads()->create([]);
+        return $threadResponse->id;
     }
 
     /**
      * @return array<int,mixed>
      */
-    public function continueThread(string $threadId, string $message, bool $withAdditionalInstructions = false): array
+    public function continueThread(string $threadId, string $message, bool $withAdditionalInstructions = false): void
     {
         $this->client->threads()->messages()->create(
             $threadId,
@@ -60,16 +63,12 @@ final class Assistant
                     : null
             ])
         );
-        return $this->completeRun($threadId, $runResponse->id);
+        $this->completeRun($threadId, $runResponse->id);
     }
 
-    /**
-     * @return array<int,mixed>
-     */
-    private function completeRun(string $threadId, string $runId): array
+    private function completeRun(string $threadId, string $runId): void
     {
         $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
-        $combinedMetadata = [];
         while ($threadRunResponse->status !== 'completed' && $threadRunResponse->status !== 'failed') {
             if ($threadRunResponse->status === 'requires_action') {
                 $submitToolOutputs = $threadRunResponse->requiredAction?->submitToolOutputs;
@@ -82,7 +81,7 @@ final class Assistant
                             if ($toolInstance instanceof ToolContract) {
                                 $toolResult = $toolInstance->execute(json_decode($requiredToolCall->function->arguments, true));
                                 $toolOutputs["tool_outputs"][] = ['tool_call_id' => $requiredToolCall->id, 'output' => json_encode($toolResult->getData())];
-                                $combinedMetadata[] = [
+                                $this->collectedMetadata[] = [
                                     'tool_name' => $requiredToolCall->function->name,
                                     'tool_call_id' => $requiredToolCall->id,
                                     'data' => $toolResult->getData(),
@@ -102,7 +101,6 @@ final class Assistant
         }
         $this->logger?->info("thread run response", $threadRunResponse->toArray());
 
-        return $combinedMetadata;
 
 //        // add tool metadata
 //        if ($combinedMetadata) {
