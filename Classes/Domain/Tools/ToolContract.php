@@ -16,7 +16,7 @@ interface ToolContract
     /**
      * @param mixed[] $options
      */
-    public static function createFromConfiguration(string $name, string $description, array $options): static;
+    public static function createFromConfiguration(string $name, array $options): static;
 
     public function getName(): string;
 

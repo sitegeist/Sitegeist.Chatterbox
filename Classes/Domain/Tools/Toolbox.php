@@ -38,7 +38,7 @@ class Toolbox
         $description = $this->toolConfig[$name]['description'] ?? $name;
         $options = $this->toolConfig[$name]['options'] ?? [];
         if (class_exists($class) && is_a($class, ToolContract::class, true)) {
-            return $class::createFromConfiguration($name, $description, $options);
+            return $class::createFromConfiguration($name, $options);
         } else {
             throw new \Exception('Class ' . $class . ' does not exist or does not implement the ToolContract');
         }
