@@ -7,8 +7,8 @@ Sitegeist.Chatterbox.AssistantModuleController.edit = Sitegeist.Chatterbox:Assis
 Sitegeist.Chatterbox.AssistantModuleController.new = Sitegeist.Chatterbox:Assistant.Create
 
 Sitegeist.Chatterbox.AssistantModuleController.newThread = Sitegeist.Chatterbox:Thread.Create
-Sitegeist.Chatterbox.AssistantModuleController.showThread = Sitegeist.Chatterbox:Thread.List
-Sitegeist.Chatterbox.AssistantModuleController.addThreadMessage = Sitegeist.Chatterbox:Thread.List
+Sitegeist.Chatterbox.AssistantModuleController.showThread = Sitegeist.Chatterbox:Thread.Show
+Sitegeist.Chatterbox.AssistantModuleController.addThreadMessage = Sitegeist.Chatterbox:Thread.Show
 
 
 
