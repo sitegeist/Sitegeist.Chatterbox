@@ -1,6 +1,7 @@
 Sitegeist:
   Chatterbox:
-    earmark: "Sitegeist.Chatterbox"
+    earmark: "Sitegeist-Chatterbox: "
+
     tools: []
     knowledge: []
     instructions:

@@ -56,4 +56,42 @@ final class AssistantRecord
             $response->fileIds,
         );
     }
+
+    public function withNamePrefix(string $prefix): self
+    {
+        return new self(
+            $this->id,
+            $this->model,
+            $prefix . $this->name,
+            $this->description,
+            $this->instructions,
+            $this->tools,
+            $this->metadata,
+            $this->selectedTools,
+            $this->selectedSourcesOfKnowledge,
+            $this->selectedInstructions,
+            $this->fileIds,
+        );
+    }
+
+    public function withoutNamePrefix(string $prefix): self
+    {
+        $name = $this->name;
+        if (str_starts_with($name, $prefix)){
+            $name = substr($name, strlen($prefix));
+        }
+        return new self(
+            $this->id,
+            $this->model,
+            $name,
+            $this->description,
+            $this->instructions,
+            $this->tools,
+            $this->metadata,
+            $this->selectedTools,
+            $this->selectedSourcesOfKnowledge,
+            $this->selectedInstructions,
+            $this->fileIds,
+        );
+    }
 }

@@ -18,6 +18,10 @@ use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 #[Flow\Scope('singleton')]
 class AssistantDepartment
 {
+
+    #[Flow\InjectConfiguration(path:'earmark')]
+    protected string $earmark;
+
     public function __construct(
         private readonly OpenAiClientContract $client,
         private readonly Toolbox $toolbox,
@@ -54,28 +58,43 @@ class AssistantDepartment
 
     public function findAllRecords(): AssistantRecordCollection
     {
+        $apiResponse = $this->client->assistants()->list()->data;
+
+        $apiResponseFiltered = array_filter(
+            $apiResponse,
+            fn(AssistantResponse $assistantResponse) => str_starts_with($assistantResponse->name, $this->earmark)
+        );
         return new AssistantRecordCollection(
             ...array_map(
-                fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse),
-                $this->client->assistants()->list()->data
+                fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse)->withoutNamePrefix($this->earmark),
+                $apiResponseFiltered
             )
         );
-    }
-
-    public function createAssistant(string $name): AssistantRecord
-    {
-        $assistantResponse = $this->client->assistants()->create(['name' => $name, 'model' => 'gpt-4-1106-preview']);
-        return AssistantRecord::fromAssistantResponse($assistantResponse);
     }
 
     public function findAssistantRecordById(string $assistantId): AssistantRecord
     {
         $assistantResponse = $this->client->assistants()->retrieve($assistantId);
-        return AssistantRecord::fromAssistantResponse($assistantResponse);
+        return AssistantRecord::fromAssistantResponse($assistantResponse)
+            ->withoutNamePrefix($this->earmark);
+    }
+
+    public function createAssistant(string $name): AssistantRecord
+    {
+        $assistantResponse = $this->client->assistants()->create(
+            [
+                'name' => $this->earmark . $name,
+                'model' => 'gpt-4-1106-preview'
+            ]
+        );
+
+        return AssistantRecord::fromAssistantResponse($assistantResponse)->withoutNamePrefix($this->earmark);
     }
 
     public function updateAssistant(AssistantRecord $assistantRecord): void
     {
+        $assistantRecord = $assistantRecord->withNamePrefix($this->earmark);
+
         $this->client->assistants()->modify(
             $assistantRecord->id,
             [
