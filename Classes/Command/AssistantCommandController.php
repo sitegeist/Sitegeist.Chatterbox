@@ -13,7 +13,6 @@ use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
 class AssistantCommandController extends CommandController
 {
     public function __construct(
-        private readonly Academy $academy,
         private readonly AssistantDepartment $assistantDepartment,
     ) {
         parent::__construct();
@@ -21,13 +20,14 @@ class AssistantCommandController extends CommandController
 
     public function upskillCommand(string $assistantId): void
     {
-        $this->academy->upskillAssistant($assistantId);
+        $assistant = $this->assistantDepartment->findAssistantRecordById($assistantId);
+        $this->assistantDepartment->updateAssistant($assistant);
     }
 
     public function upskillAllCommand(): void
     {
         foreach ($this->assistantDepartment->findAllRecords() as $assistant) {
-            $this->academy->upskillAssistant($assistant);
+            $this->assistantDepartment->updateAssistant($assistant);
         }
     }
 }

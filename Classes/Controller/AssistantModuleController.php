@@ -30,7 +30,6 @@ class AssistantModuleController extends AbstractModuleController
         private readonly KnowledgePool $knowledgePool,
         private readonly Manual $manual,
         private readonly AssistantDepartment $assistantDepartment,
-        private readonly Academy $academy,
         private readonly ModelAgency $modelAgency,
     ) {
     }
@@ -69,7 +68,6 @@ class AssistantModuleController extends AbstractModuleController
     public function updateAction(AssistantRecord $assistant): void
     {
         $this->assistantDepartment->updateAssistant($assistant);
-        $this->academy->upskillAssistant($assistant);
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
         $this->redirect('index');
     }

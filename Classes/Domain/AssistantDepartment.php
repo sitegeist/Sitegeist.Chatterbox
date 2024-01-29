@@ -11,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
+use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
@@ -87,7 +88,8 @@ class AssistantDepartment
                 'description' => $assistantRecord->description,
                 'instructions' => $assistantRecord->instructions,
                 'tools' => $this->createToolConfiguration($assistantRecord),
-                'metadata' => $this->createMetadataConfiguration($assistantRecord)
+                'file_ids' => $this->createFileIdConfiguration($assistantRecord),
+                'metadata' => $this->createMetadataConfiguration($assistantRecord),
             ]
         );
     }
@@ -129,5 +131,25 @@ class AssistantDepartment
             }
         }
         return $tools;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function createFileIdConfiguration(AssistantRecord $assistantRecord): array
+    {
+        $fileListResponse = $this->client->files()->list();
+        $fileIds = [];
+        foreach ($assistantRecord->selectedSourcesOfKnowledge as $knowledgeSourceName) {
+            $latestFilename = null;
+            foreach ($fileListResponse->data as $fileResponse) {
+                $knowledgeFilename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
+                if ($knowledgeFilename?->takesPrecedenceOver($latestFilename, $knowledgeSourceName)) {
+                    $latestFilename = $knowledgeFilename;
+                    $fileIds[$knowledgeSourceName] = $fileResponse->id;
+                }
+            }
+        }
+        return array_values($fileIds);
     }
 }

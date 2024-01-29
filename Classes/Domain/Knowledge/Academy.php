@@ -20,30 +20,6 @@ class Academy
     ) {
     }
 
-    public function upskillAssistant(string|AssistantRecord $assistant): void
-    {
-        $assistant = is_string($assistant) ? $this->assistantDepartment->findAssistantRecordById($assistant) : $assistant;
-        $fileListResponse = $this->client->files()->list();
-        $fileIds = [];
-        foreach ($assistant->selectedSourcesOfKnowledge as $knowledgeSourceName) {
-            $latestFilename = null;
-            foreach ($fileListResponse->data as $fileResponse) {
-                $knowledgeFilename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
-                if ($knowledgeFilename?->takesPrecedenceOver($latestFilename, $knowledgeSourceName)) {
-                    $latestFilename = $knowledgeFilename;
-                    $fileIds[$knowledgeSourceName] = $fileResponse->id;
-                }
-            }
-        }
-
-        $this->client->assistants()->modify(
-            $assistant->id,
-            [
-                'file_ids' => array_values($fileIds)
-            ]
-        );
-    }
-
     public function updateSourceOfKnowledge(SourceOfKnowledgeContract $sourceOfKnowledge): void
     {
         $content = $sourceOfKnowledge->getContent();
