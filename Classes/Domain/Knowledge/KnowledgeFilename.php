@@ -58,7 +58,7 @@ final class KnowledgeFilename
             return $this->knowledgeSourceName === $knowledgeSourceName;
         }
 
-        return $this->knowledgeSourceName === $other?->knowledgeSourceName
-            && $this->timestamp > $other?->timestamp;
+        return $this->knowledgeSourceName === $other->knowledgeSourceName
+            && $this->timestamp > $other->timestamp;
     }
 }

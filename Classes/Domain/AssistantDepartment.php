@@ -32,12 +32,9 @@ class AssistantDepartment
     ) {
     }
 
-    public function findAssistantById(string $assistantId): ?Assistant
+    public function findAssistantById(string $assistantId): Assistant
     {
         $assistantRecord = $this->findAssistantRecordById($assistantId);
-        if (!$assistantRecord) {
-            return null;
-        }
 
         return new Assistant(
             $assistantId,

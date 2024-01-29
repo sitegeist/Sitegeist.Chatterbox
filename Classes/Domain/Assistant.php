@@ -16,6 +16,9 @@ use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 #[Flow\Proxy(false)]
 final class Assistant
 {
+    /**
+     * @var array<int, mixed>
+     */
     private $collectedMetadata = [];
 
     public function __construct(
@@ -41,9 +44,6 @@ final class Assistant
         return $threadResponse->id;
     }
 
-    /**
-     * @return array<int,mixed>
-     */
     public function continueThread(string $threadId, string $message, bool $withAdditionalInstructions = false): void
     {
         $this->client->threads()->messages()->create(

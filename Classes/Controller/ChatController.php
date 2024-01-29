@@ -13,12 +13,12 @@ use Sitegeist\Chatterbox\Domain\MessageRecord;
 class ChatController extends ActionController
 {
     /**
-     * @var array
+     * @var array<int, string>
      */
     protected $supportedMediaTypes = ['application/json'];
 
     /**
-     * @var array
+     * @var array<string, string>
      */
     protected $viewFormatToObjectNameMap = ['json' => 'Neos\Flow\Mvc\View\JsonView'];
 
@@ -69,7 +69,7 @@ class ChatController extends ActionController
     public function postAction(string $assistantId, string $threadId, string $message): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $metadata = $assistant->continueThread($threadId, $message);
+        $assistant->continueThread($threadId, $message);
 
         $messageResponse = $this->client->threads()->messages()->list($threadId)->data;
         /** @var ?ThreadMessageResponse $lastMessage */
@@ -78,7 +78,7 @@ class ChatController extends ActionController
         $this->view->assign('value', [
             'bot' => true,
             'message' => $lastMessage?->content ?: '',
-            'metadata' => $metadata
+            'metadata' => $assistant->getCollectedMetadata()
         ]);
     }
 }
