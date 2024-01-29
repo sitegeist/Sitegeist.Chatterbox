@@ -6,6 +6,8 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
             <tr>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Instructions</th>
+                <th>Model</th>
                 <th></th>
             </tr>
             </thead>
@@ -14,6 +16,8 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
                 <tr>
                     <td>{assistant.name}</td>
                     <td>{assistant.description}</td>
+                    <td>{String.cropAtWord(assistant.instructions, 100, '...')}</td>
+                    <td>{assistant.model}</td>
                     <td class="neos-priority1 neos-aCenter">
                         <Neos.Fusion:Link.Action href.action="edit" href.arguments.assistantId={assistant.id} class="neos-button">
                             <i class="fas fa-pencil-alt icon-white"></i>

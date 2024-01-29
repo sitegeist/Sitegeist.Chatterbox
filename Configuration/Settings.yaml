@@ -1,6 +1,8 @@
 Sitegeist:
   Chatterbox:
     earmark: "Sitegeist.Chatterbox"
+    assistantDefaults:
+      model: "gpt-4-turbo-preview"
     tools: []
     knowledge: []
     instructions:

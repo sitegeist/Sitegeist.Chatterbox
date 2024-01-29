@@ -18,6 +18,12 @@ use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 #[Flow\Scope('singleton')]
 class AssistantDepartment
 {
+    /**
+     * @var array<string,array{className:string, options:array<string,mixed>}>
+     */
+    #[Flow\InjectConfiguration(path:'assistantDefaults')]
+    protected array $assistantDefaults;
+
     public function __construct(
         private readonly OpenAiClientContract $client,
         private readonly Toolbox $toolbox,
@@ -64,7 +70,7 @@ class AssistantDepartment
 
     public function createAssistant(string $name): AssistantRecord
     {
-        $assistantResponse = $this->client->assistants()->create(['name' => $name, 'model' => 'gpt-4-1106-preview']);
+        $assistantResponse = $this->client->assistants()->create([... $this->assistantDefaults, 'name' => $name]);
         return AssistantRecord::fromAssistantResponse($assistantResponse);
     }
 
@@ -79,6 +85,7 @@ class AssistantDepartment
         $this->client->assistants()->modify(
             $assistantRecord->id,
             [
+                'model' => $assistantRecord->model,
                 'name' => $assistantRecord->name,
                 'description' => $assistantRecord->description,
                 'instructions' => $assistantRecord->instructions,

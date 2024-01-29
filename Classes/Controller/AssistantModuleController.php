@@ -16,6 +16,7 @@ use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
+use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 
 #[Flow\Scope('singleton')]
@@ -30,6 +31,7 @@ class AssistantModuleController extends AbstractModuleController
         private readonly Manual $manual,
         private readonly AssistantDepartment $assistantDepartment,
         private readonly Academy $academy,
+        private readonly ModelAgency $modelAgency,
     ) {
     }
 
@@ -54,7 +56,8 @@ class AssistantModuleController extends AbstractModuleController
             'availableTools' => $this->toolbox->findAll(),
             'availableSourcesOfKnowledge' => $this->knowledgePool->findAllSources(),
             'availableInstructions' => $this->manual->findAll(),
-            'assistant' => $this->assistantDepartment->findAssistantRecordById($assistantId)
+            'assistant' => $this->assistantDepartment->findAssistantRecordById($assistantId),
+            'models' => $this->modelAgency->findAllAvailableModels(),
         ]);
     }
 
