@@ -12,7 +12,14 @@ roles:
         privilegeTarget: 'Sitegeist.Chatterbox:Chat'
         permission: GRANT
 
-  'Neos.Neos:AbstractEditor':
+  'Sitegeist.Chatterbox:AssistantManager':
+    label: 'AI-Assistant Manager'
+    description: 'The role allows to create and configure the AI-Assistants'
+    privileges:
+      - privilegeTarget: 'Sitegeist.Chatterbox:ManageAssistants'
+        permission: GRANT
+
+  'Neos.Neos:Administrator':
     privileges:
       -
         privilegeTarget: 'Sitegeist.Chatterbox:ManageAssistants'
