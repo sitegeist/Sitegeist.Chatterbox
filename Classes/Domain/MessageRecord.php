@@ -34,4 +34,15 @@ final class MessageRecord
             $response->metadata
         );
     }
+
+    /**
+     * @return array{bot:boolean, messsage: string}
+     */
+    public function toApiArray(): array
+    {
+        return [
+            'bot' => $this->role !== 'user',
+            'message' => $this->content,
+        ];
+    }
 }

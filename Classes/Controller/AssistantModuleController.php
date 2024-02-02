@@ -106,7 +106,7 @@ class AssistantModuleController extends AbstractModuleController
         try {
             $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
             $this->view->assignMultiple([
-                'messages' => $this->fetchMessages($threadId),
+                'messages' => $assistant->readThread($threadId),
                 'threadId' => $threadId,
                 'assistantId' => $assistantId,
                 'metadata' => $assistant->getCollectedMetadata()
@@ -127,30 +127,12 @@ class AssistantModuleController extends AbstractModuleController
 
     public function showThreadAction(string $threadId, string $assistantId): void
     {
+        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+
         $this->view->assignMultiple([
-            'messages' => $this->fetchMessages($threadId),
+            'messages' => $assistant->readThread($threadId),
             'threadId' => $threadId,
             'assistantId' => $assistantId,
         ]);
-    }
-
-    /**
-     * @return array<MessageRecord>
-     */
-    private function fetchMessages(string $threadId): array
-    {
-        $threadMessageResponses = $this->client->threads()->messages()->list($threadId)->data;
-
-        $threadMessageResponsesFiltered =  array_filter(
-            $threadMessageResponses,
-            fn(ThreadMessageResponse $threadMessageResponse) => ($threadMessageResponse->metadata['role'] ?? null) !== 'system'
-        );
-
-        return array_reverse(
-            array_map(
-                fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
-                $threadMessageResponsesFiltered
-            ),
-        );
     }
 }

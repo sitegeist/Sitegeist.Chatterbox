@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutputs;
 use Psr\Log\LoggerInterface;
@@ -64,6 +65,26 @@ final class Assistant
             ])
         );
         $this->completeRun($threadId, $runResponse->id);
+    }
+
+    /**
+     * @return array<MessageRecord>
+     */
+    public function readThread(string $threadId): array
+    {
+        $threadMessageResponses = $this->client->threads()->messages()->list($threadId)->data;
+
+        $threadMessageResponsesFiltered =  array_filter(
+            $threadMessageResponses,
+            fn(ThreadMessageResponse $threadMessageResponse) => ($threadMessageResponse->metadata['role'] ?? null) !== 'system'
+        );
+
+        return array_reverse(
+            array_map(
+                fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
+                $threadMessageResponsesFiltered
+            )
+        );
     }
 
     private function completeRun(string $threadId, string $runId): void

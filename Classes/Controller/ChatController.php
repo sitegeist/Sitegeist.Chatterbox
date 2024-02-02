@@ -34,33 +34,26 @@ class ChatController extends ActionController
         $threadId = $assistant->startThread();
         $assistant->continueThread($threadId, $message, true);
 
-        $messageResponse = $this->client->threads()->messages()->list($threadId)->data;
-        /** @var ?ThreadMessageResponse $lastMessage */
-        $lastMessage = reset($messageResponse);
+        $messageResponses = $assistant->readThread($threadId);
+        $lastMessageKey = array_key_last($messageResponses);
+        $lastMessage = $messageResponses[$lastMessageKey];
 
         $this->view->assign('value', [
             'bot' => true,
-            'message' => $lastMessage?->content ?: '',
+            'message' => $lastMessage->toApiArray(),
             'threadId' => $threadId,
             'metadata' => $assistant->getCollectedMetadata()
         ]);
     }
 
-    public function historyAction(string $threadId): void
+    public function historyAction(string $assistantId, string $threadId): void
     {
-        $data = $this->client->threads()->messages()->list($threadId)->data;
-
-        $messages = array_reverse(array_map(
-            fn (ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
-            $data
-        ));
+        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+        $messages = $assistant->readThread($threadId);
 
         $this->view->assign('value', [
             'messages' => array_map(
-                fn (MessageRecord $message): array => [
-                    'bot' => $message->role !== 'user',
-                    'message' => $message->content,
-                ],
+                fn (MessageRecord $message): array => $message->toApiArray(),
                 $messages
             ),
         ]);
@@ -71,13 +64,13 @@ class ChatController extends ActionController
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
         $assistant->continueThread($threadId, $message);
 
-        $messageResponse = $this->client->threads()->messages()->list($threadId)->data;
-        /** @var ?ThreadMessageResponse $lastMessage */
-        $lastMessage = reset($messageResponse);
+        $messageResponses = $assistant->readThread($threadId);
+        $lastMessageKey = array_key_last($messageResponses);
+        $lastMessage = $messageResponses[$lastMessageKey];
 
         $this->view->assign('value', [
             'bot' => true,
-            'message' => $lastMessage?->content ?: '',
+            'message' => $lastMessage->toApiArray(),
             'metadata' => $assistant->getCollectedMetadata()
         ]);
     }
