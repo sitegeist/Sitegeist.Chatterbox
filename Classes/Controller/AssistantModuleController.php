@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Controller;
 
+use Neos\Error\Messages\Message;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\View\ViewInterface;
 use Neos\Fusion\View\FusionView;
@@ -102,14 +103,26 @@ class AssistantModuleController extends AbstractModuleController
     public function addThreadMessageAction(string $threadId, string $assistantId, string $message, bool $withAdditionalInstructions = false): void
     {
         $assistant = $this->assistantDepartment->findAssistantById($assistantId);
-        $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
-
-        $this->view->assignMultiple([
-            'messages' => $this->fetchMessages($threadId),
-            'threadId' => $threadId,
-            'assistantId' => $assistantId,
-            'metadata' => $assistant->getCollectedMetadata()
-        ]);
+        try {
+            $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
+            $this->view->assignMultiple([
+                'messages' => $this->fetchMessages($threadId),
+                'threadId' => $threadId,
+                'assistantId' => $assistantId,
+                'metadata' => $assistant->getCollectedMetadata()
+            ]);
+        } catch (\Exception) {
+            $this->addFlashMessage('API-Error. I will reload.', 'Something went wrong', Message::SEVERITY_WARNING);
+            $this->redirect(
+                'showThread',
+                null,
+                null,
+                [
+                    'threadId' => $threadId,
+                    'assistantId' => $assistantId,
+                ]
+            );
+        }
     }
 
     public function showThreadAction(string $threadId, string $assistantId): void
