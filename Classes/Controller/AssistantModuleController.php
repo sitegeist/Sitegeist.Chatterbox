@@ -14,7 +14,7 @@ use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
-use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
+use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;

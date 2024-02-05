@@ -6,9 +6,11 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Utility\Environment;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
+use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
@@ -28,6 +30,7 @@ class OrganizationRepository
         private readonly OpenAiClientFactory $clientFactory,
         private readonly ObjectManagerInterface $objectManager,
         private readonly LoggerInterface $logger,
+        private readonly Environment $environment
     ) {
     }
 
@@ -71,21 +74,23 @@ class OrganizationRepository
 
         $toolbox = new Toolbox($config['tools']);
         $manual = new Manual($this->objectManager, $config['instructions']);
+        $assistantDepartment = new AssistantDepartment(
+            $client,
+            $toolbox,
+            $manual,
+            $this->logger
+        );
 
         return new Organization(
             $id,
             $config['label'],
             $client,
-            new AssistantDepartment(
-                $client,
-                $toolbox,
-                $manual,
-                $this->logger
-            ),
+            $assistantDepartment,
             $manual,
             new KnowledgePool($config['knowledge']),
             new ModelAgency($client),
-            $toolbox
+            $toolbox,
+            new Library($assistantDepartment, $client, $this->environment)
         );
     }
 }

@@ -8,6 +8,7 @@ use Neos\Flow\Annotations as Flow;
 use OpenAI\Contracts\ClientContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
+use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 
@@ -23,6 +24,7 @@ class Organization
         public readonly KnowledgePool $knowledgePool,
         public readonly ModelAgency $modelAgency,
         public readonly Toolbox $toolbox,
+        public readonly Library $library,
     ) {
     }
 }

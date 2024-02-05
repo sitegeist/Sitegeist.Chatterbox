@@ -8,10 +8,8 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
-use Sitegeist\Chatterbox\Domain\AssistantRecord;
 
-#[Flow\Scope('singleton')]
-class Academy
+class Library
 {
     public function __construct(
         private readonly AssistantDepartment $assistantDepartment,

@@ -6,28 +6,34 @@ namespace Sitegeist\Chatterbox\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
-use Sitegeist\Chatterbox\Domain\AssistantDepartment;
-use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
+use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 #[Flow\Scope('singleton')]
 class AssistantCommandController extends CommandController
 {
     public function __construct(
-        private readonly AssistantDepartment $assistantDepartment,
+        private readonly OrganizationRepository $organizationRepository,
     ) {
         parent::__construct();
     }
 
-    public function upskillCommand(string $assistantId): void
+    public function upskillCommand(string $organizationId, string $assistantId): void
     {
-        $assistant = $this->assistantDepartment->findAssistantRecordById($assistantId);
-        $this->assistantDepartment->updateAssistant($assistant);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantRecordById($assistantId);
+        $organization->assistantDepartment->updateAssistant($assistant);
     }
 
-    public function upskillAllCommand(): void
+    public function upskillAllCommand(?string $organizationId = null): void
     {
-        foreach ($this->assistantDepartment->findAllRecords() as $assistant) {
-            $this->assistantDepartment->updateAssistant($assistant);
+        $organizations = $organizationId
+            ? [$this->organizationRepository->findById($organizationId)]
+            : $this->organizationRepository->findAll();
+
+        foreach ($organizations as $organization) {
+            foreach ($organization->assistantDepartment->findAllRecords() as $assistant) {
+                $organization->assistantDepartment->updateAssistant($assistant);
+            }
         }
     }
 }
