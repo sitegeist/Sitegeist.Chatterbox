@@ -1,10 +1,13 @@
-prototype(Sitegeist.Chatterbox:Thread.Create) < prototype(Neos.Fusion:Component) {
+prototype(Sitegeist.Chatterbox:Thread.New) < prototype(Neos.Fusion:Component) {
     renderer = afx`
         <legend>Start a new thread</legend>
         <Neos.Fusion.Form:Form
             form.target.action="createThread"
+            form.data.assistantId={assistantId}
+            form.data.organizationId={organizationId}
         >
-            <Neos.Fusion.Form:Hidden field.name="assistantId" field.value={assistantId} />
+            <Neos.Fusion.Form:Hidden field.name="assistantId" />
+            <Neos.Fusion.Form:Hidden field.name="organizationId" />
             <div class="neos-control-group">
                 <label class="neos-control-label">Message</label>
                 <div class="neos-controls neos-controls-row">

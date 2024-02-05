@@ -7,15 +7,15 @@ namespace Sitegeist\Chatterbox\DataSources;
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Neos\Service\DataSource\AbstractDataSource;
-use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
+use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 class AssistantIdDataSource extends AbstractDataSource
 {
     protected static $identifier = 'Sitegeist.Chatterbox:AssistantId';
 
     public function __construct(
-        private readonly OpenAiClientContract $client
+        private readonly OrganizationRepository $organizationRepository,
     ) {
     }
 
@@ -26,7 +26,14 @@ class AssistantIdDataSource extends AbstractDataSource
      */
     public function getData(NodeInterface $node = null, array $arguments = [])
     {
-        $list = $this->client->assistants()->list(['limit' => 100]);
+        $organizationId = $arguments['organizationId'] ?? null;
+        if (!$organizationId) {
+            return [];
+        }
+
+        $organization = $this->organizationRepository->findById($organizationId);
+
+        $list = $organization->client->assistants()->list(['limit' => 100]);
         return array_map(fn(AssistantResponse $item) => ['value' => $item->id, 'label' => $item->name], $list->data);
     }
 }

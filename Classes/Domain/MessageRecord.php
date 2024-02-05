@@ -36,7 +36,7 @@ final class MessageRecord
     }
 
     /**
-     * @return array{bot:boolean, messsage: string}
+     * @return array{bot:boolean, message: array<int, ThreadMessageResponseContentImageFileObject|ThreadMessageResponseContentTextObject>}
      */
     public function toApiArray(): array
     {

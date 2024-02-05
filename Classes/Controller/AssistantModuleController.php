@@ -18,7 +18,9 @@ use Sitegeist\Chatterbox\Domain\Knowledge\Academy;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
+use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
+use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
 
 #[Flow\Scope('singleton')]
 class AssistantModuleController extends AbstractModuleController
@@ -26,12 +28,7 @@ class AssistantModuleController extends AbstractModuleController
     protected $defaultViewObjectName = FusionView::class;
 
     public function __construct(
-        private readonly OpenAiClientContract $client,
-        private readonly Toolbox $toolbox,
-        private readonly KnowledgePool $knowledgePool,
-        private readonly Manual $manual,
-        private readonly AssistantDepartment $assistantDepartment,
-        private readonly ModelAgency $modelAgency,
+        private readonly OrganizationRepository $organizationRepository,
     ) {
     }
 
@@ -44,20 +41,55 @@ class AssistantModuleController extends AbstractModuleController
         $view->setFusionPathPattern('resource://@package/Private/BackendFusion');
     }
 
-    public function indexAction(): void
+    public function indexAction(string $organizationId = null): void
     {
-        $assistants = $this->assistantDepartment->findAllRecords();
-        $this->view->assign('assistants', $assistants);
+        $organization = $organizationId
+            ? $this->organizationRepository->findById($organizationId)
+            : $this->organizationRepository->findFirst();
+
+        $assistants = $organization?->assistantDepartment->findAllRecords() ?: [];
+        $this->view->assignMultiple([
+            'organizations' => $this->organizationRepository->findAll(),
+            'organizationId' => $organization?->id,
+            'assistants' => $assistants
+        ]);
+        if (!$organization) {
+            $this->addFlashMessage(messageBody: 'No organizations configured', severity: Message::SEVERITY_WARNING);
+        }
     }
 
-    public function editAction(string $assistantId): void
+    public function newAction(string $organizationId): void
     {
+        $organization = $this->organizationRepository->findById($organizationId);
         $this->view->assignMultiple([
-            'availableTools' => $this->toolbox->findAll(),
-            'availableSourcesOfKnowledge' => $this->knowledgePool->findAllSources(),
-            'availableInstructions' => $this->manual->findAll(),
-            'assistant' => $this->assistantDepartment->findAssistantRecordById($assistantId),
-            'models' => $this->modelAgency->findAllAvailableModels(),
+            'organizationId' => $organizationId,
+            'models' => $organization->modelAgency->findAllAvailableModels()
+        ]);
+    }
+
+    public function createAction(string $organizationId, string $name, string $model): void
+    {
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistantResponse = $organization->assistantDepartment->createAssistant($name, $model);
+        $this->redirect(
+            actionName: 'edit',
+            arguments: [
+                'assistantId' => $assistantResponse->id,
+                'organizationId' => $organizationId
+            ]
+        );
+    }
+
+    public function editAction(string $organizationId, string $assistantId): void
+    {
+        $organization = $this->organizationRepository->findById($organizationId);
+        $this->view->assignMultiple([
+            'organizationId' => $organizationId,
+            'availableTools' => $organization->toolbox->findAll(),
+            'availableSourcesOfKnowledge' => $organization->knowledgePool->findAllSources(),
+            'availableInstructions' => $organization->manual->findAll(),
+            'assistant' => $organization->assistantDepartment->findAssistantRecordById($assistantId),
+            'models' => $organization->modelAgency->findAllAvailableModels(),
         ]);
     }
 
@@ -66,33 +98,29 @@ class AssistantModuleController extends AbstractModuleController
         $this->arguments['assistant']->getPropertyMappingConfiguration()->allowAllProperties();
     }
 
-    public function updateAction(AssistantRecord $assistant): void
+    public function updateAction(string $organizationId, AssistantRecord $assistant): void
     {
-        $this->assistantDepartment->updateAssistant($assistant);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $organization->assistantDepartment->updateAssistant($assistant);
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
-        $this->redirect('index');
+        $this->redirect(actionName: 'index', arguments: ['organizationId' => $organizationId]);
     }
 
-    public function newAction(): void
+    public function newThreadAction(string $organizationId, string $assistantId): void
     {
+        $this->view->assignMultiple([
+            'organizationId' => $organizationId,
+            'assistantId' => $assistantId,
+        ]);
     }
 
-    public function createAction(string $name): void
+    public function createThreadAction(string $organizationId, string $assistantId, string $message): void
     {
-        $assistantResponse = $this->assistantDepartment->createAssistant($name);
-        $this->redirect('edit', null, null, ['assistantId' => $assistantResponse->id]);
-    }
-
-    public function newThreadAction(string $assistantId): void
-    {
-        $this->view->assign('assistantId', $assistantId);
-    }
-
-    public function createThreadAction(string $assistantId, string $message): void
-    {
-        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $threadId = $assistant->startThread();
         $this->forward('addThreadMessage', arguments: [
+            'organizationId' => $organizationId,
             'threadId' => $threadId,
             'assistantId' => $assistantId,
             'message' => $message,
@@ -100,12 +128,14 @@ class AssistantModuleController extends AbstractModuleController
         ]);
     }
 
-    public function addThreadMessageAction(string $threadId, string $assistantId, string $message, bool $withAdditionalInstructions = false): void
+    public function addThreadMessageAction(string $organizationId, string $threadId, string $assistantId, string $message, bool $withAdditionalInstructions = false): void
     {
-        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         try {
             $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
             $this->view->assignMultiple([
+                'organizationId' => $organizationId,
                 'messages' => $assistant->readThread($threadId),
                 'threadId' => $threadId,
                 'assistantId' => $assistantId,
@@ -118,6 +148,7 @@ class AssistantModuleController extends AbstractModuleController
                 null,
                 null,
                 [
+                    'organizationId' => $organizationId,
                     'threadId' => $threadId,
                     'assistantId' => $assistantId,
                 ]
@@ -125,11 +156,13 @@ class AssistantModuleController extends AbstractModuleController
         }
     }
 
-    public function showThreadAction(string $threadId, string $assistantId): void
+    public function showThreadAction(string $organizationId, string $threadId, string $assistantId): void
     {
-        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
 
         $this->view->assignMultiple([
+            'organizationId' => $organizationId,
             'messages' => $assistant->readThread($threadId),
             'threadId' => $threadId,
             'assistantId' => $assistantId,

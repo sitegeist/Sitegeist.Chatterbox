@@ -1,12 +1,25 @@
 Sitegeist.Chatterbox:Mixin.Assistant:
   abstract: true
   properties:
-    assistantId:
+    chatterboxOrganizationId:
+      type: string
+      ui:
+        label: "Organization ID"
+        inspector:
+          group: default
+          editor: Neos.Neos/Inspector/Editors/SelectBoxEditor
+          editorOptions:
+            dataSourceIdentifier: Sitegeist.Chatterbox:OrganizationId
+            allowEmpty: true
+    chatterboxAssistantId:
       type: string
       ui:
         label: "Assistant ID"
         inspector:
           group: default
           editor: Neos.Neos/Inspector/Editors/SelectBoxEditor
+          hidden: "ClientEval: node.properties.chatterboxOrganizationId ? false: true"
           editorOptions:
             dataSourceIdentifier: Sitegeist.Chatterbox:AssistantId
+            dataSourceAdditionalData: "ClientEval: node.properties.chatterboxOrganizationId ? {'organizationId': node.properties.chatterboxOrganizationId} : {}"
+            allowEmpty: true

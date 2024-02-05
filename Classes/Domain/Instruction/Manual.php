@@ -7,17 +7,14 @@ namespace Sitegeist\Chatterbox\Domain\Instruction;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 
-#[Flow\Scope('singleton')]
 class Manual
 {
     /**
-     * @var array<string,array{className:string, options:array<string,mixed>}>
+     * @param array<string,array{className:string, options:array<string,mixed>}> $instructionConfig
      */
-    #[Flow\InjectConfiguration(path:'instructions')]
-    protected array $instructionConfig;
-
     public function __construct(
-        private readonly ObjectManagerInterface $container
+        private readonly ObjectManagerInterface $container,
+        private readonly array $instructionConfig
     ) {
     }
 

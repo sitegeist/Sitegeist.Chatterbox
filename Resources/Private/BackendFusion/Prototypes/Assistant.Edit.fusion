@@ -8,7 +8,9 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
         <Neos.Fusion.Form:Form
             form.target.action="update"
             form.data.assistant={assistant}
+            form.data.organizationId={organizationId}
         >
+            <Neos.Fusion.Form:Hidden field.name="organizationId" />
             <Neos.Fusion.Form:Hidden field.name="assistant[id]" />
             <Neos.Fusion.Form:Hidden field.name="assistant[model]" />
 
@@ -138,7 +140,7 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
             </div>
 
             <div class="neos-footer">
-                <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion:Link.Action href.action="index" href.arguments.organizationId={organizationId} class="neos-button" >Back</Neos.Fusion:Link.Action>
                 <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Save</Neos.Fusion.Form:Button>
             </div>
 

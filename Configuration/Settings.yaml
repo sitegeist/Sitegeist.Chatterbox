@@ -1,15 +1,13 @@
 Sitegeist:
   Chatterbox:
-    earmark: "Sitegeist.Chatterbox"
-    assistantDefaults:
-      model: "gpt-4-turbo-preview"
-    tools: []
-    knowledge: []
-    instructions:
-      currentDate:
-        className: 'Sitegeist\Chatterbox\Domain\Instruction\CurrentDateInstruction'
-        options:
-          description: 'Instructs the assistant about the current date'
+    organizations: []
+    # orgId:
+    #   discriminator: 'my-descriminator'
+    #   accountId: 'abc'
+    #   label: 'Neos Community'
+    #    tools: []
+    #    knowledge: []
+    #    instructions: []
 
 Neos:
   Flow:

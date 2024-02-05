@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Controller;
 
 use Neos\Flow\Mvc\Controller\ActionController;
-use OpenAI\Contracts\ClientContract as OpenAiClientContract;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
-use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
+use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 class ChatController extends ActionController
 {
@@ -23,14 +21,14 @@ class ChatController extends ActionController
     protected $viewFormatToObjectNameMap = ['json' => 'Neos\Flow\Mvc\View\JsonView'];
 
     public function __construct(
-        private readonly OpenAiClientContract $client,
-        private readonly AssistantDepartment $assistantDepartment,
+        private readonly OrganizationRepository $organizationRepository,
     ) {
     }
 
-    public function startAction(string $assistantId, string $message): void
+    public function startAction(string $organizationId, string $assistantId, string $message): void
     {
-        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $threadId = $assistant->startThread();
         $assistant->continueThread($threadId, $message, true);
 
@@ -46,9 +44,10 @@ class ChatController extends ActionController
         ]);
     }
 
-    public function historyAction(string $assistantId, string $threadId): void
+    public function historyAction(string $organizationId, string $assistantId, string $threadId): void
     {
-        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $messages = $assistant->readThread($threadId);
 
         $this->view->assign('value', [
@@ -59,9 +58,10 @@ class ChatController extends ActionController
         ]);
     }
 
-    public function postAction(string $assistantId, string $threadId, string $message): void
+    public function postAction(string $organizationId, string $assistantId, string $threadId, string $message): void
     {
-        $assistant = $this->assistantDepartment->findAssistantById($assistantId);
+        $organization = $this->organizationRepository->findById($organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $assistant->continueThread($threadId, $message);
 
         $messageResponses = $assistant->readThread($threadId);

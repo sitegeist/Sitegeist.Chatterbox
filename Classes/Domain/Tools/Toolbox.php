@@ -2,18 +2,17 @@
 
 namespace Sitegeist\Chatterbox\Domain\Tools;
 
-use Doctrine\ORM\Tools\Console\Command\ClearCache\CollectionRegionCommand;
 use Neos\Flow\Annotations as Flow;
-use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
-use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 class Toolbox
 {
     /**
-     * @var array<string,array{className:string, description:string, options:mixed[]}>
+     * @param array<string,array{className:string, description:string, options:mixed[]}> $toolConfig
      */
-    #[Flow\InjectConfiguration(path:'tools')]
-    protected array $toolConfig;
+    public function __construct(
+        private readonly array $toolConfig
+    ) {
+    }
 
     public function findAll(): ToolCollection
     {

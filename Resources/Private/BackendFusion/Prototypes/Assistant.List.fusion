@@ -1,5 +1,22 @@
 prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component) {
     renderer = afx`
+        <legend>Available Organizations</legend>
+
+        <Neos.Fusion.Form:Form
+           form.target.action="index"
+           form.data.organizationId={organizationId}
+           attributes.class="neos-inline"
+           form.method="get"
+        >
+            <Neos.Fusion.Form:Select
+                field.name={"organizationId"}
+                attributes.onchange="this.form.submit()"
+            >
+                <Neos.Fusion:Loop items={organizations} itemName="organization">
+                    <Neos.Fusion.Form:Select.Option option.value={organization.id}>{organization.label}</Neos.Fusion.Form:Select.Option>
+                </Neos.Fusion:Loop>
+            </Neos.Fusion.Form:Select>
+        </Neos.Fusion.Form:Form>
         <legend>Available AI-Assistants</legend>
         <table class="neos-table">
             <thead>
@@ -19,10 +36,10 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
                     <td>{String.cropAtWord(assistant.instructions, 100, '...')}</td>
                     <td>{assistant.model}</td>
                     <td class="neos-priority1 neos-aCenter">
-                        <Neos.Fusion:Link.Action href.action="edit" href.arguments.assistantId={assistant.id} class="neos-button">
+                        <Neos.Fusion:Link.Action href.action="edit" href.arguments.assistantId={assistant.id} href.arguments.organizationId={organizationId} class="neos-button">
                             <i class="fas fa-pencil-alt icon-white"></i>
                         </Neos.Fusion:Link.Action>
-                        <Neos.Fusion:Link.Action href.action="newThread" href.arguments.assistantId={assistant.id} class="neos-button">
+                        <Neos.Fusion:Link.Action href.action="newThread" href.arguments.assistantId={assistant.id} href.arguments.organizationId={organizationId} class="neos-button">
                             <i class="fas fa-comments icon-white"></i>
                         </Neos.Fusion:Link.Action>
                     </td>
@@ -32,7 +49,7 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
         </table>
 
         <div class="neos-footer">
-            <Neos.Fusion:Link.Action href.action="new" class="neos-button" >Create new AI-Assistant</Neos.Fusion:Link.Action>
+            <Neos.Fusion:Link.Action href.action="new" href.arguments.organizationId={organizationId} class="neos-button">Create new AI-Assistant</Neos.Fusion:Link.Action>
         </div>
 
     `

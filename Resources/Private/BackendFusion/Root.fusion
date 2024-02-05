@@ -4,9 +4,9 @@ include: **/*.fusion
 
 Sitegeist.Chatterbox.AssistantModuleController.index = Sitegeist.Chatterbox:Assistant.List
 Sitegeist.Chatterbox.AssistantModuleController.edit = Sitegeist.Chatterbox:Assistant.Edit
-Sitegeist.Chatterbox.AssistantModuleController.new = Sitegeist.Chatterbox:Assistant.Create
+Sitegeist.Chatterbox.AssistantModuleController.new = Sitegeist.Chatterbox:Assistant.New
 
-Sitegeist.Chatterbox.AssistantModuleController.newThread = Sitegeist.Chatterbox:Thread.Create
+Sitegeist.Chatterbox.AssistantModuleController.newThread = Sitegeist.Chatterbox:Thread.New
 Sitegeist.Chatterbox.AssistantModuleController.showThread = Sitegeist.Chatterbox:Thread.Show
 Sitegeist.Chatterbox.AssistantModuleController.addThreadMessage = Sitegeist.Chatterbox:Thread.Show
 

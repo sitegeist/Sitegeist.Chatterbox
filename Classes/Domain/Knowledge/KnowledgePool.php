@@ -6,14 +6,15 @@ namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
 use Neos\Flow\Annotations as Flow;
 
-#[Flow\Scope('singleton')]
 class KnowledgePool
 {
     /**
-     * @var array<string,array{className:string, options:array<string,mixed>}>
+     * @param array<string,array{className:string, options:array<string,mixed>}> $knowledgeConfig
      */
-    #[Flow\InjectConfiguration(path:'knowledge')]
-    protected array $knowledgeConfig;
+    public function __construct(
+        private readonly array $knowledgeConfig
+    ) {
+    }
 
     public function findAllSources(): SourceOfKnowledgeCollection
     {
