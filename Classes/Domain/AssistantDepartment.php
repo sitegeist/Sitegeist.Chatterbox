@@ -16,7 +16,6 @@ use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
-#[Flow\Scope('singleton')]
 class AssistantDepartment
 {
     public function __construct(
