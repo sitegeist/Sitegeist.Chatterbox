@@ -67,7 +67,8 @@ class ChatController extends ActionController
         $lastMessageKey = array_key_last($messageResponses);
         $lastMessage = $messageResponses[$lastMessageKey];
 
-        $this->view->assign('value',
+        $this->view->assign(
+            'value',
             [
                 'message' => $lastMessage->toApiArray(),
                 'metadata' => $assistant->getCollectedMetadata()
