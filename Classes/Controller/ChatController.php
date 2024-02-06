@@ -36,14 +36,10 @@ class ChatController extends ActionController
         $lastMessageKey = array_key_last($messageResponses);
         $lastMessage = $messageResponses[$lastMessageKey];
 
-        $this->view->assignMultiple([
-            'value' => array_merge(
-                [
-                    'threadId' => $threadId,
-                    'metadata' => $assistant->getCollectedMetadata()
-                ],
-                $lastMessage->toApiArray()
-            )
+        $this->view->assign('value', [
+            'threadId' => $threadId,
+            'metadata' => $assistant->getCollectedMetadata(),
+            'message' => $lastMessage->toApiArray()
         ]);
     }
 
@@ -71,13 +67,11 @@ class ChatController extends ActionController
         $lastMessageKey = array_key_last($messageResponses);
         $lastMessage = $messageResponses[$lastMessageKey];
 
-        $this->view->assignMultiple([
-            'value' => array_merge(
-                [
-                    'metadata' => $assistant->getCollectedMetadata()
-                ],
-                $lastMessage->toApiArray()
-            )
-        ]);
+        $this->view->assign('value',
+            [
+                'message' => $lastMessage->toApiArray(),
+                'metadata' => $assistant->getCollectedMetadata()
+            ]
+        );
     }
 }

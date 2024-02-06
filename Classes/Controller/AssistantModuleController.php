@@ -11,6 +11,7 @@ use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
+use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
@@ -141,8 +142,9 @@ class AssistantModuleController extends AbstractModuleController
                 'assistantId' => $assistantId,
                 'metadata' => $assistant->getCollectedMetadata()
             ]);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             $this->addFlashMessage('API-Error. I will reload.', 'Something went wrong', Message::SEVERITY_WARNING);
+            $this->logger->warning('API-Error. I will reload.', ['exception' => $e->getMessage(), 'organizationId' => $organizationId, 'threadId' =>  $threadId, 'assistantId' =>  $assistantId, 'message' => $message]);
             $this->redirect(
                 'showThread',
                 null,
