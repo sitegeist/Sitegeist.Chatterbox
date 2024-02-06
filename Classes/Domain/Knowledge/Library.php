@@ -8,6 +8,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
+use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 
 class Library
 {
@@ -15,13 +16,14 @@ class Library
         private readonly AssistantDepartment $assistantDepartment,
         private readonly OpenAiClientContract $client,
         private readonly Environment $environment,
+        private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
     }
 
     public function updateSourceOfKnowledge(SourceOfKnowledgeContract $sourceOfKnowledge): void
     {
         $content = $sourceOfKnowledge->getContent();
-        $filename = KnowledgeFilename::forKnowledgeSource($sourceOfKnowledge->getName());
+        $filename = KnowledgeFilename::forKnowledgeSource($sourceOfKnowledge->getName(), $this->organizationDiscriminator);
         $path = $this->environment->getPathToTemporaryDirectory() . '/' . $filename->toSystemFilename();
         \file_put_contents($path, (string)$content);
 
@@ -42,7 +44,11 @@ class Library
         }
 
         foreach ($filesListResponse->data as $fileResponse) {
-            if ($fileResponse->purpose === 'assistants' && !in_array($fileResponse->id, $usedFileIds)) {
+            $filename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
+            if ($filename === null || $this->organizationDiscriminator->equals($filename->discriminator) === false) {
+                continue;
+            }
+            if (!in_array($fileResponse->id, $usedFileIds)) {
                 $this->client->files()->delete($fileResponse->id);
             }
         }

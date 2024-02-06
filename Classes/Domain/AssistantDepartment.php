@@ -23,14 +23,14 @@ class AssistantDepartment
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
         private readonly LoggerInterface $logger,
-        private readonly ?string $assistantDiscriminator,
+        private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
     }
 
     public function findAssistantById(string $assistantId): Assistant
     {
         $assistantRecord = $this->findAssistantRecordById($assistantId);
-        if (($assistantRecord->metadata['discriminator'] ?? null) !== $this->assistantDiscriminator) {
+        if ($this->organizationDiscriminator->equals($assistantRecord->metadata['discriminator'] ?? '') === false) {
             throw new \Exception('Wrong assistant descriminator i do not dare to use this');
         }
 
@@ -60,7 +60,7 @@ class AssistantDepartment
                 fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse),
                 array_filter(
                     $this->client->assistants()->list()->data,
-                    fn(AssistantResponse $assistantResponse) => ($assistantResponse->metadata['discriminator'] ?? null) === $this->assistantDiscriminator
+                    fn(AssistantResponse $assistantResponse) => $this->organizationDiscriminator->equals($assistantResponse->metadata['discriminator'] ?? '')
                 )
             )
         );
@@ -68,7 +68,7 @@ class AssistantDepartment
 
     public function createAssistant(string $name, string $model): AssistantRecord
     {
-        $assistantResponse = $this->client->assistants()->create(['model' => $model, 'name' => $name, 'metadata' => ['discriminator' => $this->assistantDiscriminator]]);
+        $assistantResponse = $this->client->assistants()->create(['model' => $model, 'name' => $name, 'metadata' => ['discriminator' => $this->organizationDiscriminator->value]]);
         return AssistantRecord::fromAssistantResponse($assistantResponse);
     }
 
@@ -100,7 +100,7 @@ class AssistantDepartment
     private function createMetadataConfiguration(AssistantRecord $assistantRecord): array
     {
         return [
-            'descriminator' => $this->assistantDiscriminator,
+            'descriminator' => $this->organizationDiscriminator->value,
             'selectedTools' => json_encode($assistantRecord->selectedTools),
             'selectedSourcesOfKnowledge' => json_encode($assistantRecord->selectedSourcesOfKnowledge),
             'selectedInstructions' => json_encode($assistantRecord->selectedInstructions),
@@ -142,12 +142,24 @@ class AssistantDepartment
         $fileListResponse = $this->client->files()->list();
         $fileIds = [];
         foreach ($assistantRecord->selectedSourcesOfKnowledge as $knowledgeSourceName) {
+            $knowledgeSourceNameObject = new KnowledgeSourceName($knowledgeSourceName);
             $latestFilename = null;
             foreach ($fileListResponse->data as $fileResponse) {
                 $knowledgeFilename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
-                if ($knowledgeFilename?->takesPrecedenceOver($latestFilename, $knowledgeSourceName)) {
-                    $latestFilename = $knowledgeFilename;
-                    $fileIds[$knowledgeSourceName] = $fileResponse->id;
+                if ($knowledgeFilename === null) {
+                    continue;
+                }
+
+                if ($latestFilename instanceof KnowledgeFilename) {
+                    if ($knowledgeFilename->takesPrecedenceOver($latestFilename)) {
+                        $latestFilename = $knowledgeFilename;
+                        $fileIds[$knowledgeSourceName] = $fileResponse->id;
+                    }
+                } else {
+                    if ($knowledgeFilename->isRelevantFor($this->organizationDiscriminator, $knowledgeSourceNameObject)) {
+                        $latestFilename = $knowledgeFilename;
+                        $fileIds[$knowledgeSourceName] = $fileResponse->id;
+                    }
                 }
             }
         }

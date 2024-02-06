@@ -71,7 +71,7 @@ class OrganizationRepository
     {
         $account = $this->accountRepository->findById($config['accountId']);
         $client = $this->clientFactory->createClientForAccountRecord($account);
-        $discriminator = $config['discriminator'] ?? null;
+        $discriminator = new OrganizationDiscriminator($config['discriminator'] ?? '');
 
         $toolbox = new Toolbox($config['tools']);
         $manual = new Manual($this->objectManager, $config['instructions']);
@@ -86,13 +86,14 @@ class OrganizationRepository
         return new Organization(
             $id,
             $config['label'],
+            $discriminator,
             $client,
             $assistantDepartment,
             $manual,
             new KnowledgePool($config['knowledge']),
             new ModelAgency($client),
             $toolbox,
-            new Library($assistantDepartment, $client, $this->environment)
+            new Library($assistantDepartment, $client, $this->environment, $discriminator)
         );
     }
 }

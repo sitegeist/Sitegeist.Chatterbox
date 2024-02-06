@@ -9,6 +9,7 @@ use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Neos\Domain\Service\ContentContextFactory;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
+use Sitegeist\Chatterbox\Domain\KnowledgeSourceName;
 
 final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContract
 {
@@ -19,7 +20,7 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
     protected ContentDimensionPresetSourceInterface $contentDimensionPresetSource;
 
     public function __construct(
-        private readonly string $name,
+        private readonly KnowledgeSourceName $name,
         private readonly string $description,
         private readonly ContentRepositorySourceDesignator $designator,
     ) {
@@ -28,13 +29,13 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
     public static function createFromConfiguration(string $name, array $options): static
     {
         return new static(
-            $name,
+            new KnowledgeSourceName($name),
             $options['description'] ?? 'null',
             ContentRepositorySourceDesignator::createFromConfiguration($options),
         );
     }
 
-    public function getName(): string
+    public function getName(): KnowledgeSourceName
     {
         return $this->name;
     }
