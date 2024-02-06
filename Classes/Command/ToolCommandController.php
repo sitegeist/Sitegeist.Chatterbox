@@ -35,8 +35,8 @@ class ToolCommandController extends CommandController
         }
 
         $this->output(Yaml::dump([
-            'data' => $result->getData(),
-            'metadata' => $result->getMetadata()
+            'data' => json_decode(json_encode($result->getData()), true),
+            'metadata' => json_decode(json_encode($result->getMetadata()), true)
         ]));
     }
 }
