@@ -12,6 +12,7 @@ use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
+use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;

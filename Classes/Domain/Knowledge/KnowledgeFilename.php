@@ -10,7 +10,7 @@ use Neos\ContentRepository\Domain\NodeAggregate\NodeAggregateIdentifier;
 use Neos\ContentRepository\Domain\Service\ContextFactory;
 use Neos\Flow\Annotations as Flow;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
-use Sitegeist\Chatterbox\Domain\KnowledgeSourceName;
+use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 
 #[Flow\Proxy(false)]

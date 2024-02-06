@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sitegeist\Chatterbox\Domain;
+namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Contracts\ClientContract;

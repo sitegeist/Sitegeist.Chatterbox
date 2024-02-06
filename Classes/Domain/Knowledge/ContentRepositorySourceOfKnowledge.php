@@ -9,7 +9,7 @@ use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Neos\Domain\Service\ContentContextFactory;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
-use Sitegeist\Chatterbox\Domain\KnowledgeSourceName;
+use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 
 final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContract
 {
