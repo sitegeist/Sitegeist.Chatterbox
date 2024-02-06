@@ -71,6 +71,7 @@ class OrganizationRepository
     {
         $account = $this->accountRepository->findById($config['accountId']);
         $client = $this->clientFactory->createClientForAccountRecord($account);
+        $discriminator = $config['discriminator'] ?? null;
 
         $toolbox = new Toolbox($config['tools']);
         $manual = new Manual($this->objectManager, $config['instructions']);
@@ -78,7 +79,8 @@ class OrganizationRepository
             $client,
             $toolbox,
             $manual,
-            $this->logger
+            $this->logger,
+            $discriminator,
         );
 
         return new Organization(

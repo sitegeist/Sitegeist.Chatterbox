@@ -23,12 +23,16 @@ class AssistantDepartment
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
         private readonly LoggerInterface $logger,
+        private readonly ?string $assistantDiscriminator,
     ) {
     }
 
     public function findAssistantById(string $assistantId): Assistant
     {
         $assistantRecord = $this->findAssistantRecordById($assistantId);
+        if (($assistantRecord->metadata['discriminator'] ?? null) !== $this->assistantDiscriminator) {
+            throw new \Exception('Wrong assistant descriminator i do not dare to use this');
+        }
 
         return new Assistant(
             $assistantId,
@@ -54,14 +58,17 @@ class AssistantDepartment
         return new AssistantRecordCollection(
             ...array_map(
                 fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse),
-                $this->client->assistants()->list()->data
+                array_filter(
+                    $this->client->assistants()->list()->data,
+                    fn(AssistantResponse $assistantResponse) => ($assistantResponse->metadata['discriminator'] ?? null) === $this->assistantDiscriminator
+                )
             )
         );
     }
 
     public function createAssistant(string $name, string $model): AssistantRecord
     {
-        $assistantResponse = $this->client->assistants()->create(['model' => $model, 'name' => $name]);
+        $assistantResponse = $this->client->assistants()->create(['model' => $model, 'name' => $name, 'metadata' => ['discriminator' => $this->assistantDiscriminator]]);
         return AssistantRecord::fromAssistantResponse($assistantResponse);
     }
 
@@ -93,6 +100,7 @@ class AssistantDepartment
     private function createMetadataConfiguration(AssistantRecord $assistantRecord): array
     {
         return [
+            'descriminator' => $this->assistantDiscriminator,
             'selectedTools' => json_encode($assistantRecord->selectedTools),
             'selectedSourcesOfKnowledge' => json_encode($assistantRecord->selectedSourcesOfKnowledge),
             'selectedInstructions' => json_encode($assistantRecord->selectedInstructions),
