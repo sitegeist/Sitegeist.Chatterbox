@@ -95,12 +95,12 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
                             <Neos.Fusion:Loop items={availableSourcesOfKnowledge} itemName="source">
                                 <tr>
                                     <td>
-                                        <label class="neos-checkbox" for={"source-" + source.name}>
-                                            <Neos.Fusion.Form:Checkbox attributes.id={"source-" + source.name} field.name="assistant[selectedSourcesOfKnowledge]" field.multiple field.value={source.name} />
+                                        <label class="neos-checkbox" for={"source-" + source.name.value}>
+                                            <Neos.Fusion.Form:Checkbox attributes.id={"source-" + source.name.value} field.name="assistant[selectedSourcesOfKnowledge]" field.multiple field.value={source.name.value} />
                                             <span></span>
                                         </label>
                                     </td>
-                                    <td>{source.name}</td>
+                                    <td>{source.name.value}</td>
                                     <td>{source.description}</td>
                                 </tr>
                             </Neos.Fusion:Loop>
