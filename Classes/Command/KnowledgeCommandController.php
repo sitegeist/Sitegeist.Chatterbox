@@ -25,13 +25,12 @@ class KnowledgeCommandController extends CommandController
             : $this->organizationRepository->findAll();
         $numberOfSources = 0;
         foreach ($organizations as $organization) {
-            $numberOfSources += count($organization->knowledgePool->findAllSources());
+            $numberOfSources += count($organization->library->findAllSourcesOfKnowledge());
         }
         $this->output->progressStart($numberOfSources);
 
         foreach ($organizations as $organization) {
-            $sources = $organization->knowledgePool->findAllSources();
-            foreach ($sources as $sourceOfKnowledge) {
+            foreach ($organization->library->findAllSourcesOfKnowledge() as $sourceOfKnowledge) {
                 $organization->library->updateSourceOfKnowledge($sourceOfKnowledge);
                 $this->output->progressAdvance();
             }

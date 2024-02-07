@@ -9,7 +9,6 @@ use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Flow\Utility\Environment;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
-use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
@@ -90,10 +89,9 @@ class OrganizationRepository
             $client,
             $assistantDepartment,
             $manual,
-            new KnowledgePool($config['knowledge']),
             new ModelAgency($client),
             $toolbox,
-            new Library($assistantDepartment, $client, $this->environment, $discriminator)
+            new Library($config['knowledge'], $assistantDepartment, $client, $this->environment, $discriminator)
         );
     }
 }

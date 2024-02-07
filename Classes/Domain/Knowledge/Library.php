@@ -12,12 +12,37 @@ use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 
 class Library
 {
+    /**
+     * @param array<string,array{className:string, options:array<string,mixed>}> $sourceOfKnowledgeConfig
+     */
     public function __construct(
+        private readonly array $sourceOfKnowledgeConfig,
         private readonly AssistantDepartment $assistantDepartment,
         private readonly OpenAiClientContract $client,
         private readonly Environment $environment,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
+    }
+
+    public function findAllSourcesOfKnowledge(): SourceOfKnowledgeCollection
+    {
+        $sources = [];
+        foreach ($this->sourceOfKnowledgeConfig as $name => $config) {
+            $sources[] = $this->instantiateSourceOfKnowledge($name);
+        }
+        return new SourceOfKnowledgeCollection(...$sources);
+    }
+
+    public function findSourceByName(string $name): ?SourceOfKnowledgeContract
+    {
+        return $this->instantiateSourceOfKnowledge($name);
+    }
+
+    public function updateAllSourcesOfKnowledge(): void
+    {
+        foreach ($this->findAllSourcesOfKnowledge() as $sourceOfKnowledge) {
+            $this->updateSourceOfKnowledge($sourceOfKnowledge);
+        }
     }
 
     public function updateSourceOfKnowledge(SourceOfKnowledgeContract $sourceOfKnowledge): void
@@ -51,6 +76,17 @@ class Library
             if (!in_array($fileResponse->id, $usedFileIds)) {
                 $this->client->files()->delete($fileResponse->id);
             }
+        }
+    }
+
+    private function instantiateSourceOfKnowledge(string $name): SourceOfKnowledgeContract
+    {
+        $class = $this->sourceOfKnowledgeConfig[$name]['className'];
+        $options = $this->knowledgeConfig[$name]['options'] ?? [];
+        if (class_exists($class) && is_a($class, SourceOfKnowledgeContract::class, true)) {
+            return $class::createFromConfiguration($name, $options);
+        } else {
+            throw new \Exception('Class ' . $class . ' does not exist or does not implement the SourceOfKnowledgeContract');
         }
     }
 }

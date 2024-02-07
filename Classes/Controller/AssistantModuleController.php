@@ -9,18 +9,8 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\View\ViewInterface;
 use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
-use OpenAI\Contracts\ClientContract as OpenAiClientContract;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
-use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
-use Sitegeist\Chatterbox\Domain\Instruction\Manual;
-use Sitegeist\Chatterbox\Domain\Knowledge\Library;
-use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgePool;
-use Sitegeist\Chatterbox\Domain\MessageRecord;
-use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
-use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
-use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
 
 #[Flow\Scope('singleton')]
 class AssistantModuleController extends AbstractModuleController
@@ -86,7 +76,7 @@ class AssistantModuleController extends AbstractModuleController
         $this->view->assignMultiple([
             'organizationId' => $organizationId,
             'availableTools' => $organization->toolbox->findAll(),
-            'availableSourcesOfKnowledge' => $organization->knowledgePool->findAllSources(),
+            'availableSourcesOfKnowledge' => $organization->library->findAllSourcesOfKnowledge(),
             'availableInstructions' => $organization->manual->findAll(),
             'assistant' => $organization->assistantDepartment->findAssistantRecordById($assistantId),
             'models' => $organization->modelAgency->findAllAvailableModels(),
