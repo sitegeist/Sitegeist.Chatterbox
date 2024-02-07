@@ -81,13 +81,14 @@ class AssistantDepartment
 
     public function updateAssistant(AssistantRecord $assistantRecord): void
     {
+
         $this->client->assistants()->modify(
             $assistantRecord->id,
             [
                 'model' => $assistantRecord->model,
-                'name' => $assistantRecord->name,
-                'description' => $assistantRecord->description,
-                'instructions' => $assistantRecord->instructions,
+                'name' => $assistantRecord->name ?: '',
+                'description' => $assistantRecord->description ?: '',
+                'instructions' => $assistantRecord->instructions ?: '',
                 'tools' => $this->createToolConfiguration($assistantRecord),
                 'file_ids' => $this->createFileIdConfiguration($assistantRecord),
                 'metadata' => $this->createMetadataConfiguration($assistantRecord),
