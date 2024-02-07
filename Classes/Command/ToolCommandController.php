@@ -33,10 +33,9 @@ class ToolCommandController extends CommandController
             $this->outputLine('Tool failed: ' . $e->getMessage());
             $this->quit();
         }
-
         $this->output(Yaml::dump([
-            'data' => json_decode(json_encode($result->getData()), true),
-            'metadata' => json_decode(json_encode($result->getMetadata()), true)
+            'data' => json_decode(json_encode($result->getData()) ?: '', true),
+            'metadata' => json_decode(json_encode($result->getMetadata()) ?: '', true)
         ]));
     }
 }
