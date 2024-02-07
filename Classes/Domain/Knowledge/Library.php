@@ -82,7 +82,7 @@ class Library
     private function instantiateSourceOfKnowledge(string $name): SourceOfKnowledgeContract
     {
         $class = $this->sourceOfKnowledgeConfig[$name]['className'];
-        $options = $this->knowledgeConfig[$name]['options'] ?? [];
+        $options = $this->sourceOfKnowledgeConfig[$name]['options'] ?? [];
         if (class_exists($class) && is_a($class, SourceOfKnowledgeContract::class, true)) {
             return $class::createFromConfiguration($name, $options);
         } else {
