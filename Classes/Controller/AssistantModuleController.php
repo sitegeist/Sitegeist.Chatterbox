@@ -131,8 +131,9 @@ class AssistantModuleController extends AbstractModuleController
                 'assistantId' => $assistantId,
                 'metadata' => $assistant->getCollectedMetadata()
             ]);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             $this->addFlashMessage('API-Error. I will reload.', 'Something went wrong', Message::SEVERITY_WARNING);
+            $this->logger->warning('API-Error. I will reload.', ['exception' => $e->getMessage(), 'organizationId' => $organizationId, 'threadId' =>  $threadId, 'assistantId' =>  $assistantId, 'message' => $message]);
             $this->redirect(
                 'showThread',
                 null,

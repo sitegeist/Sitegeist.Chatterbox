@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use Neos\Utility\Arrays;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
@@ -36,6 +37,7 @@ final class Assistant
      */
     public function getCollectedMetadata(): array
     {
+
         return $this->collectedMetadata;
     }
 
@@ -102,12 +104,8 @@ final class Assistant
                             if ($toolInstance instanceof ToolContract) {
                                 $toolResult = $toolInstance->execute(json_decode($requiredToolCall->function->arguments, true));
                                 $toolOutputs["tool_outputs"][] = ['tool_call_id' => $requiredToolCall->id, 'output' => json_encode($toolResult->getData())];
-                                $this->collectedMetadata[] = [
-                                    'tool_name' => $requiredToolCall->function->name,
-                                    'tool_call_id' => $requiredToolCall->id,
-                                    'data' => $toolResult->getData(),
-                                    'metadata' => $toolResult->getMetadata()
-                                ];
+                                $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, ['tool_calls' => ['name' => $requiredToolCall->function->name, 'parameters' => $requiredToolCall->function->arguments]]);
+                                $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
                             }
                         }
                     }
