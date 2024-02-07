@@ -37,7 +37,6 @@ final class Assistant
      */
     public function getCollectedMetadata(): array
     {
-
         return $this->collectedMetadata;
     }
 

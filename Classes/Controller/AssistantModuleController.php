@@ -124,12 +124,13 @@ class AssistantModuleController extends AbstractModuleController
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         try {
             $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
+            $metadata = $assistant->getCollectedMetadata();
             $this->view->assignMultiple([
                 'organizationId' => $organizationId,
                 'messages' => $assistant->readThread($threadId),
                 'threadId' => $threadId,
                 'assistantId' => $assistantId,
-                'metadata' => $assistant->getCollectedMetadata()
+                'metadata' => empty($metadata) ? new \stdClass() : $metadata
             ]);
         } catch (\Exception $e) {
             $this->addFlashMessage('API-Error. I will reload.', 'Something went wrong', Message::SEVERITY_WARNING);
