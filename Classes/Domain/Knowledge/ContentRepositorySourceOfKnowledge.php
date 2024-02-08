@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
 use GuzzleHttp\Psr7\Uri;
+use Neos\ContentRepository\Domain\Model\Node;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\ServerRequestAttributes;
+use Neos\Flow\Mvc\ActionRequestFactory;
+use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
+use Neos\Flow\Mvc\Routing\UriBuilder;
+use Neos\Http\Factories\ServerRequestFactory;
+use Neos\Http\Factories\UriFactory;
 use Neos\Neos\Domain\Service\ContentContextFactory;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
-use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
+use Sitegeist\Chatterbox\Domain\Quotation;
 
 final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContract
 {
@@ -50,6 +57,32 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         $rootNode = $this->designator->findRootNode($this->contentContextFactory, $this->contentDimensionPresetSource);
 
         return new JsonlRecordCollection(...$this->traverseSubtree($rootNode));
+    }
+
+    public function findQuotationByQuote(string $quote, string $fileContent): ?Quotation
+    {
+        $recordCollection = JsonlRecordCollection::fromString($fileContent);
+        $record = $recordCollection->findRecordByContentPart($quote);
+        if ($record === null) {
+            return null;
+        }
+
+        $sourceNode = $this->designator->findRootNode(
+            $this->contentContextFactory,
+            $this->contentDimensionPresetSource
+        )->getContext()
+            ->getNodeByIdentifier($record->id);
+
+        if (!$sourceNode instanceof Node) {
+            return null;
+        }
+
+        return new Quotation(
+            $quote,
+            $sourceNode->getLabel(),
+            $sourceNode->getProperty('abstract') ?: $sourceNode->getProperty('description') ?: '',
+            $this->getNodeUri($sourceNode),
+        );
     }
 
     /**
@@ -100,5 +133,27 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         }
 
         return trim($content);
+    }
+
+    private function getNodeUri(Node $node): Uri
+    {
+        $uriBuilder = new UriBuilder();
+        $actionRequestFactory = new ActionRequestFactory();
+        $serverRequestFactory = new ServerRequestFactory(new UriFactory());
+        $httpRequest = $serverRequestFactory->createServerRequest('GET', 'https://neos.io')
+            ->withAttribute(
+                ServerRequestAttributes::ROUTING_PARAMETERS,
+                RouteParameters::createEmpty()->withParameter('requestUriHost', 'https://neos.io')
+            );
+        $uriBuilder->setRequest($actionRequestFactory->createActionRequest($httpRequest));
+        $uriBuilder->setFormat('html');
+        $uriBuilder->setCreateAbsoluteUri(true);
+
+        return new Uri($uriBuilder->uriFor(
+            'show',
+            ['node' => $node],
+            'Frontend/Node',
+            'Neos.Neos'
+        ));
     }
 }

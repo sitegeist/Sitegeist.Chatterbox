@@ -13,6 +13,7 @@ use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCal
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutputs;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
+use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
@@ -30,6 +31,7 @@ final class Assistant
         private readonly ToolCollection $tools,
         private readonly InstructionCollection $instructions,
         private readonly MessageEditorCollection $messageEditors,
+        private readonly SourceOfKnowledgeCollection $sourcesOfKnowledge,
         private readonly OpenAiClientContract $client,
         private readonly ?LoggerInterface $logger,
     ) {
@@ -85,7 +87,7 @@ final class Assistant
 
         return array_reverse(
             array_map(
-                fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse),
+                fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse, $this->sourcesOfKnowledge),
                 $threadMessageResponsesFiltered
             )
         );
@@ -122,8 +124,8 @@ final class Assistant
         }
         $this->logger?->info("thread run response", $threadRunResponse->toArray());
 
+        $stepList = $this->client->threads()->runs()->steps()->list($threadId, $threadRunResponse->id);
         if (!$this->messageEditors->isEmpty()) {
-            $stepList = $this->client->threads()->runs()->steps()->list($threadId, $threadRunResponse->id);
             foreach ($stepList->data as $stepResponse) {
                 $stepDetails = $stepResponse->stepDetails;
                 if ($stepDetails instanceof ThreadRunStepResponseMessageCreationStepDetails) {

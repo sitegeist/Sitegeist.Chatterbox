@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
-use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
+use Sitegeist\Chatterbox\Domain\Quotation;
 
 interface SourceOfKnowledgeContract
 {
@@ -18,4 +18,6 @@ interface SourceOfKnowledgeContract
     public function getDescription(): string;
 
     public function getContent(): JsonlRecordCollection;
+
+    public function findQuotationByQuote(string $quote, string $fileContent): ?Quotation;
 }
