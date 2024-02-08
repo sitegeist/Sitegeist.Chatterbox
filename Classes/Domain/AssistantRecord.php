@@ -19,6 +19,7 @@ final class AssistantRecord
      * @param string[] $selectedTools
      * @param string[] $selectedSourcesOfKnowledge
      * @param string[] $selectedInstructions
+     * @param string[] $selectedMessageEditors
      * @param string[] $fileIds
      */
     public function __construct(
@@ -32,6 +33,7 @@ final class AssistantRecord
         public readonly array $selectedTools = [],
         public readonly array $selectedSourcesOfKnowledge = [],
         public readonly array $selectedInstructions = [],
+        public readonly array $selectedMessageEditors = [],
         public readonly array $fileIds = [],
     ) {
     }
@@ -41,6 +43,7 @@ final class AssistantRecord
         $selectedTools = array_key_exists('selectedTools', $response->metadata) ? json_decode($response->metadata['selectedTools'], true) : [];
         $selectedSourcesOfKnowledge = array_key_exists('selectedSourcesOfKnowledge', $response->metadata) ? json_decode($response->metadata['selectedSourcesOfKnowledge'], true) : [];
         $selectedInstructions = array_key_exists('selectedInstructions', $response->metadata) ? json_decode($response->metadata['selectedInstructions'], true) : [];
+        $selectedMessageEditors = array_key_exists('selectedMessageEditors', $response->metadata) ? json_decode($response->metadata['selectedMessageEditors'], true) : [];
 
         return new self(
             $response->id,
@@ -53,6 +56,7 @@ final class AssistantRecord
             $selectedTools,
             $selectedSourcesOfKnowledge,
             $selectedInstructions,
+            $selectedMessageEditors,
             $response->fileIds,
         );
     }

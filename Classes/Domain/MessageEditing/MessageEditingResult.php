@@ -2,26 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Sitegeist\Chatterbox\Domain\Tools;
+namespace Sitegeist\Chatterbox\Domain\MessageEditing;
 
-class ToolResult implements ToolResultContract
+class MessageEditingResult implements MessageEditingResultContract
 {
     /**
-     * @param array<string, mixed> $data
      * @param array<string, mixed> $metadata
      */
     public function __construct(
-        protected readonly array $data,
         protected readonly array $metadata,
     ) {
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getData(): array
-    {
-        return $this->data;
     }
 
     /**

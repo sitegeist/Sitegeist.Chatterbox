@@ -13,6 +13,9 @@ use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
+use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorCollection;
+use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorContract;
+use Sitegeist\Chatterbox\Domain\MessageEditing\EditorialOffice;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
@@ -23,6 +26,7 @@ class AssistantDepartment
         private readonly OpenAiClientContract $client,
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
+        private readonly EditorialOffice $editorialOffice,
         private readonly LoggerInterface $logger,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
@@ -31,8 +35,9 @@ class AssistantDepartment
     public function findAssistantById(string $assistantId): Assistant
     {
         $assistantRecord = $this->findAssistantRecordById($assistantId);
-        if ($this->organizationDiscriminator->equals($assistantRecord->metadata['discriminator'] ?? '') === false) {
-            throw new \Exception('Wrong assistant descriminator i do not dare to use this');
+        $discriminatorName = $assistantRecord->metadata['discriminator'] ?? '';
+        if ($this->organizationDiscriminator->equals($discriminatorName) === false) {
+            throw new \Exception('Wrong assistant discriminator "' . $discriminatorName . '", I do not dare to use this');
         }
 
         return new Assistant(
@@ -45,8 +50,16 @@ class AssistantDepartment
             )),
             new InstructionCollection(...array_filter(
                 array_map(
-                    fn (string $instructionName): ?InstructionContract => $this->manual->findInstructionByName($instructionName),
+                    fn (string $instructionName): ?InstructionContract
+                        => $this->manual->findInstructionByName($instructionName),
                     $assistantRecord->selectedInstructions
+                )
+            )),
+            new MessageEditorCollection(...array_filter(
+                array_map(
+                    fn (string $messageEditorName): ?MessageEditorContract
+                        => $this->editorialOffice->findByName($messageEditorName),
+                    $assistantRecord->selectedMessageEditors
                 )
             )),
             $this->client,
@@ -81,7 +94,6 @@ class AssistantDepartment
 
     public function updateAssistant(AssistantRecord $assistantRecord): void
     {
-
         $this->client->assistants()->modify(
             $assistantRecord->id,
             [
@@ -106,6 +118,7 @@ class AssistantDepartment
             'selectedTools' => json_encode($assistantRecord->selectedTools),
             'selectedSourcesOfKnowledge' => json_encode($assistantRecord->selectedSourcesOfKnowledge),
             'selectedInstructions' => json_encode($assistantRecord->selectedInstructions),
+            'selectedMessageEditors' => json_encode($assistantRecord->selectedMessageEditors),
         ];
     }
 

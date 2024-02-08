@@ -8,6 +8,7 @@ use Neos\Flow\Annotations as Flow;
 use OpenAI\Contracts\ClientContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
+use Sitegeist\Chatterbox\Domain\MessageEditing\EditorialOffice;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 
@@ -24,6 +25,7 @@ class Organization
         public readonly ModelAgency $modelAgency,
         public readonly Toolbox $toolbox,
         public readonly Library $library,
+        public readonly EditorialOffice $editorialOffice,
     ) {
     }
 }
