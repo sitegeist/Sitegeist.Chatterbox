@@ -41,7 +41,7 @@ class ChatController extends ActionController
             'value' => array_merge(
                 [
                     'threadId' => $threadId,
-                    'metadata' => empty($metadata) ? new \stdClass() : $metadata
+                    'metadata' => empty($metadata) ? null : $metadata
                 ],
                 $lastMessage->toApiArray()
             )
@@ -76,7 +76,7 @@ class ChatController extends ActionController
         $this->view->assignMultiple([
             'value' => array_merge(
                 [
-                    'metadata' => empty($metadata) ? new \stdClass() : $metadata
+                    'metadata' => empty($metadata) ? null : $metadata
                 ],
                 $lastMessage->toApiArray()
             )

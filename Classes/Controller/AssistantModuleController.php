@@ -130,7 +130,7 @@ class AssistantModuleController extends AbstractModuleController
                 'messages' => $assistant->readThread($threadId),
                 'threadId' => $threadId,
                 'assistantId' => $assistantId,
-                'metadata' => empty($metadata) ? new \stdClass() : $metadata
+                'metadata' => empty($metadata) ? null : $metadata
             ]);
         } catch (\Exception $e) {
             $this->addFlashMessage('API-Error. I will reload.', 'Something went wrong', Message::SEVERITY_WARNING);
