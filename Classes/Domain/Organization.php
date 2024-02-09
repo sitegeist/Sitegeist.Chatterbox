@@ -25,7 +25,6 @@ class Organization
         public readonly ModelAgency $modelAgency,
         public readonly Toolbox $toolbox,
         public readonly Library $library,
-        public readonly EditorialOffice $editorialOffice,
     ) {
     }
 }

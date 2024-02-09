@@ -78,7 +78,6 @@ class AssistantModuleController extends AbstractModuleController
             'availableTools' => $organization->toolbox->findAll(),
             'availableSourcesOfKnowledge' => $organization->library->findAllSourcesOfKnowledge(),
             'availableInstructions' => $organization->manual->findAll(),
-            'availableMessageEditors' => $organization->editorialOffice->findAll(),
             'assistant' => $organization->assistantDepartment->findAssistantRecordById($assistantId),
             'models' => $organization->modelAgency->findAllAvailableModels(),
         ]);
