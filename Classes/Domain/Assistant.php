@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use Doctrine\DBAL\Connection as DatabaseConnection;
 use Neos\Utility\Arrays;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Neos\Flow\Annotations as Flow;
@@ -32,7 +33,9 @@ final class Assistant
         private readonly InstructionCollection $instructions,
         private readonly MessageEditorCollection $messageEditors,
         private readonly SourceOfKnowledgeCollection $sourcesOfKnowledge,
+        private readonly OrganizationDiscriminator $organizationDiscriminator,
         private readonly OpenAiClientContract $client,
+        private readonly DatabaseConnection $connection,
         private readonly ?LoggerInterface $logger,
     ) {
     }
@@ -91,7 +94,8 @@ final class Assistant
                 fn (ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse(
                     $threadMessageResponse,
                     $this->sourcesOfKnowledge,
-                    $this->client
+                    $this->organizationDiscriminator,
+                    $this->connection
                 ),
                 $threadMessageResponsesFiltered
             )

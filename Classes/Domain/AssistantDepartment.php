@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use Doctrine\DBAL\Connection as DatabaseConnection;
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
@@ -25,6 +26,7 @@ class AssistantDepartment
 {
     public function __construct(
         private readonly OpenAiClientContract $client,
+        private readonly DatabaseConnection $connection,
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
         private readonly EditorialOffice $editorialOffice,
@@ -65,7 +67,9 @@ class AssistantDepartment
                 )
             )),
             $this->library->findSourcesByNames($assistantRecord->selectedMessageEditors),
+            $this->organizationDiscriminator,
             $this->client,
+            $this->connection,
             $this->logger
         );
     }

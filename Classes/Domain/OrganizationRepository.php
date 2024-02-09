@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Persistence\Doctrine\ConnectionFactory;
 use Neos\Flow\Utility\Environment;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
@@ -28,9 +29,10 @@ class OrganizationRepository
     public function __construct(
         private readonly AccountRepository $accountRepository,
         private readonly OpenAiClientFactory $clientFactory,
+        private readonly ConnectionFactory $connectionFactory,
         private readonly ObjectManagerInterface $objectManager,
         private readonly LoggerInterface $logger,
-        private readonly Environment $environment
+        private readonly Environment $environment,
     ) {
     }
 
@@ -71,14 +73,22 @@ class OrganizationRepository
     {
         $account = $this->accountRepository->findById($config['accountId']);
         $client = $this->clientFactory->createClientForAccountRecord($account);
+        $connection = $this->connectionFactory->create();
         $discriminator = new OrganizationDiscriminator($config['discriminator'] ?? '');
 
         $toolbox = new Toolbox($config['tools']);
         $manual = new Manual($this->objectManager, $config['instructions']);
         $editorialOffice = new EditorialOffice($config['messageEditors'] ?? [], $client, $this->objectManager);
-        $library = new Library($config['knowledge'], $client, $this->environment, $discriminator);
+        $library = new Library(
+            $config['knowledge'],
+            $client,
+            $connection,
+            $this->environment,
+            $discriminator
+        );
         $assistantDepartment = new AssistantDepartment(
             $client,
+            $connection,
             $toolbox,
             $manual,
             $editorialOffice,

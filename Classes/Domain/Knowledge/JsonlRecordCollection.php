@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
-final class JsonlRecordCollection implements \Stringable
+/**
+ * @implements \IteratorAggregate<JsonlRecord>
+ */
+final class JsonlRecordCollection implements \IteratorAggregate, \Countable, \Stringable
 {
     /**
      * @var array<JsonlRecord>
@@ -36,6 +39,19 @@ final class JsonlRecordCollection implements \Stringable
         }
 
         return null;
+    }
+
+    /**
+     * @return \Traversable<JsonlRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        yield from $this->items;
+    }
+
+    public function count(): int
+    {
+        return count($this);
     }
 
     public function __toString(): string

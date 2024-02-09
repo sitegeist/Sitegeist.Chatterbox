@@ -59,19 +59,13 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return new JsonlRecordCollection(...$this->traverseSubtree($rootNode));
     }
 
-    public function findQuotationByQuote(string $quote, string $fileContent): ?Quotation
+    public function tryCreateQuotation(string $quote, string $id): ?Quotation
     {
-        $recordCollection = JsonlRecordCollection::fromString($fileContent);
-        $record = $recordCollection->findRecordByContentPart($quote);
-        if ($record === null) {
-            return null;
-        }
-
         $sourceNode = $this->designator->findRootNode(
             $this->contentContextFactory,
             $this->contentDimensionPresetSource
         )->getContext()
-            ->getNodeByIdentifier($record->id);
+            ->getNodeByIdentifier($id);
 
         if (!$sourceNode instanceof Node) {
             return null;
