@@ -1,9 +1,0 @@
-Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection:
-  properties:
-    fileCache:
-      object:
-        factoryObjectName: Neos\Flow\Cache\CacheManager
-        factoryMethodName: getCache
-        arguments:
-          1:
-            value: Sitegeist_Chatterbox_FileContentCache
