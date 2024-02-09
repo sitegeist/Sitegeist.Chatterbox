@@ -26,6 +26,12 @@ class KnowledgeSourceDiscriminator
         );
     }
 
+    public function equals(self $other): bool
+    {
+        return $this->organizationDiscriminator->equals($other->organizationDiscriminator)
+            && $this->knowledgeSourceName->equals($other->knowledgeSourceName);
+    }
+
     public function toString(): string
     {
         return $this->organizationDiscriminator->value . '-' . $this->knowledgeSourceName->value;

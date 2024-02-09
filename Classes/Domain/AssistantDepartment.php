@@ -13,6 +13,7 @@ use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
+use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceDiscriminator;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorCollection;
@@ -166,6 +167,10 @@ class AssistantDepartment
         $fileIds = [];
         foreach ($assistantRecord->selectedSourcesOfKnowledge as $knowledgeSourceName) {
             $knowledgeSourceNameObject = new KnowledgeSourceName($knowledgeSourceName);
+            $knowledgeSourceDiscriminator = new KnowledgeSourceDiscriminator(
+                $this->organizationDiscriminator,
+                $knowledgeSourceNameObject
+            );
             $latestFilename = null;
             foreach ($fileListResponse->data as $fileResponse) {
                 $knowledgeFilename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
@@ -179,7 +184,7 @@ class AssistantDepartment
                         $fileIds[$knowledgeSourceName] = $fileResponse->id;
                     }
                 } else {
-                    if ($knowledgeFilename->isRelevantFor($this->organizationDiscriminator, $knowledgeSourceNameObject)) {
+                    if ($knowledgeFilename->knowledgeSourceDiscriminator->equals($knowledgeSourceDiscriminator)) {
                         $latestFilename = $knowledgeFilename;
                         $fileIds[$knowledgeSourceName] = $fileResponse->id;
                     }

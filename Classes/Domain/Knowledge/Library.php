@@ -62,17 +62,16 @@ class Library
     public function updateSourceOfKnowledge(SourceOfKnowledgeContract $sourceOfKnowledge): void
     {
         $content = $sourceOfKnowledge->getContent();
-        $filename = KnowledgeFilename::forKnowledgeSource(
-            $sourceOfKnowledge->getName(),
-            $this->organizationDiscriminator
+        $knowledgeSourceDiscriminator = new KnowledgeSourceDiscriminator(
+            $this->organizationDiscriminator,
+            $sourceOfKnowledge->getName()
         );
-        $knowledgeSourceDiscriminator = $sourceOfKnowledge->getName()->value
-            . ' - ' . $this->organizationDiscriminator->value;
+        $filename = KnowledgeFilename::forKnowledgeSource($knowledgeSourceDiscriminator);
         $this->databaseConnection->transactional(function () use ($content, $knowledgeSourceDiscriminator) {
             $this->databaseConnection->delete(
                 self::TABLE_NAME,
                 [
-                    'knowledge_source_discriminator' => $knowledgeSourceDiscriminator
+                    'knowledge_source_discriminator' => $knowledgeSourceDiscriminator->toString()
                 ]
             );
             foreach ($content as $entry) {
@@ -80,7 +79,7 @@ class Library
                     self::TABLE_NAME,
                     [
                         'id' => $entry->id,
-                        'knowledge_source_discriminator' => $knowledgeSourceDiscriminator,
+                        'knowledge_source_discriminator' => $knowledgeSourceDiscriminator->toString(),
                         'content' => $entry->content,
                     ]
                 );
@@ -108,7 +107,10 @@ class Library
 
         foreach ($filesListResponse->data as $fileResponse) {
             $filename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
-            if ($filename === null || $this->organizationDiscriminator->equals($filename->discriminator) === false) {
+            if (
+                $filename === null
+                || $this->organizationDiscriminator->equals($filename->knowledgeSourceDiscriminator->organizationDiscriminator) === false
+            ) {
                 continue;
             }
             if (!in_array($fileResponse->id, $usedFileIds)) {
