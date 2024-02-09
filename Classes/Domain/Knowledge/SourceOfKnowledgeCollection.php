@@ -17,7 +17,6 @@ use Sitegeist\Chatterbox\Domain\QuotationCollection;
  */
 final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countable
 {
-
     protected StringFrontend|null $fileCache = null;
 
     /**
@@ -30,7 +29,7 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         $this->items = $items;
     }
 
-    public function injectFileCache (StringFrontend $fileCache)
+    public function injectFileCache(StringFrontend $fileCache): void
     {
         $this->fileCache = $fileCache;
     }
@@ -64,6 +63,9 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
                     continue;
                 }
                 $sourceOfKnowledge = $this->getKnowledgeSourceByName($fileName->knowledgeSourceName);
+                /**
+                 * @var string|false|null $fileContent
+                 */
                 $fileContent = $this->fileCache?->get($annotation->fileCitation->fileId);
                 if ($fileContent === false || $fileContent === null) {
                     $fileContent = $client->files()->download($annotation->fileCitation->fileId);

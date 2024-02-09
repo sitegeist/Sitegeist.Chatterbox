@@ -23,7 +23,7 @@ final class QuotationCollection implements \IteratorAggregate, \Countable
         $this->items = $items;
     }
 
-    public static function createEmpty ()
+    public static function createEmpty(): self
     {
         return new self();
     }

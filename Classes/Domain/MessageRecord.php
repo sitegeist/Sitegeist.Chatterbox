@@ -26,7 +26,6 @@ final class MessageRecord
         public readonly QuotationCollection $quotations,
         public readonly array $metadata,
     ) {
-
     }
 
     public static function fromThreadMessageResponse(
