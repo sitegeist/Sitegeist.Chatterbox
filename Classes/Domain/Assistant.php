@@ -24,7 +24,7 @@ final class Assistant
     /**
      * @var array<int, mixed>
      */
-    private $collectedMetadata = [];
+    private array $collectedMetadata = [];
 
     public function __construct(
         private readonly string $id,
@@ -80,14 +80,19 @@ final class Assistant
     {
         $threadMessageResponses = $this->client->threads()->messages()->list($threadId)->data;
 
-        $threadMessageResponsesFiltered =  array_filter(
+        $threadMessageResponsesFiltered = array_filter(
             $threadMessageResponses,
-            fn(ThreadMessageResponse $threadMessageResponse) => ($threadMessageResponse->metadata['role'] ?? null) !== 'system'
+            fn (ThreadMessageResponse $threadMessageResponse)
+                => ($threadMessageResponse->metadata['role'] ?? null) !== 'system'
         );
 
         return array_reverse(
             array_map(
-                fn(ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse($threadMessageResponse, $this->sourcesOfKnowledge),
+                fn (ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse(
+                    $threadMessageResponse,
+                    $this->sourcesOfKnowledge,
+                    $this->client
+                ),
                 $threadMessageResponsesFiltered
             )
         );

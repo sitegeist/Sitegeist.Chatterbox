@@ -13,6 +13,7 @@ use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
+use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorCollection;
 use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorContract;
 use Sitegeist\Chatterbox\Domain\MessageEditing\EditorialOffice;
@@ -27,6 +28,7 @@ class AssistantDepartment
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
         private readonly EditorialOffice $editorialOffice,
+        private readonly Library $library,
         private readonly LoggerInterface $logger,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
@@ -62,6 +64,7 @@ class AssistantDepartment
                     $assistantRecord->selectedMessageEditors
                 )
             )),
+            $this->library->findSourcesByNames($assistantRecord->selectedMessageEditors),
             $this->client,
             $this->logger
         );
@@ -74,7 +77,8 @@ class AssistantDepartment
                 fn(AssistantResponse $assistantResponse) => AssistantRecord::fromAssistantResponse($assistantResponse),
                 array_filter(
                     $this->client->assistants()->list()->data,
-                    fn(AssistantResponse $assistantResponse) => $this->organizationDiscriminator->equals($assistantResponse->metadata['discriminator'] ?? '')
+                    fn(AssistantResponse $assistantResponse)
+                        => $this->organizationDiscriminator->equals($assistantResponse->metadata['discriminator'] ?? '')
                 )
             )
         );

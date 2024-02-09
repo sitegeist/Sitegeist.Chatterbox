@@ -49,7 +49,7 @@ class KnowledgeCommandController extends CommandController
             : $this->organizationRepository->findAll();
         $this->output->progressStart(count($organizations));
         foreach ($organizations as $organization) {
-            $organization->library->cleanKnowledgePool();
+            $organization->library->cleanKnowledgePool($organization->assistantDepartment);
             $this->output->progressAdvance();
         }
         $this->outputLine('');

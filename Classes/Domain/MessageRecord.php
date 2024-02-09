@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use OpenAI\Contracts\ClientContract;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentImageFileObject;
@@ -27,13 +28,16 @@ final class MessageRecord
     ) {
     }
 
-    public static function fromThreadMessageResponse(ThreadMessageResponse $response, SourceOfKnowledgeCollection $sourceOfKnowledge): self
-    {
+    public static function fromThreadMessageResponse(
+        ThreadMessageResponse $response,
+        SourceOfKnowledgeCollection $sourceOfKnowledgeCollection,
+        ClientContract $client
+    ): self {
         return new self(
             $response->id,
             $response->role,
             $response->content,
-            $sourceOfKnowledge->resolveQuotations($response),
+            $sourceOfKnowledgeCollection->resolveQuotations($response, $client),
             $response->metadata
         );
     }

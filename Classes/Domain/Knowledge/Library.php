@@ -4,18 +4,11 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
-use Dsr\ChatBot\Tools\Widgets\CallToAction;
-use Neos\ContentRepository\Domain\Model\Node;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextAnnotationFileCitationObject;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
-use Sitegeist\Chatterbox\Domain\Quotation;
-use Sitegeist\Chatterbox\Domain\QuotationCollection;
 
 class Library
 {
@@ -24,7 +17,6 @@ class Library
      */
     public function __construct(
         private readonly array $sourceOfKnowledgeConfig,
-        private readonly AssistantDepartment $assistantDepartment,
         private readonly OpenAiClientContract $client,
         private readonly Environment $environment,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
@@ -43,6 +35,17 @@ class Library
     public function findSourceByName(string $name): ?SourceOfKnowledgeContract
     {
         return $this->instantiateSourceOfKnowledge($name);
+    }
+
+    /**
+     * @param array<string> $names
+     */
+    public function findSourcesByNames(array $names): SourceOfKnowledgeCollection
+    {
+        return new SourceOfKnowledgeCollection(...array_map(
+            fn (string $name): SourceOfKnowledgeContract => $this->instantiateSourceOfKnowledge($name),
+            array_intersect($names, array_keys($this->sourceOfKnowledgeConfig))
+        ));
     }
 
     public function updateAllSourcesOfKnowledge(): void
@@ -66,12 +69,12 @@ class Library
         \unlink($path);
     }
 
-    public function cleanKnowledgePool(): void
+    public function cleanKnowledgePool(AssistantDepartment $assistantDepartment): void
     {
         $filesListResponse = $this->client->files()->list();
 
         $usedFileIds = [];
-        foreach ($this->assistantDepartment->findAllRecords() as $assistant) {
+        foreach ($assistantDepartment->findAllRecords() as $assistant) {
             $usedFileIds = array_merge($usedFileIds, $assistant->fileIds);
         }
 
@@ -84,32 +87,6 @@ class Library
                 $this->client->files()->delete($fileResponse->id);
             }
         }
-    }
-
-    public function resolveQuotations(ThreadMessageResponse $response): QuotationCollection
-    {
-        $annotations = [];
-        foreach ($response->content as $contentObject) {
-            if ($contentObject instanceof ThreadMessageResponseContentTextObject) {
-                $annotations = array_merge($annotations, $contentObject->text->annotations);
-            }
-        }
-
-        $quotations = [];
-        foreach ($annotations as $annotation) {
-            if ($annotation instanceof ThreadMessageResponseContentTextAnnotationFileCitationObject) {
-                $fileData = $this->client->files()->retrieve($annotation->fileCitation->fileId);
-                $fileName = KnowledgeFilename::tryFromSystemFileName($fileData->filename);
-                $sourceOfKnowledge = $this->findSourceByName($fileName->knowledgeSourceName->value);
-                $fileContent = $this->client->files()->download($annotation->fileCitation->fileId);
-                $quotation = $sourceOfKnowledge?->findQuotationByQuote($annotation->text, $fileContent);
-                if ($quotation) {
-                    $quotations[] = $quotation;
-                }
-            }
-        }
-
-        return new QuotationCollection(...$quotations);
     }
 
     private function instantiateSourceOfKnowledge(string $name): SourceOfKnowledgeContract

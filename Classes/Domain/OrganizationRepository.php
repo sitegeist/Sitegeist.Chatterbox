@@ -76,11 +76,13 @@ class OrganizationRepository
         $toolbox = new Toolbox($config['tools']);
         $manual = new Manual($this->objectManager, $config['instructions']);
         $editorialOffice = new EditorialOffice($config['messageEditors'] ?? [], $client, $this->objectManager);
+        $library = new Library($config['knowledge'], $client, $this->environment, $discriminator);
         $assistantDepartment = new AssistantDepartment(
             $client,
             $toolbox,
             $manual,
             $editorialOffice,
+            $library,
             $this->logger,
             $discriminator,
         );
@@ -94,7 +96,7 @@ class OrganizationRepository
             $manual,
             new ModelAgency($client),
             $toolbox,
-            new Library($config['knowledge'], $assistantDepartment, $client, $this->environment, $discriminator),
+            $library,
             $editorialOffice,
         );
     }
