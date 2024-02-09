@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
+use Neos\Flow\Annotations as Flow;
+use Neos\Cache\Frontend\StringFrontend;
 use OpenAI\Contracts\ClientContract;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextAnnotationFileCitationObject;
@@ -15,6 +17,9 @@ use Sitegeist\Chatterbox\Domain\QuotationCollection;
  */
 final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countable
 {
+
+    protected StringFrontend|null $fileCache = null;
+
     /**
      * @var SourceOfKnowledgeContract[]
      */
@@ -23,6 +28,11 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
     public function __construct(SourceOfKnowledgeContract ...$items)
     {
         $this->items = $items;
+    }
+
+    public function injectFileCache (StringFrontend $fileCache)
+    {
+        $this->fileCache = $fileCache;
     }
 
     public function getKnowledgeSourceByName(KnowledgeSourceName $name): ?SourceOfKnowledgeContract
@@ -54,7 +64,11 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
                     continue;
                 }
                 $sourceOfKnowledge = $this->getKnowledgeSourceByName($fileName->knowledgeSourceName);
-                $fileContent = $client->files()->download($annotation->fileCitation->fileId);
+                $fileContent = $this->fileCache?->get($annotation->fileCitation->fileId);
+                if ($fileContent === false || $fileContent === null) {
+                    $fileContent = $client->files()->download($annotation->fileCitation->fileId);
+                    $this->fileCache?->set($annotation->fileCitation->fileId, $fileContent);
+                }
                 $quotation = $sourceOfKnowledge?->findQuotationByQuote($annotation->text, $fileContent);
                 if ($quotation) {
                     $quotations[] = $quotation;

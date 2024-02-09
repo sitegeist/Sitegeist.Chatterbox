@@ -1,0 +1,5 @@
+Sitegeist_Chatterbox_FileContentCache:
+  frontend: Neos\Cache\Frontend\StringFrontend
+  backend: Neos\Cache\Backend\FileBackend
+  backendOptions:
+    defaultLifetime: 86400
