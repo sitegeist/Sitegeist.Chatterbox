@@ -14,6 +14,9 @@ use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
+use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorCollection;
+use Sitegeist\Chatterbox\Domain\MessageEditing\MessageEditorContract;
+use Sitegeist\Chatterbox\Domain\MessageEditing\EditorialOffice;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
@@ -24,6 +27,7 @@ class AssistantDepartment
         private readonly OpenAiClientContract $client,
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
+        private readonly EditorialOffice $editorialOffice,
         private readonly Library $library,
         private readonly LoggerInterface $logger,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
@@ -53,7 +57,14 @@ class AssistantDepartment
                     $assistantRecord->selectedInstructions
                 )
             )),
-            $this->library->findSourcesByNames($assistantRecord->selectedSourcesOfKnowledge),
+            new MessageEditorCollection(...array_filter(
+                array_map(
+                    fn (string $messageEditorName): ?MessageEditorContract
+                        => $this->editorialOffice->findByName($messageEditorName),
+                    $assistantRecord->selectedMessageEditors
+                )
+            )),
+            $this->library->findSourcesByNames($assistantRecord->selectedMessageEditors),
             $this->client,
             $this->logger
         );
@@ -111,6 +122,7 @@ class AssistantDepartment
             'selectedTools' => json_encode($assistantRecord->selectedTools),
             'selectedSourcesOfKnowledge' => json_encode($assistantRecord->selectedSourcesOfKnowledge),
             'selectedInstructions' => json_encode($assistantRecord->selectedInstructions),
+            'selectedMessageEditors' => json_encode($assistantRecord->selectedMessageEditors),
         ];
     }
 

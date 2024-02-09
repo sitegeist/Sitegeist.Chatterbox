@@ -10,6 +10,7 @@ use Neos\Flow\Utility\Environment;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
+use Sitegeist\Chatterbox\Domain\MessageEditing\EditorialOffice;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
@@ -74,11 +75,13 @@ class OrganizationRepository
 
         $toolbox = new Toolbox($config['tools']);
         $manual = new Manual($this->objectManager, $config['instructions']);
+        $editorialOffice = new EditorialOffice($config['messageEditors'] ?? [], $client, $this->objectManager);
         $library = new Library($config['knowledge'], $client, $this->environment, $discriminator);
         $assistantDepartment = new AssistantDepartment(
             $client,
             $toolbox,
             $manual,
+            $editorialOffice,
             $library,
             $this->logger,
             $discriminator,
@@ -93,7 +96,8 @@ class OrganizationRepository
             $manual,
             new ModelAgency($client),
             $toolbox,
-            $library
+            $library,
+            $editorialOffice,
         );
     }
 }

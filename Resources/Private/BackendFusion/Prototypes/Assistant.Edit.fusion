@@ -138,6 +138,32 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
                         </table>
                     </div>
 
+                    <div class="neos-control-group">
+                        <label class="neos-control-label" >Message Editors</label>
+                        <table class="neos-table neos-span-6">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>ID</th>
+                                <th>Description</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <Neos.Fusion:Loop items={availableMessageEditors} itemName="messageEditor">
+                                <tr>
+                                    <td>
+                                        <label class="neos-checkbox" for={"messageEditor-" + messageEditor.name}>
+                                            <Neos.Fusion.Form:Checkbox attributes.id={"messageEditor-" + messageEditor.name} field.name="assistant[selectedMessageEditors]" field.multiple field.value={messageEditor.name} />
+                                            <span></span>
+                                        </label>
+                                    </td>
+                                    <td>{messageEditor.name}</td>
+                                    <td>{messageEditor.description}</td>
+                                </tr>
+                            </Neos.Fusion:Loop>
+                            </tbody>
+                        </table>
+                    </div>
                 </fieldset>
             </div>
 
