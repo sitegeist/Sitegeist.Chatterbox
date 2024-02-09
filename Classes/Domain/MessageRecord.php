@@ -26,6 +26,7 @@ final class MessageRecord
         public readonly QuotationCollection $quotations,
         public readonly array $metadata,
     ) {
+
     }
 
     public static function fromThreadMessageResponse(
@@ -37,7 +38,7 @@ final class MessageRecord
             $response->id,
             $response->role,
             $response->content,
-            $sourceOfKnowledgeCollection->resolveQuotations($response, $client),
+            QuotationCollection::createEmpty(), /*$sourceOfKnowledgeCollection->resolveQuotations($response, $client),*/
             $response->metadata
         );
     }
