@@ -8,6 +8,11 @@ prototype(Sitegeist.Chatterbox:Thread.Show) < prototype(Neos.Fusion:Component) {
                 <span style={['min-width: 460px; padding:10px; border-radius: 10px; display:inline-block;', (message.role == 'user') ? 'background-color: #00b5ff;' : 'background-color: grey;']}>
                     <Neos.Fusion:Loop items={message.content} itemName="messageContent">
                     <pre @if={messageContent.type == 'text'}>{messageContent.text.value}</pre>
+                    <ol @if={message.quotations && !message.quotations.empty}>
+                        <Neos.Fusion:Loop items={message.quotations} itemName="quotation">
+                            <li>{quotation.name} {quotation.isPartOf}</li>
+                        </Neos.Fusion:Loop>
+                    </ol>
                     </Neos.Fusion:Loop>
                 </span>
                 <br/>
@@ -36,6 +41,7 @@ prototype(Sitegeist.Chatterbox:Thread.Show) < prototype(Neos.Fusion:Component) {
             </div>
             <div class="neos-footer">
                 <Neos.Fusion:Link.Action href.action="index" href.arguments.organizationId={organizationId} class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion:Link.Action href.action="showThread" href.arguments.organizationId={organizationId} href.arguments.assistantId={assistantId} href.arguments.threadId={threadId} class="neos-button" >Reload Thread</Neos.Fusion:Link.Action>
                 <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary" attributes.id="addThreadMessageButton">Post Message</Neos.Fusion.Form:Button>
             </div>
         </Neos.Fusion.Form:Form>
