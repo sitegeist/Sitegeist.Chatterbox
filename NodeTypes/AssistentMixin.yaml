@@ -1,12 +1,19 @@
 Sitegeist.Chatterbox:Mixin.Assistant:
   abstract: true
+  ui:
+    inspector:
+      groups:
+        chatterbox:
+          icon: robot
+          label: 'Chatterbox AI Assistants'
+          tab: default
   properties:
     chatterboxOrganizationId:
       type: string
       ui:
         label: "Organization ID"
         inspector:
-          group: default
+          group: chatterbox
           editor: Neos.Neos/Inspector/Editors/SelectBoxEditor
           editorOptions:
             dataSourceIdentifier: Sitegeist.Chatterbox:OrganizationId
@@ -16,10 +23,30 @@ Sitegeist.Chatterbox:Mixin.Assistant:
       ui:
         label: "Assistant ID"
         inspector:
-          group: default
+          group: chatterbox
           editor: Neos.Neos/Inspector/Editors/SelectBoxEditor
           hidden: "ClientEval: node.properties.chatterboxOrganizationId ? false: true"
           editorOptions:
             dataSourceIdentifier: Sitegeist.Chatterbox:AssistantId
             dataSourceAdditionalData: "ClientEval: node.properties.chatterboxOrganizationId ? {'organizationId': node.properties.chatterboxOrganizationId} : {}"
             allowEmpty: true
+    chatterboxWelcomeMessage:
+      type: string
+      ui:
+        label: "Welcome Message"
+        inspector:
+          group: chatterbox
+          hidden: "ClientEval: node.properties.chatterboxOrganizationId && node.properties.chatterboxAssistantId ? false: true"
+          editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
+          editorOptions:
+            rows: 7
+    chatterboxSuggestions:
+      type: string
+      ui:
+        label: "Suggestions"
+        inspector:
+          group: chatterbox
+          hidden: "ClientEval: node.properties.chatterboxOrganizationId && node.properties.chatterboxAssistantId ? false: true"
+          editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
+          editorOptions:
+            rows: 7

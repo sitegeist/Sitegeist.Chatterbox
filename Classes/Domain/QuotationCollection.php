@@ -23,6 +23,11 @@ final class QuotationCollection implements \IteratorAggregate, \Countable
         $this->items = $items;
     }
 
+    public static function createEmpty(): self
+    {
+        return new self();
+    }
+
     /**
      * @return mixed[]
      */
@@ -45,5 +50,10 @@ final class QuotationCollection implements \IteratorAggregate, \Countable
     public function count(): int
     {
         return count($this->items);
+    }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->items);
     }
 }

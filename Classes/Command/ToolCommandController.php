@@ -18,6 +18,32 @@ class ToolCommandController extends CommandController
         parent::__construct();
     }
 
+    public function listCommand(string $organizationId): void
+    {
+        $organization = $this->organizationRepository->findById($organizationId);
+        $tools = $organization->toolbox->findAll();
+        foreach ($tools as $tool) {
+            $this->outputLine($tool->getName());
+        }
+    }
+
+    public function showCommand(string $organizationId, string $toolName,): void
+    {
+        $organization = $this->organizationRepository->findById($organizationId);
+        $tool = $organization->toolbox->findByName($toolName);
+        if (!$tool) {
+            $this->outputLine('no such tool');
+            $this->quit();
+        }
+        try {
+            $parameterSchema = $tool->getParameterSchema();
+            $this->output(Yaml::dump(json_decode(json_encode($parameterSchema) ?: '', true)));
+        } catch (\Exception $e) {
+            $this->outputLine('Tool failed: ' . $e->getMessage());
+            $this->quit();
+        }
+    }
+
     public function executeCommand(string $organizationId, string $toolName, string $parameters): void
     {
         $organization = $this->organizationRepository->findById($organizationId);

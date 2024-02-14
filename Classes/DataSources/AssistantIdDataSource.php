@@ -8,6 +8,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Neos\Service\DataSource\AbstractDataSource;
 use OpenAI\Responses\Assistants\AssistantResponse;
+use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 class AssistantIdDataSource extends AbstractDataSource
@@ -32,8 +33,11 @@ class AssistantIdDataSource extends AbstractDataSource
         }
 
         $organization = $this->organizationRepository->findById($organizationId);
+        $assistants = $organization->assistantDepartment->findAllRecords();
 
-        $list = $organization->client->assistants()->list(['limit' => 100]);
-        return array_map(fn(AssistantResponse $item) => ['value' => $item->id, 'label' => $item->name], $list->data);
+        return array_map(
+            fn(AssistantRecord $item) => ['value' => $item->id, 'label' => $item->name],
+            iterator_to_array($assistants->getIterator())
+        );
     }
 }
