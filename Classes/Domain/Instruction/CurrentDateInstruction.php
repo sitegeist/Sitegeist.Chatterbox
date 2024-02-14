@@ -34,6 +34,6 @@ final class CurrentDateInstruction implements InstructionContract
 
     public function getContent(): string
     {
-        return 'current date: ' . (new \DateTimeImmutable())->format('Y-m-d');
+        return 'The current date and time is ' . (new \DateTimeImmutable())->format('D Y-m-d H:i') . ' use this as a base for all relative dates and times.';
     }
 }
