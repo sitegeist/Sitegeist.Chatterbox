@@ -11,18 +11,18 @@ use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentImageFileObjec
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
+use League\CommonMark\CommonMarkConverter;
 
 #[Flow\Proxy(false)]
 final class MessageRecord
 {
     /**
-     * @param array<int, ThreadMessageResponseContentImageFileObject|ThreadMessageResponseContentTextObject> $content
      * @param array<string, mixed> $metadata
      */
     public function __construct(
         public readonly string $id,
         public readonly string $role,
-        public readonly array $content,
+        public readonly ContentCollection $content,
         public readonly QuotationCollection $quotations,
         public readonly array $metadata,
     ) {
@@ -33,10 +33,13 @@ final class MessageRecord
         SourceOfKnowledgeCollection $sourceOfKnowledgeCollection,
         ClientContract $client
     ): self {
+
+
+
         return new self(
             $response->id,
             $response->role,
-            $response->content,
+            ContentCollection::fromThreadMessageResponse($response),
             QuotationCollection::createEmpty(), /*$sourceOfKnowledgeCollection->resolveQuotations($response, $client),*/
             $response->metadata
         );
@@ -48,8 +51,9 @@ final class MessageRecord
     public function toApiArray(): array
     {
         return [
+            'id' => $this->id,
             'bot' => $this->role !== 'user',
-            'message' => $this->content,
+            'message' => $this->content->toApiArray(),
             'quotations' => $this->quotations->toApiArray()
         ];
     }
