@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
 use Neos\ContentRepository\Domain\Model\Node;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Http\ServerRequestAttributes;
 use Neos\Flow\Mvc\ActionRequestFactory;
+use Neos\Flow\Mvc\Exception\NoMatchingRouteException;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Flow\Mvc\Routing\UriBuilder;
 use Neos\Http\Factories\ServerRequestFactory;
@@ -71,12 +73,16 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
             return null;
         }
 
-        return new Quotation(
-            $quote,
-            $sourceNode->getLabel(),
-            $sourceNode->getProperty('abstract') ?: $sourceNode->getProperty('description') ?: '',
-            $this->getNodeUri($sourceNode),
-        );
+        try {
+            return new Quotation(
+                $quote,
+                $sourceNode->getLabel(),
+                $sourceNode->getProperty('abstract') ?: $sourceNode->getProperty('description') ?: '',
+                $this->getNodeUri($sourceNode),
+            );
+        } catch (NoMatchingRouteException) {
+            return null;
+        }
     }
 
     /**
@@ -131,13 +137,14 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
 
     private function getNodeUri(Node $node): Uri
     {
+        $uri = ServerRequest::getUriFromGlobals();
         $uriBuilder = new UriBuilder();
         $actionRequestFactory = new ActionRequestFactory();
         $serverRequestFactory = new ServerRequestFactory(new UriFactory());
-        $httpRequest = $serverRequestFactory->createServerRequest('GET', 'https://neos.io')
+        $httpRequest = $serverRequestFactory->createServerRequest('GET', $uri)
             ->withAttribute(
                 ServerRequestAttributes::ROUTING_PARAMETERS,
-                RouteParameters::createEmpty()->withParameter('requestUriHost', 'https://neos.io')
+                RouteParameters::createEmpty()->withParameter('requestUriHost', $uri->getHost())
             );
         $uriBuilder->setRequest($actionRequestFactory->createActionRequest($httpRequest));
         $uriBuilder->setFormat('html');
@@ -146,7 +153,7 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return new Uri($uriBuilder->uriFor(
             'show',
             ['node' => $node],
-            'Frontend/Node',
+            'Frontend\Node',
             'Neos.Neos'
         ));
     }

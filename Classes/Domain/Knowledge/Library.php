@@ -80,7 +80,7 @@ class Library
                     [
                         'id' => $entry->id,
                         'knowledge_source_discriminator' => $knowledgeSourceDiscriminator->toString(),
-                        'content' => $entry->content,
+                        'content' => \trim(\json_encode($entry->content, JSON_THROW_ON_ERROR), '"'),
                     ]
                 );
             }

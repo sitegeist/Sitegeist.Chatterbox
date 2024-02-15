@@ -21,7 +21,7 @@ class Version20230209161525 extends AbstractMigration
             'Migration can only be executed safely on "mysql".'
         );
 
-        $this->addSql('CREATE TABLE sitegeist_chatterbox_domain_file_entry (id varchar(64) NOT NULL, knowledge_source_discriminator varchar(255) NOT NULL, content MEDIUMTEXT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE sitegeist_chatterbox_domain_file_entry (id varchar(64) NOT NULL, knowledge_source_discriminator varchar(255) NOT NULL, content MEDIUMTEXT NOT NULL, PRIMARY KEY(id, knowledge_source_discriminator)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB');
     }
 
     public function down(Schema $schema): void

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
 use Doctrine\DBAL\Connection as DatabaseConnection;
-use Doctrine\DBAL\Types\Types;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextAnnotationFileCitationObject;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
@@ -55,17 +54,18 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
             if ($annotation instanceof ThreadMessageResponseContentTextAnnotationFileCitationObject) {
                 $databaseRecord = $databaseConnection->executeQuery(
                     'SELECT id, knowledge_source_discriminator FROM ' . Library::TABLE_NAME
-                    . ' WHERE knowledge_source_discriminator IN :knowledgeSourceDiscriminators
-                     AND content LIKE :quote AND %' . $annotation->fileCitation->quote,
+                    . ' WHERE knowledge_source_discriminator IN (:knowledgeSourceDiscriminators)
+                     AND content LIKE :quote',
                     [
                         'knowledgeSourceDiscriminators' => array_map(
                             fn (KnowledgeSourceDiscriminator $knowledgeSourceDiscriminator): string
                                 => $knowledgeSourceDiscriminator->toString(),
                             $this->getDiscriminators($organizationDiscriminator)
-                        )
+                        ),
+                        'quote' => '%' . \str_replace('\\', '\\\\', $annotation->fileCitation->quote) . '%'
                     ],
                     [
-                        'knowledgeSourceDiscriminators' => Types::SIMPLE_ARRAY
+                        'knowledgeSourceDiscriminators' => DatabaseConnection::PARAM_STR_ARRAY
                     ]
                 )->fetchAssociative() ?: null;
                 if (!$databaseRecord) {

@@ -57,7 +57,14 @@ final class JsonlRecordCollection implements \IteratorAggregate, \Countable, \St
     public function __toString(): string
     {
         return implode("\n", array_map(
-            fn (JsonlRecord $record): string => \str_replace(PHP_EOL, ' ', \json_encode($record, JSON_THROW_ON_ERROR)),
+            fn (JsonlRecord $record): string => \str_replace(
+                PHP_EOL,
+                ' ',
+                \json_encode(
+                    $record,
+                    JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                )
+            ),
             $this->items
         ));
     }
