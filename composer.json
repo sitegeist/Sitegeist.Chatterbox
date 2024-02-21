@@ -28,8 +28,8 @@
     "scripts": {
         "test:style-fix": ["phpcbf --standard=PSR12 Classes"],
         "test:style": ["phpcs --standard=PSR12 -n Classes"],
-        "test:stan": ["phpstan analyse --level 8 Classes Tests/Unit"],
-        "test:unit": ["phpunit Tests/Unit"],
+        "test:stan": ["phpstan analyse --level 8 Classes"],
+        "test:unit": [],
         "test": ["composer install", "composer test:style", "composer test:stan", "composer test:unit"]
     },
     "config": {

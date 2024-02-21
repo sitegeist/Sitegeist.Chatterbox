@@ -26,7 +26,7 @@ final class QuoteString
 
     public function unicodeEscape(): self
     {
-        return new self(\trim(\json_encode($this->value), '"'));
+        return new self(\trim(\json_encode($this->value, JSON_THROW_ON_ERROR), '"'));
     }
 
     /**
