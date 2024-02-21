@@ -108,7 +108,7 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
             $content .= ' ' . $this->extractContent($childNode);
         }
 
-        return new JsonlRecord(
+        return JsonlRecord::createFromHtmlContent(
             $documentNode->getIdentifier(),
             new Uri('node://' . $documentNode->getIdentifier()),
             trim($content)

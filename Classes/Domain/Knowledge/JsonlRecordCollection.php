@@ -19,27 +19,6 @@ final class JsonlRecordCollection implements \IteratorAggregate, \Countable, \St
     ) {
         $this->items = $items;
     }
-    public static function fromString(string $string): self
-    {
-        if ($string === '') {
-            return new self();
-        }
-        return new self(...array_map(
-            fn (string $jsonString): JsonlRecord => JsonlRecord::fromString($jsonString),
-            explode("\n", $string)
-        ));
-    }
-
-    public function findRecordByContentPart(string $contentPart): ?JsonlRecord
-    {
-        foreach ($this->items as $item) {
-            if (\str_contains($item->content, $contentPart)) {
-                return $item;
-            }
-        }
-
-        return null;
-    }
 
     /**
      * @return \Traversable<JsonlRecord>
@@ -59,7 +38,7 @@ final class JsonlRecordCollection implements \IteratorAggregate, \Countable, \St
         return implode("\n", array_map(
             fn (JsonlRecord $record): string => \str_replace(
                 PHP_EOL,
-                ' ',
+                "\\\\n",
                 \json_encode(
                     $record,
                     JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES

@@ -7,7 +7,8 @@
         "neos/neos": "*",
         "sitegeist/flow-openaiclientfactory": "dev-main",
         "symfony/http-client": "^6.4",
-        "league/commonmark": "~2.4"
+        "league/commonmark": "~2.4",
+        "league/html-to-markdown": "^5.0"
     },
     "require-dev": {
         "phpstan/phpstan": "~1.10.50",
