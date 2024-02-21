@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
-use GuzzleHttp\Psr7\Uri;
+use League\HTMLToMarkdown\HtmlConverter;
 use Neos\Flow\Annotations as Flow;
 use Psr\Http\Message\UriInterface;
 
 #[Flow\Proxy(false)]
 final class JsonlRecord implements \JsonSerializable
 {
-    public function __construct(
+    private function __construct(
         public readonly string $id,
         public readonly UriInterface $url,
         public readonly string $content,
     ) {
     }
 
-    public static function fromString(string $string): self
-    {
-        $values = \json_decode($string, true, flags: JSON_THROW_ON_ERROR);
+    public static function createFromHtmlContent(
+        string $id,
+        UriInterface $url,
+        string $content,
+    ): self {
+        $converter = new HtmlConverter();
 
         return new self(
-            $values['id'],
-            new Uri($values['url']),
-            $values['content']
+            $id,
+            $url,
+            $converter->convert($content)
         );
     }
 

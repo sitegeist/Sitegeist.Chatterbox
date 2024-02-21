@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
+use Doctrine\DBAL\Connection as DatabaseConnection;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
@@ -12,12 +13,15 @@ use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 
 class Library
 {
+    public const TABLE_NAME = 'sitegeist_chatterbox_domain_file_entry';
+
     /**
      * @param array<string,array{className:string, options:array<string,mixed>}> $sourceOfKnowledgeConfig
      */
     public function __construct(
         private readonly array $sourceOfKnowledgeConfig,
         private readonly OpenAiClientContract $client,
+        private readonly DatabaseConnection $databaseConnection,
         private readonly Environment $environment,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
@@ -58,7 +62,30 @@ class Library
     public function updateSourceOfKnowledge(SourceOfKnowledgeContract $sourceOfKnowledge): void
     {
         $content = $sourceOfKnowledge->getContent();
-        $filename = KnowledgeFilename::forKnowledgeSource($sourceOfKnowledge->getName(), $this->organizationDiscriminator);
+        $knowledgeSourceDiscriminator = new KnowledgeSourceDiscriminator(
+            $this->organizationDiscriminator,
+            $sourceOfKnowledge->getName()
+        );
+        $filename = KnowledgeFilename::forKnowledgeSource($knowledgeSourceDiscriminator);
+        $this->databaseConnection->transactional(function () use ($content, $knowledgeSourceDiscriminator) {
+            $this->databaseConnection->delete(
+                self::TABLE_NAME,
+                [
+                    'knowledge_source_discriminator' => $knowledgeSourceDiscriminator->toString()
+                ]
+            );
+            foreach ($content as $entry) {
+                $this->databaseConnection->insert(
+                    self::TABLE_NAME,
+                    [
+                        'id' => $entry->id,
+                        'knowledge_source_discriminator' => $knowledgeSourceDiscriminator->toString(),
+                        'content' => \trim(\json_encode($entry->content, JSON_THROW_ON_ERROR), '"'),
+                    ]
+                );
+            }
+        });
+
         $path = $this->environment->getPathToTemporaryDirectory() . '/' . $filename->toSystemFilename();
         \file_put_contents($path, (string)$content);
 
@@ -80,7 +107,10 @@ class Library
 
         foreach ($filesListResponse->data as $fileResponse) {
             $filename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
-            if ($filename === null || $this->organizationDiscriminator->equals($filename->discriminator) === false) {
+            if (
+                $filename === null
+                || $this->organizationDiscriminator->equals($filename->knowledgeSourceDiscriminator->organizationDiscriminator) === false
+            ) {
                 continue;
             }
             if (!in_array($fileResponse->id, $usedFileIds)) {

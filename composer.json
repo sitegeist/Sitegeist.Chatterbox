@@ -7,7 +7,8 @@
         "neos/neos": "*",
         "sitegeist/flow-openaiclientfactory": "dev-main",
         "symfony/http-client": "^6.4",
-        "league/commonmark": "~2.4"
+        "league/commonmark": "~2.4",
+        "league/html-to-markdown": "^5.0"
     },
     "require-dev": {
         "phpstan/phpstan": "~1.10.50",
@@ -27,8 +28,8 @@
     "scripts": {
         "test:style-fix": ["phpcbf --standard=PSR12 Classes"],
         "test:style": ["phpcs --standard=PSR12 -n Classes"],
-        "test:stan": ["phpstan analyse --level 8 Classes Tests/Unit"],
-        "test:unit": ["phpunit Tests/Unit"],
+        "test:stan": ["phpstan analyse --level 8 Classes"],
+        "test:unit": [],
         "test": ["composer install", "composer test:style", "composer test:stan", "composer test:unit"]
     },
     "config": {

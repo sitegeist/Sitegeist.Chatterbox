@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
-final class JsonlRecordCollection implements \Stringable
+/**
+ * @implements \IteratorAggregate<JsonlRecord>
+ */
+final class JsonlRecordCollection implements \IteratorAggregate, \Countable, \Stringable
 {
     /**
      * @var array<JsonlRecord>
@@ -16,32 +19,31 @@ final class JsonlRecordCollection implements \Stringable
     ) {
         $this->items = $items;
     }
-    public static function fromString(string $string): self
+
+    /**
+     * @return \Traversable<JsonlRecord>
+     */
+    public function getIterator(): \Traversable
     {
-        if ($string === '') {
-            return new self();
-        }
-        return new self(...array_map(
-            fn (string $jsonString): JsonlRecord => JsonlRecord::fromString($jsonString),
-            explode("\n", $string)
-        ));
+        yield from $this->items;
     }
 
-    public function findRecordByContentPart(string $contentPart): ?JsonlRecord
+    public function count(): int
     {
-        foreach ($this->items as $item) {
-            if (\str_contains($item->content, $contentPart)) {
-                return $item;
-            }
-        }
-
-        return null;
+        return count($this);
     }
 
     public function __toString(): string
     {
         return implode("\n", array_map(
-            fn (JsonlRecord $record): string => \str_replace(PHP_EOL, ' ', \json_encode($record, JSON_THROW_ON_ERROR)),
+            fn (JsonlRecord $record): string => \str_replace(
+                PHP_EOL,
+                "\\\\n",
+                \json_encode(
+                    $record,
+                    JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                )
+            ),
             $this->items
         ));
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use Doctrine\DBAL\Connection as DatabaseConnection;
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
@@ -12,6 +13,7 @@ use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
+use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceDiscriminator;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
@@ -22,6 +24,7 @@ class AssistantDepartment
 {
     public function __construct(
         private readonly OpenAiClientContract $client,
+        private readonly DatabaseConnection $connection,
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
         private readonly Library $library,
@@ -54,7 +57,9 @@ class AssistantDepartment
                 )
             )),
             $this->library->findSourcesByNames($assistantRecord->selectedSourcesOfKnowledge),
+            $this->organizationDiscriminator,
             $this->client,
+            $this->connection,
             $this->logger
         );
     }
@@ -150,6 +155,10 @@ class AssistantDepartment
         $fileIds = [];
         foreach ($assistantRecord->selectedSourcesOfKnowledge as $knowledgeSourceName) {
             $knowledgeSourceNameObject = new KnowledgeSourceName($knowledgeSourceName);
+            $knowledgeSourceDiscriminator = new KnowledgeSourceDiscriminator(
+                $this->organizationDiscriminator,
+                $knowledgeSourceNameObject
+            );
             $latestFilename = null;
             foreach ($fileListResponse->data as $fileResponse) {
                 $knowledgeFilename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
@@ -163,7 +172,7 @@ class AssistantDepartment
                         $fileIds[$knowledgeSourceName] = $fileResponse->id;
                     }
                 } else {
-                    if ($knowledgeFilename->isRelevantFor($this->organizationDiscriminator, $knowledgeSourceNameObject)) {
+                    if ($knowledgeFilename->knowledgeSourceDiscriminator->equals($knowledgeSourceDiscriminator)) {
                         $latestFilename = $knowledgeFilename;
                         $fileIds[$knowledgeSourceName] = $fileResponse->id;
                     }

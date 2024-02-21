@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
 use Neos\ContentRepository\Domain\Model\Node;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Http\ServerRequestAttributes;
 use Neos\Flow\Mvc\ActionRequestFactory;
+use Neos\Flow\Mvc\Exception\NoMatchingRouteException;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Flow\Mvc\Routing\UriBuilder;
 use Neos\Http\Factories\ServerRequestFactory;
@@ -59,30 +61,28 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return new JsonlRecordCollection(...$this->traverseSubtree($rootNode));
     }
 
-    public function findQuotationByQuote(string $quote, string $fileContent): ?Quotation
+    public function tryCreateQuotation(string $quote, string $id): ?Quotation
     {
-        $recordCollection = JsonlRecordCollection::fromString($fileContent);
-        $record = $recordCollection->findRecordByContentPart($quote);
-        if ($record === null) {
-            return null;
-        }
-
         $sourceNode = $this->designator->findRootNode(
             $this->contentContextFactory,
             $this->contentDimensionPresetSource
         )->getContext()
-            ->getNodeByIdentifier($record->id);
+            ->getNodeByIdentifier($id);
 
         if (!$sourceNode instanceof Node) {
             return null;
         }
 
-        return new Quotation(
-            $quote,
-            $sourceNode->getLabel(),
-            $sourceNode->getProperty('abstract') ?: $sourceNode->getProperty('description') ?: '',
-            $this->getNodeUri($sourceNode),
-        );
+        try {
+            return new Quotation(
+                $quote,
+                $sourceNode->getLabel(),
+                $sourceNode->getProperty('abstract') ?: $sourceNode->getProperty('description') ?: '',
+                $this->getNodeUri($sourceNode),
+            );
+        } catch (NoMatchingRouteException) {
+            return null;
+        }
     }
 
     /**
@@ -108,7 +108,7 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
             $content .= ' ' . $this->extractContent($childNode);
         }
 
-        return new JsonlRecord(
+        return JsonlRecord::createFromHtmlContent(
             $documentNode->getIdentifier(),
             new Uri('node://' . $documentNode->getIdentifier()),
             trim($content)
@@ -137,13 +137,14 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
 
     private function getNodeUri(Node $node): Uri
     {
+        $uri = ServerRequest::getUriFromGlobals();
         $uriBuilder = new UriBuilder();
         $actionRequestFactory = new ActionRequestFactory();
         $serverRequestFactory = new ServerRequestFactory(new UriFactory());
-        $httpRequest = $serverRequestFactory->createServerRequest('GET', 'https://neos.io')
+        $httpRequest = $serverRequestFactory->createServerRequest('GET', $uri)
             ->withAttribute(
                 ServerRequestAttributes::ROUTING_PARAMETERS,
-                RouteParameters::createEmpty()->withParameter('requestUriHost', 'https://neos.io')
+                RouteParameters::createEmpty()->withParameter('requestUriHost', $uri->getHost())
             );
         $uriBuilder->setRequest($actionRequestFactory->createActionRequest($httpRequest));
         $uriBuilder->setFormat('html');
@@ -152,7 +153,7 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return new Uri($uriBuilder->uriFor(
             'show',
             ['node' => $node],
-            'Frontend/Node',
+            'Frontend\Node',
             'Neos.Neos'
         ));
     }

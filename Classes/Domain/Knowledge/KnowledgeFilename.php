@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
-use Neos\ContentRepository\Domain\ContentSubgraph\NodePath;
-use Neos\ContentRepository\Domain\Model\Node;
-use Neos\ContentRepository\Domain\NodeAggregate\NodeAggregateIdentifier;
-use Neos\ContentRepository\Domain\Service\ContextFactory;
 use Neos\Flow\Annotations as Flow;
-use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
-use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 
 #[Flow\Proxy(false)]
@@ -19,17 +13,15 @@ final class KnowledgeFilename
     private const FILE_ENDING = '.jsonl';
 
     public function __construct(
-        public readonly OrganizationDiscriminator $discriminator,
-        public readonly KnowledgeSourceName $knowledgeSourceName,
+        public readonly KnowledgeSourceDiscriminator $knowledgeSourceDiscriminator,
         public readonly int $timestamp,
     ) {
     }
 
-    public static function forKnowledgeSource(KnowledgeSourceName $knowledgeSourceName, OrganizationDiscriminator $discriminator): self
+    public static function forKnowledgeSource(KnowledgeSourceDiscriminator $knowledgeSourceDiscriminator): self
     {
         return new self(
-            $discriminator,
-            $knowledgeSourceName,
+            $knowledgeSourceDiscriminator,
             time()
         );
     }
@@ -47,26 +39,22 @@ final class KnowledgeFilename
         list($discriminator, $sourceName, $timestamp) = explode('-', $value);
 
         return new self(
-            new OrganizationDiscriminator($discriminator),
-            new KnowledgeSourceName($sourceName),
+            new KnowledgeSourceDiscriminator(
+                new OrganizationDiscriminator($discriminator),
+                new KnowledgeSourceName($sourceName)
+            ),
             (int)$timestamp
         );
     }
 
     public function toSystemFilename(): string
     {
-        return $this->discriminator->value . '-' . $this->knowledgeSourceName->value . '-' . $this->timestamp . self::FILE_ENDING;
-    }
-
-
-    public function isRelevantFor(OrganizationDiscriminator $discriminator, KnowledgeSourceName $knowledgeSourceName): bool
-    {
-        return ($this->discriminator->equals($discriminator) && $this->knowledgeSourceName->equals($knowledgeSourceName));
+        return $this->knowledgeSourceDiscriminator->toString() . '-' . $this->timestamp . self::FILE_ENDING;
     }
 
     public function takesPrecedenceOver(self $other): bool
     {
-        if ($this->isRelevantFor($other->discriminator, $other->knowledgeSourceName) === false) {
+        if ($this->knowledgeSourceDiscriminator->equals($other->knowledgeSourceDiscriminator) === false) {
             return false;
         }
 

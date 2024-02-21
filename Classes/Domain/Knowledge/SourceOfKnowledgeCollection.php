@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
-use Neos\Flow\Annotations as Flow;
-use Neos\Cache\Frontend\StringFrontend;
-use OpenAI\Contracts\ClientContract;
+use Doctrine\DBAL\Connection as DatabaseConnection;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextAnnotationFileCitationObject;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
+use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 use Sitegeist\Chatterbox\Domain\QuotationCollection;
 
 /**
@@ -38,8 +37,11 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         return null;
     }
 
-    public function resolveQuotations(ThreadMessageResponse $response, ClientContract $client): QuotationCollection
-    {
+    public function resolveQuotations(
+        ThreadMessageResponse $response,
+        OrganizationDiscriminator $organizationDiscriminator,
+        DatabaseConnection $databaseConnection
+    ): QuotationCollection {
         $annotations = [];
         foreach ($response->content as $contentObject) {
             if ($contentObject instanceof ThreadMessageResponseContentTextObject) {
@@ -50,14 +52,37 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         $quotations = [];
         foreach ($annotations as $annotation) {
             if ($annotation instanceof ThreadMessageResponseContentTextAnnotationFileCitationObject) {
-                $fileData = $client->files()->retrieve($annotation->fileCitation->fileId);
-                $fileName = KnowledgeFilename::tryFromSystemFileName($fileData->filename);
-                if (!$fileName) {
+                $quoteString = QuoteString::fromFileCitationObject($annotation);
+                $databaseRecord = $databaseConnection->executeQuery(
+                    'SELECT id, knowledge_source_discriminator FROM ' . Library::TABLE_NAME
+                    . ' WHERE knowledge_source_discriminator IN (:knowledgeSourceDiscriminators)
+                     AND (content LIKE :quote OR content LIKE :escapedQuote)',
+                    [
+                        'knowledgeSourceDiscriminators' => array_map(
+                            fn (KnowledgeSourceDiscriminator $knowledgeSourceDiscriminator): string
+                                => $knowledgeSourceDiscriminator->toString(),
+                            $this->getDiscriminators($organizationDiscriminator)
+                        ),
+                        'quote' => $quoteString->wtf8Encode(),
+                        'escapedQuote' => $quoteString->unicodeEscape()->wtf8Encode()
+                    ],
+                    [
+                        'knowledgeSourceDiscriminators' => DatabaseConnection::PARAM_STR_ARRAY
+                    ]
+                )->fetchAssociative() ?: null;
+                if (!$databaseRecord) {
                     continue;
                 }
-                $sourceOfKnowledge = $this->getKnowledgeSourceByName($fileName->knowledgeSourceName);
-                $fileContent = $client->files()->download($annotation->fileCitation->fileId);
-                $quotation = $sourceOfKnowledge?->findQuotationByQuote($annotation->text, $fileContent);
+                $knowledgeSourceDiscriminator = KnowledgeSourceDiscriminator::fromString(
+                    $databaseRecord['knowledge_source_discriminator']
+                );
+                $sourceOfKnowledge = $this->getKnowledgeSourceByName(
+                    $knowledgeSourceDiscriminator->knowledgeSourceName
+                );
+                if (!$sourceOfKnowledge) {
+                    continue;
+                }
+                $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $databaseRecord['id']);
                 if ($quotation) {
                     $quotations[] = $quotation;
                 }
@@ -65,6 +90,21 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         }
 
         return new QuotationCollection(...$quotations);
+    }
+
+    /**
+     * @return array<KnowledgeSourceDiscriminator>
+     */
+    public function getDiscriminators(OrganizationDiscriminator $organizationDiscriminator): array
+    {
+        return array_map(
+            fn (SourceOfKnowledgeContract $sourceOfKnowledge): KnowledgeSourceDiscriminator
+                => new KnowledgeSourceDiscriminator(
+                    $organizationDiscriminator,
+                    $sourceOfKnowledge->getName()
+                ),
+            $this->items
+        );
     }
 
     /**
