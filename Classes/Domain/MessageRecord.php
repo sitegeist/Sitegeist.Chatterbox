@@ -15,13 +15,12 @@ use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 final class MessageRecord
 {
     /**
-     * @param array<int, ThreadMessageResponseContentImageFileObject|ThreadMessageResponseContentTextObject> $content
      * @param array<string, mixed> $metadata
      */
     public function __construct(
         public readonly string $id,
         public readonly string $role,
-        public readonly array $content,
+        public readonly ContentCollection $content,
         public readonly QuotationCollection $quotations,
         public readonly array $metadata,
     ) {
@@ -36,7 +35,7 @@ final class MessageRecord
         return new self(
             $response->id,
             $response->role,
-            $response->content,
+            ContentCollection::fromThreadMessageResponse($response),
             $sourceOfKnowledgeCollection->resolveQuotations(
                 $response,
                 $organizationDiscriminator,
@@ -52,8 +51,9 @@ final class MessageRecord
     public function toApiArray(): array
     {
         return [
+            'id' => $this->id,
             'bot' => $this->role !== 'user',
-            'message' => $this->content,
+            'message' => $this->content->toApiArray(),
             'quotations' => $this->quotations->toApiArray()
         ];
     }
