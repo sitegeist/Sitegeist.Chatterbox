@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
-use League\CommonMark\CommonMarkConverter;
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
@@ -33,16 +32,10 @@ final class ContentCollection implements \IteratorAggregate, \Countable
 
     public static function fromThreadMessageResponse(ThreadMessageResponse $response): self
     {
-        $converter = new CommonMarkConverter([
-            'html_input' => 'strip',
-            'allow_unsafe_links' => false,
-        ]);
-
         $contents = [];
-        foreach ($response->content as $id => $textOrImage) {
+        foreach ($response->content as $textOrImage) {
             if ($textOrImage instanceof ThreadMessageResponseContentTextObject) {
-                $html = $converter->convert($textOrImage->text->value);
-                $contents[] = new ContentText($html->getContent());
+                $contents[] = ContentText::fromThreadMessageResponseContentTextObject($textOrImage);
             }
         }
 
