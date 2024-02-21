@@ -9,7 +9,7 @@ use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 use League\CommonMark\CommonMarkConverter;
 
 #[Flow\Proxy(false)]
-final class ContentText
+final class ContentText implements ContentInterface
 {
     public function __construct(
         public readonly string $value,

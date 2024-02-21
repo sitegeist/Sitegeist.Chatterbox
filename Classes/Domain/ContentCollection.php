@@ -9,18 +9,18 @@ use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 
 /**
- * @implements \IteratorAggregate<ContentText>
+ * @implements \IteratorAggregate<ContentInterface>
  */
 #[Flow\Proxy(false)]
 final class ContentCollection implements \IteratorAggregate, \Countable
 {
     /**
-     * @var array<ContentText>
+     * @var array<ContentInterface>
      */
     private readonly array $items;
 
     public function __construct(
-        ContentText ...$items
+        ContentInterface ...$items
     ) {
         $this->items = $items;
     }
@@ -48,13 +48,13 @@ final class ContentCollection implements \IteratorAggregate, \Countable
     public function toApiArray(): array
     {
         return array_map(
-            fn (ContentText $item): array => $item->toApiArray(),
+            fn (ContentInterface $item): array => $item->toApiArray(),
             $this->items
         );
     }
 
     /**
-     * @return \Traversable<ContentText>
+     * @return \Traversable<ContentInterface>
      */
     public function getIterator(): \Traversable
     {
