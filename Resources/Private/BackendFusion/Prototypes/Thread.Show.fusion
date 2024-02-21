@@ -1,19 +1,18 @@
 prototype(Sitegeist.Chatterbox:Thread.Show) < prototype(Neos.Fusion:Component) {
     renderer = afx`
         <legend>Show Thread {threadId}</legend>
-
         <Neos.Fusion:Loop items={messages} itemName="message">
             <div style={['margin: 20px 0;', (message.role == 'user') ? 'padding-left:0px;' : 'padding-left:50px;']}>
                 <p>{message.role}</p>
                 <span style={['min-width: 460px; padding:10px; border-radius: 10px; display:inline-block;', (message.role == 'user') ? 'background-color: #00b5ff;' : 'background-color: grey;']}>
-                    <Neos.Fusion:Loop items={message.content} itemName="messageContent">
-                    <pre @if={messageContent.type == 'text'}>{messageContent.text.value}</pre>
+                    <Neos.Fusion:Loop items={message.content} itemName="contentPart">
+                        {contentPart.value}
+                    </Neos.Fusion:Loop>
                     <ol @if={message.quotations && !message.quotations.empty}>
                         <Neos.Fusion:Loop items={message.quotations} itemName="quotation">
                             <li>{quotation.name} {quotation.isPartOf}</li>
                         </Neos.Fusion:Loop>
                     </ol>
-                    </Neos.Fusion:Loop>
                 </span>
                 <br/>
             </div>
