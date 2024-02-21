@@ -52,17 +52,19 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         $quotations = [];
         foreach ($annotations as $annotation) {
             if ($annotation instanceof ThreadMessageResponseContentTextAnnotationFileCitationObject) {
+                $quoteString = QuoteString::fromFileCitationObject($annotation);
                 $databaseRecord = $databaseConnection->executeQuery(
                     'SELECT id, knowledge_source_discriminator FROM ' . Library::TABLE_NAME
                     . ' WHERE knowledge_source_discriminator IN (:knowledgeSourceDiscriminators)
-                     AND content LIKE :quote',
+                     AND (content LIKE :quote OR content LIKE :escapedQuote)',
                     [
                         'knowledgeSourceDiscriminators' => array_map(
                             fn (KnowledgeSourceDiscriminator $knowledgeSourceDiscriminator): string
                                 => $knowledgeSourceDiscriminator->toString(),
                             $this->getDiscriminators($organizationDiscriminator)
                         ),
-                        'quote' => '%' . \str_replace('\\', '\\\\', $annotation->fileCitation->quote) . '%'
+                        'quote' => $quoteString->wtf8Encode(),
+                        'escapedQuote' => $quoteString->unicodeEscape()->wtf8Encode()
                     ],
                     [
                         'knowledgeSourceDiscriminators' => DatabaseConnection::PARAM_STR_ARRAY
