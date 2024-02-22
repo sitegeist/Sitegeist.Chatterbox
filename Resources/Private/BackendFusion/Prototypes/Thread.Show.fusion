@@ -12,7 +12,7 @@ prototype(Sitegeist.Chatterbox:Thread.Show) < prototype(Neos.Fusion:Component) {
                         <hr/>
                         <ol>
                             <Neos.Fusion:Loop items={message.quotations} itemName="quotation">
-                                <li style="list-style:circle; margin-left: 20px;">{quotation.name} {quotation.isPartOf}</li>
+                                <li style="list-style:circle; margin-left: 20px;">{quotation.id} {quotation.name} {quotation.isPartOf}</li>
                             </Neos.Fusion:Loop>
                         </ol>
                     </Neos.Fusion:Fragment>
