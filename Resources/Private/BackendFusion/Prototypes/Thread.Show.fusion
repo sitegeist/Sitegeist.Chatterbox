@@ -8,11 +8,14 @@ prototype(Sitegeist.Chatterbox:Thread.Show) < prototype(Neos.Fusion:Component) {
                     <Neos.Fusion:Loop items={message.content} itemName="contentPart">
                         {contentPart.value}
                     </Neos.Fusion:Loop>
-                    <ol @if={message.quotations && !message.quotations.empty}>
-                        <Neos.Fusion:Loop items={message.quotations} itemName="quotation">
-                            <li>{quotation.name} {quotation.isPartOf}</li>
-                        </Neos.Fusion:Loop>
-                    </ol>
+                    <Neos.Fusion:Fragment @if={message.quotations && !message.quotations.empty}>
+                        <hr/>
+                        <ol>
+                            <Neos.Fusion:Loop items={message.quotations} itemName="quotation">
+                                <li style="list-style:circle; margin-left: 20px;">{quotation.name} {quotation.isPartOf}</li>
+                            </Neos.Fusion:Loop>
+                        </ol>
+                    </Neos.Fusion:Fragment>
                 </span>
                 <br/>
             </div>
