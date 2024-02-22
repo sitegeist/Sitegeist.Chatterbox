@@ -19,5 +19,5 @@ interface SourceOfKnowledgeContract
 
     public function getContent(): JsonlRecordCollection;
 
-    public function tryCreateQuotation(string $quote, string $id): ?Quotation;
+    public function tryCreateQuotation(string $identifier, string $quote, string $id): ?Quotation;
 }

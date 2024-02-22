@@ -82,7 +82,7 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
                 if (!$sourceOfKnowledge) {
                     continue;
                 }
-                $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $databaseRecord['id']);
+                $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $annotation->fileCitation->quote, $databaseRecord['id']);
                 if ($quotation) {
                     $quotations[] = $quotation;
                 }

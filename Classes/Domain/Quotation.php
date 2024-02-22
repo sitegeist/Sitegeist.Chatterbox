@@ -14,6 +14,7 @@ use Psr\Http\Message\UriInterface;
 final class Quotation
 {
     public function __construct(
+        public readonly string $identifier,
         public readonly string $text,
         public readonly string $name,
         public readonly string $abstract,
@@ -27,6 +28,7 @@ final class Quotation
     public function toApiArray(): array
     {
         return [
+            'identifier' => $this->identifier,
             'text' => $this->text,
             'name' => $this->name,
             'abstract' => $this->abstract,
