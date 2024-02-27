@@ -60,14 +60,24 @@ class AssistantModuleController extends AbstractModuleController
     public function createAction(string $organizationId, string $name, string $model): void
     {
         $organization = $this->organizationRepository->findById($organizationId);
-        $assistantResponse = $organization->assistantDepartment->createAssistant($name, $model);
-        $this->redirect(
-            actionName: 'edit',
-            arguments: [
-                'assistantId' => $assistantResponse->id,
-                'organizationId' => $organizationId
-            ]
-        );
+        try {
+            $assistantResponse = $organization->assistantDepartment->createAssistant($name, $model);
+            $this->redirect(
+                actionName: 'edit',
+                arguments: [
+                    'assistantId' => $assistantResponse->id,
+                    'organizationId' => $organizationId
+                ]
+            );
+        } catch (\Exception $e) {
+            $this->addFlashMessage($e->getMessage(), '', Message::SEVERITY_ERROR);
+            $this->redirect(
+                actionName: 'index',
+                arguments: [
+                    'organizationId' => $organizationId
+                ]
+            );
+        }
     }
 
     public function editAction(string $organizationId, string $assistantId): void
