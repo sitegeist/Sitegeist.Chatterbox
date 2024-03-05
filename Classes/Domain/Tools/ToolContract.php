@@ -23,12 +23,12 @@ interface ToolContract
     public function getDescription(): string;
 
     /**
-     * @return mixed[]
+     * @return mixed[]|null
      */
-    public function getParameterSchema(): array;
+    public function getParameterSchema(): ?array;
 
     /**
-     * @param mixed[] $parameters
+     * @param mixed[]|null $parameters
      */
-    public function execute(array $parameters): ToolResultContract;
+    public function execute(?array $parameters): ToolResultContract;
 }
