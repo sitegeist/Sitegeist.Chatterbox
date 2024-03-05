@@ -25,7 +25,7 @@ class ChatController extends ActionController
     ) {
     }
 
-    public function startAction(string $organizationId, string $assistantId, string $message): void
+    public function startAction(string $organizationId, string $assistantId, string $message): string
     {
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
@@ -37,32 +37,36 @@ class ChatController extends ActionController
         $lastMessage = $messageResponses[$lastMessageKey];
         $metadata = $assistant->getCollectedMetadata();
 
-        $this->view->assignMultiple([
-            'value' => array_merge(
+        return json_encode(
+            array_merge(
                 [
                     'threadId' => $threadId,
                     'metadata' => empty($metadata) ? null : $metadata
                 ],
                 $lastMessage->toApiArray()
-            )
-        ]);
+            ),
+            JSON_THROW_ON_ERROR
+        );
     }
 
-    public function historyAction(string $organizationId, string $assistantId, string $threadId): void
+    public function historyAction(string $organizationId, string $assistantId, string $threadId): string
     {
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $messages = $assistant->readThread($threadId);
 
-        $this->view->assign('value', [
-            'messages' => array_map(
-                fn (MessageRecord $message): array => $message->toApiArray(),
-                $messages
-            ),
-        ]);
+        return json_encode(
+            [
+                'messages' => array_map(
+                    fn (MessageRecord $message): array => $message->toApiArray(),
+                    $messages
+                ),
+            ],
+            JSON_THROW_ON_ERROR
+        );
     }
 
-    public function postAction(string $organizationId, string $assistantId, string $threadId, string $message): void
+    public function postAction(string $organizationId, string $assistantId, string $threadId, string $message): string
     {
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
@@ -73,13 +77,14 @@ class ChatController extends ActionController
         $lastMessage = $messageResponses[$lastMessageKey];
         $metadata = $assistant->getCollectedMetadata();
 
-        $this->view->assignMultiple([
-            'value' => array_merge(
+        return json_encode(
+            array_merge(
                 [
                     'metadata' => empty($metadata) ? null : $metadata
                 ],
                 $lastMessage->toApiArray()
-            )
-        ]);
+            ),
+            JSON_THROW_ON_ERROR
+        );
     }
 }
