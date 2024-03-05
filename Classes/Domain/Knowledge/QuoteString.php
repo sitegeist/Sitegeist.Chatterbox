@@ -36,6 +36,7 @@ final class QuoteString
     {
         $value = \str_replace('\\u', '\\\\\\u', $this->value);
         $value = \str_replace('\\\\n', '\\\\\\n', $value);
+        $value = \str_replace('\\/', '\\\\\\/', $value);
 
         return '%' . $value . '%';
     }
