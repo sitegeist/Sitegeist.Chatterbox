@@ -133,14 +133,18 @@ class AssistantDepartment
         foreach ($assistantRecord->selectedTools as $toolId) {
             $tool = $this->toolbox->findByName($toolId);
             if ($tool instanceof ToolContract) {
-                $tools[] = [
+                $spec = [
                     'type' => 'function',
                     'function' => [
                         'name' => $tool->getName(),
                         'description' => $tool->getDescription(),
-                        'parameters' => $tool->getParameterSchema(),
                     ]
                 ];
+                $parameters = $tool->getParameterSchema();
+                if ($parameters !== null) {
+                    $spec['function']['parameters'] = $parameters;
+                }
+                $tools[] = $spec;
             }
         }
         return $tools;
