@@ -33,7 +33,7 @@ final class ContentText implements ContentInterface
     }
 
     /**
-     * @return array{type:string, text: array{value: string}}
+     * @return array{type:string, value: string}
      */
     public function toApiArray(): array
     {
