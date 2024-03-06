@@ -7,7 +7,7 @@ interface ContentInterface
     public function getType(): string;
 
     /**
-     * @return array{type:string, text: array{value: string}}
+     * @return array{type:string}
      */
     public function toApiArray(): array;
 }
