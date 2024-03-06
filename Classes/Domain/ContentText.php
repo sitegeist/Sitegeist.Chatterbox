@@ -40,7 +40,6 @@ final class ContentText implements ContentInterface
         return [
             'type' => 'text',
             'value' => $this->value,
-            'text' => ['value' => $this->value, 'deprecated' => 'use ../value instead'],
         ];
     }
 }
