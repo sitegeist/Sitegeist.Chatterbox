@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Controller;
 
+use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
@@ -20,9 +21,16 @@ class ChatController extends ActionController
      */
     protected $viewFormatToObjectNameMap = ['json' => 'Neos\Flow\Mvc\View\JsonView'];
 
+    protected ?VariableFrontend $metaDataCache = null;
+
     public function __construct(
         private readonly OrganizationRepository $organizationRepository,
     ) {
+    }
+
+    public function injectMetaDataCache(VariableFrontend $metaDataCache): void
+    {
+        $this->metaDataCache = $metaDataCache;
     }
 
     public function startAction(string $organizationId, string $assistantId, string $message): string
@@ -34,8 +42,13 @@ class ChatController extends ActionController
 
         $messageResponses = $assistant->readThread($threadId);
         $lastMessageKey = array_key_last($messageResponses);
+        $lastMessageId = $messageResponses[$lastMessageKey]->id;
         $lastMessage = $messageResponses[$lastMessageKey];
         $metadata = $assistant->getCollectedMetadata();
+
+        if ($metadata) {
+            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessageId), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
+        }
 
         return json_encode(
             array_merge(
@@ -55,10 +68,19 @@ class ChatController extends ActionController
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $messages = $assistant->readThread($threadId);
 
+        $cachedMetadata = $this->metaDataCache ? $this->metaDataCache->getByTag($this->cacheTag($assistantId, $threadId)) : [];
+
         return json_encode(
             [
                 'messages' => array_map(
-                    fn (MessageRecord $message): array => $message->toApiArray(),
+                    function (MessageRecord $message) use ($cachedMetadata, $assistantId, $threadId): array {
+                        return array_merge(
+                            [
+                                'metadata' => $cachedMetadata[$this->cacheId($assistantId, $threadId, $message->id)] ?? null
+                            ],
+                            $message->toApiArray()
+                        );
+                    },
                     $messages
                 ),
             ],
@@ -74,8 +96,13 @@ class ChatController extends ActionController
 
         $messageResponses = $assistant->readThread($threadId);
         $lastMessageKey = array_key_last($messageResponses);
+        $lastMessageId = $messageResponses[$lastMessageKey]->id;
         $lastMessage = $messageResponses[$lastMessageKey];
         $metadata = $assistant->getCollectedMetadata();
+
+        if ($metadata) {
+            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessageId), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
+        }
 
         return json_encode(
             array_merge(
@@ -86,5 +113,15 @@ class ChatController extends ActionController
             ),
             JSON_THROW_ON_ERROR
         );
+    }
+
+    private function cacheTag(string $assistantId, string $threadId): string
+    {
+        return 't_' . md5($assistantId . ':' . $threadId);
+    }
+
+    private function cacheId(string $assistantId, string $threadId, string $messageId): string
+    {
+        return 'm_' . md5($assistantId . ':' . $threadId . ':' . $messageId);
     }
 }

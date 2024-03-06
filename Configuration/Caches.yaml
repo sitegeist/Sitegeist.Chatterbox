@@ -1,0 +1,6 @@
+Sitegeist_Chatterbox_MetaDataCache:
+  persistent: true
+  frontend: Neos\Cache\Frontend\VariableFrontend
+  backend: Neos\Cache\Backend\FileBackend
+  backendOptions:
+    defaultLifetime: 86400
