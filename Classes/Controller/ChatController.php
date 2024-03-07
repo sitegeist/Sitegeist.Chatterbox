@@ -33,12 +33,12 @@ class ChatController extends ActionController
         $this->metaDataCache = $metaDataCache;
     }
 
-    public function startAction(string $organizationId, string $assistantId, string $message): string
+    public function startAction(string $organizationId, string $assistantId, string $message, ?string $additionalInstructions = null): string
     {
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $threadId = $assistant->startThread();
-        $assistant->continueThread($threadId, $message);
+        $assistant->continueThread($threadId, $message, $additionalInstructions);
 
         $messageResponses = $assistant->readThread($threadId);
         $lastMessageKey = array_key_last($messageResponses);
@@ -88,11 +88,11 @@ class ChatController extends ActionController
         );
     }
 
-    public function postAction(string $organizationId, string $assistantId, string $threadId, string $message): string
+    public function postAction(string $organizationId, string $assistantId, string $threadId, string $message, ?string $additionalInstructions = null): string
     {
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
-        $assistant->continueThread($threadId, $message);
+        $assistant->continueThread($threadId, $message, $additionalInstructions);
 
         $messageResponses = $assistant->readThread($threadId);
         $lastMessageKey = array_key_last($messageResponses);
