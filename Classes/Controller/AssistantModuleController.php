@@ -13,6 +13,7 @@ use Sitegeist\Chatterbox\Domain\AssistantId;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationId;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
+use Sitegeist\Chatterbox\Domain\ThreadId;
 
 #[Flow\Scope('singleton')]
 class AssistantModuleController extends AbstractModuleController
@@ -123,7 +124,7 @@ class AssistantModuleController extends AbstractModuleController
         $threadId = $assistant->startThread();
         $this->forward('addThreadMessage', arguments: [
             'organizationId' => $organizationId,
-            'threadId' => $threadId,
+            'threadId' => $threadId->value,
             'assistantId' => $assistantId,
             'message' => $message,
             'withAdditionalInstructions' => true,
@@ -135,11 +136,11 @@ class AssistantModuleController extends AbstractModuleController
         $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $assistant = $organization->assistantDepartment->findAssistantById(new AssistantId($assistantId));
         try {
-            $assistant->continueThread($threadId, $message);
+            $assistant->continueThread(new ThreadId($threadId), $message);
             $metadata = $assistant->getCollectedMetadata();
             $this->view->assignMultiple([
                 'organizationId' => $organizationId,
-                'messages' => $assistant->readThread($threadId),
+                'messages' => $assistant->readThread(new ThreadId($threadId)),
                 'threadId' => $threadId,
                 'assistantId' => $assistantId,
                 'metadata' => empty($metadata) ? null : $metadata
@@ -167,7 +168,7 @@ class AssistantModuleController extends AbstractModuleController
 
         $this->view->assignMultiple([
             'organizationId' => $organizationId,
-            'messages' => $assistant->readThread($threadId),
+            'messages' => $assistant->readThread(new ThreadId($threadId)),
             'threadId' => $threadId,
             'assistantId' => $assistantId,
         ]);

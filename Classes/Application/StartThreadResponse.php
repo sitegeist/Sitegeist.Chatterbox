@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Application;
 
 use Neos\Flow\Annotations as Flow;
+use Sitegeist\Chatterbox\Domain\ThreadId;
 use Sitegeist\SchemeOnYou\Domain\Metadata\PathResponse;
 use Sitegeist\SchemeOnYou\Domain\Metadata\Schema;
 
@@ -14,7 +15,7 @@ use Sitegeist\SchemeOnYou\Domain\Metadata\Schema;
 final readonly class StartThreadResponse implements \JsonSerializable
 {
     public function __construct(
-        public string $threadId,
+        public ThreadId $threadId,
         public Message $message,
     ) {
     }

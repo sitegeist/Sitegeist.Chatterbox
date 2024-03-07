@@ -45,16 +45,16 @@ final class Assistant
         return $this->collectedMetadata;
     }
 
-    public function startThread(): string
+    public function startThread(): ThreadId
     {
         $threadResponse = $this->client->threads()->create([]);
-        return $threadResponse->id;
+        return new ThreadId($threadResponse->id);
     }
 
-    public function continueThread(string $threadId, string $message): void
+    public function continueThread(ThreadId $threadId, string $message): void
     {
         $this->client->threads()->messages()->create(
-            $threadId,
+            $threadId->value,
             [
                 'role' => 'user',
                 'content' => $message
@@ -62,7 +62,7 @@ final class Assistant
         );
 
         $runResponse = $this->client->threads()->runs()->create(
-            $threadId,
+            $threadId->value,
             array_filter([
                 'assistant_id' => $this->id,
                 'additional_instructions' => $this->instructions->getContent()
@@ -74,9 +74,9 @@ final class Assistant
     /**
      * @return array<MessageRecord>
      */
-    public function readThread(string $threadId): array
+    public function readThread(ThreadId $threadId): array
     {
-        $threadMessageResponses = $this->client->threads()->messages()->list($threadId)->data;
+        $threadMessageResponses = $this->client->threads()->messages()->list($threadId->value)->data;
 
         $threadMessageResponsesFiltered = array_filter(
             $threadMessageResponses,
@@ -97,9 +97,9 @@ final class Assistant
         );
     }
 
-    private function completeRun(string $threadId, string $runId): void
+    private function completeRun(ThreadId $threadId, string $runId): void
     {
-        $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
+        $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId->value, $runId);
         while ($threadRunResponse->status !== 'completed' && $threadRunResponse->status !== 'failed') {
             if ($threadRunResponse->status === 'requires_action') {
                 $submitToolOutputs = $threadRunResponse->requiredAction?->submitToolOutputs;
@@ -119,12 +119,12 @@ final class Assistant
                     }
                     $this->logger?->info("chatbot tool submit", $toolOutputs);
                     if (!empty($toolOutputs)) {
-                        $this->client->threads()->runs()->submitToolOutputs($threadId, $runId, $toolOutputs);
+                        $this->client->threads()->runs()->submitToolOutputs($threadId->value, $runId, $toolOutputs);
                     }
                 }
             }
             sleep(1);
-            $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
+            $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId->value, $runId);
         }
         $this->logger?->info("thread run response", $threadRunResponse->toArray());
     }

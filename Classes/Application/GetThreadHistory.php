@@ -7,6 +7,7 @@ namespace Sitegeist\Chatterbox\Application;
 use Neos\Flow\Annotations as Flow;
 use Sitegeist\Chatterbox\Domain\AssistantId;
 use Sitegeist\Chatterbox\Domain\OrganizationId;
+use Sitegeist\Chatterbox\Domain\ThreadId;
 use Sitegeist\SchemeOnYou\Domain\Metadata\Schema;
 use Sitegeist\SchemeOnYou\Domain\Path\RequestParameterContract;
 
@@ -17,7 +18,7 @@ final readonly class GetThreadHistory implements RequestParameterContract
     public function __construct(
         public OrganizationId $organizationId,
         public AssistantId $assistantId,
-        public string $threadId
+        public ThreadId $threadId
     ) {
     }
 
@@ -31,7 +32,7 @@ final readonly class GetThreadHistory implements RequestParameterContract
         return new self(
             new OrganizationId($values['organizationId']),
             new AssistantId($values['assistantId']),
-            $values['threadId'],
+            new ThreadId($values['threadId']),
         );
     }
 
