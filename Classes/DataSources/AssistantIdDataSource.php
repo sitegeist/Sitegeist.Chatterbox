@@ -7,7 +7,6 @@ namespace Sitegeist\Chatterbox\DataSources;
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Neos\Service\DataSource\AbstractDataSource;
-use OpenAI\Responses\Assistants\AssistantResponse;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
@@ -36,8 +35,8 @@ class AssistantIdDataSource extends AbstractDataSource
         $assistants = $organization->assistantDepartment->findAllRecords();
 
         return array_map(
-            fn(AssistantRecord $item) => ['value' => $item->id, 'label' => $item->name],
-            iterator_to_array($assistants->getIterator())
+            fn (AssistantRecord $item) => ['value' => $item->id, 'label' => $item->name],
+            iterator_to_array($assistants)
         );
     }
 }

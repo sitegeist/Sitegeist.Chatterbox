@@ -9,6 +9,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\View\ViewInterface;
 use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
+use Sitegeist\Chatterbox\Domain\AssistantId;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
@@ -88,7 +89,7 @@ class AssistantModuleController extends AbstractModuleController
             'availableTools' => $organization->toolbox->findAll(),
             'availableSourcesOfKnowledge' => $organization->library->findAllSourcesOfKnowledge(),
             'availableInstructions' => $organization->manual->findAll(),
-            'assistant' => $organization->assistantDepartment->findAssistantRecordById($assistantId),
+            'assistant' => $organization->assistantDepartment->findAssistantRecordById(new AssistantId($assistantId)),
             'models' => $organization->modelAgency->findAllAvailableModels(),
         ]);
     }
@@ -117,7 +118,7 @@ class AssistantModuleController extends AbstractModuleController
     public function createThreadAction(string $organizationId, string $assistantId, string $message): void
     {
         $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
+        $assistant = $organization->assistantDepartment->findAssistantById(new AssistantId($assistantId));
         $threadId = $assistant->startThread();
         $this->forward('addThreadMessage', arguments: [
             'organizationId' => $organizationId,
@@ -131,7 +132,7 @@ class AssistantModuleController extends AbstractModuleController
     public function addThreadMessageAction(string $organizationId, string $threadId, string $assistantId, string $message, bool $withAdditionalInstructions = false): void
     {
         $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
+        $assistant = $organization->assistantDepartment->findAssistantById(new AssistantId($assistantId));
         try {
             $assistant->continueThread($threadId, $message);
             $metadata = $assistant->getCollectedMetadata();
@@ -161,7 +162,7 @@ class AssistantModuleController extends AbstractModuleController
     public function showThreadAction(string $organizationId, string $threadId, string $assistantId): void
     {
         $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
+        $assistant = $organization->assistantDepartment->findAssistantById(new AssistantId($assistantId));
 
         $this->view->assignMultiple([
             'organizationId' => $organizationId,

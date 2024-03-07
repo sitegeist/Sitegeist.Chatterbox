@@ -33,7 +33,7 @@ class AssistantDepartment
     ) {
     }
 
-    public function findAssistantById(string $assistantId): Assistant
+    public function findAssistantById(AssistantId $assistantId): Assistant
     {
         $assistantRecord = $this->findAssistantRecordById($assistantId);
         $discriminatorName = $assistantRecord->metadata['discriminator'] ?? '';
@@ -84,16 +84,16 @@ class AssistantDepartment
         return AssistantRecord::fromAssistantResponse($assistantResponse);
     }
 
-    public function findAssistantRecordById(string $assistantId): AssistantRecord
+    public function findAssistantRecordById(AssistantId $assistantId): AssistantRecord
     {
-        $assistantResponse = $this->client->assistants()->retrieve($assistantId);
+        $assistantResponse = $this->client->assistants()->retrieve($assistantId->value);
         return AssistantRecord::fromAssistantResponse($assistantResponse);
     }
 
     public function updateAssistant(AssistantRecord $assistantRecord): void
     {
         $this->client->assistants()->modify(
-            $assistantRecord->id,
+            $assistantRecord->id->value,
             [
                 'model' => $assistantRecord->model,
                 'name' => $assistantRecord->name ?: '',

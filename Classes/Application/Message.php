@@ -14,6 +14,11 @@ use Sitegeist\SchemeOnYou\Domain\Metadata\Schema;
 #[PathResponse(200, '')]
 final readonly class Message implements \JsonSerializable
 {
+    /**
+     * @param array<mixed> $message
+     * @param array<mixed> $quotations
+     * @param array<string,mixed>|null $metadata
+     */
     public function __construct(
         public string $id,
         public bool $bot,
@@ -23,7 +28,10 @@ final readonly class Message implements \JsonSerializable
     ) {
     }
 
-    public static function fromMessageRecordAndMetadata(MessageRecord $messageRecord, array $metadata): self
+    /**
+     * @param array<string,mixed>|null $metadata
+     */
+    public static function fromMessageRecordAndMetadata(MessageRecord $messageRecord, ?array $metadata): self
     {
         return new self(
             $messageRecord->id,

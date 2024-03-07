@@ -6,7 +6,7 @@
     "require": {
         "neos/neos": "*",
         "sitegeist/flow-openaiclientfactory": "dev-main",
-        "sitegeist/schemonyou": "dev-main",
+        "sitegeist/schemeonyou": "dev-main",
         "symfony/http-client": "^6.4",
         "league/commonmark": "~2.4",
         "league/html-to-markdown": "^5.0"
@@ -43,6 +43,10 @@
         "clientFactory": {
             "type": "vcs",
             "url": "https://github.com/sitegeist/Sitegeist.Flow.OpenAiClientFactory.git"
+        },
+        "schemeOnYou": {
+            "type": "vcs",
+            "url": "https://github.com/sitegeist/Sitegeist.SchemeOnYou.git"
         }
     }
 }

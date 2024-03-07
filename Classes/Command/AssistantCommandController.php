@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
+use Sitegeist\Chatterbox\Domain\AssistantId;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 #[Flow\Scope('singleton')]
@@ -20,7 +21,7 @@ class AssistantCommandController extends CommandController
     public function upskillCommand(string $organizationId, string $assistantId): void
     {
         $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantRecordById($assistantId);
+        $assistant = $organization->assistantDepartment->findAssistantRecordById(new AssistantId($assistantId));
         $organization->assistantDepartment->updateAssistant($assistant);
     }
 

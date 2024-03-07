@@ -11,7 +11,7 @@ use OpenAI\Responses\Assistants\AssistantResponseToolFunction;
 use OpenAI\Responses\Assistants\AssistantResponseToolRetrieval;
 
 #[Flow\Proxy(false)]
-final class AssistantRecord
+final readonly class AssistantRecord
 {
     /**
      * @param mixed[] $tools
@@ -22,17 +22,17 @@ final class AssistantRecord
      * @param string[] $fileIds
      */
     public function __construct(
-        public readonly string $id,
-        public readonly string $model,
-        public readonly ?string $name,
-        public readonly ?string $description,
-        public readonly ?string $instructions,
-        public readonly ?array $tools = [],
-        public readonly ?array $metadata = [],
-        public readonly array $selectedTools = [],
-        public readonly array $selectedSourcesOfKnowledge = [],
-        public readonly array $selectedInstructions = [],
-        public readonly array $fileIds = [],
+        public AssistantId $id,
+        public string $model,
+        public ?string $name,
+        public ?string $description,
+        public ?string $instructions,
+        public ?array $tools = [],
+        public ?array $metadata = [],
+        public array $selectedTools = [],
+        public array $selectedSourcesOfKnowledge = [],
+        public array $selectedInstructions = [],
+        public array $fileIds = [],
     ) {
     }
 
@@ -43,7 +43,7 @@ final class AssistantRecord
         $selectedInstructions = array_key_exists('selectedInstructions', $response->metadata) ? json_decode($response->metadata['selectedInstructions'], true) : [];
 
         return new self(
-            $response->id,
+            new AssistantId($response->id),
             $response->model,
             $response->name,
             $response->description,

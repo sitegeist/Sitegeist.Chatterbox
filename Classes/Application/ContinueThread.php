@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Application;
 
 use Neos\Flow\Annotations as Flow;
+use Sitegeist\Chatterbox\Domain\AssistantId;
 use Sitegeist\SchemeOnYou\Domain\Metadata\Schema;
 use Sitegeist\SchemeOnYou\Domain\Path\RequestParameterContract;
 
@@ -14,7 +15,7 @@ final readonly class ContinueThread implements RequestParameterContract
 {
     public function __construct(
         public string $organizationId,
-        public string $assistantId,
+        public AssistantId $assistantId,
         public string $threadId,
         public string $message
     ) {
@@ -25,7 +26,14 @@ final readonly class ContinueThread implements RequestParameterContract
      */
     public static function fromRequestParameter(mixed $parameter): static
     {
-        return new self(...\json_decode($parameter, true, 512, JSON_THROW_ON_ERROR));
+        $values = \json_decode($parameter, true, 512, JSON_THROW_ON_ERROR);
+
+        return new self(
+            $values['organizationId'],
+            new AssistantId($values['assistantId']),
+            $values['threadId'],
+            $values['message'],
+        );
     }
 
     /**

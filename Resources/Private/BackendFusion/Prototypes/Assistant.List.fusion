@@ -36,10 +36,10 @@ prototype(Sitegeist.Chatterbox:Assistant.List) < prototype(Neos.Fusion:Component
                     <td>{String.cropAtWord(assistant.instructions, 100, '...')}</td>
                     <td>{assistant.model}</td>
                     <td class="neos-priority1 neos-aCenter">
-                        <Neos.Fusion:Link.Action href.action="edit" href.arguments.assistantId={assistant.id} href.arguments.organizationId={organizationId} class="neos-button">
+                        <Neos.Fusion:Link.Action href.action="edit" href.arguments.assistantId={assistant.id.value} href.arguments.organizationId={organizationId} class="neos-button">
                             <i class="fas fa-pencil-alt icon-white"></i>
                         </Neos.Fusion:Link.Action>
-                        <Neos.Fusion:Link.Action href.action="newThread" href.arguments.assistantId={assistant.id} href.arguments.organizationId={organizationId} class="neos-button">
+                        <Neos.Fusion:Link.Action href.action="newThread" href.arguments.assistantId={assistant.id.value} href.arguments.organizationId={organizationId} class="neos-button">
                             <i class="fas fa-comments icon-white"></i>
                         </Neos.Fusion:Link.Action>
                     </td>

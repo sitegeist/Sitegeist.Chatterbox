@@ -21,12 +21,12 @@ use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 final class Assistant
 {
     /**
-     * @var array<int, mixed>
+     * @var array<string, mixed>
      */
     private array $collectedMetadata = [];
 
     public function __construct(
-        private readonly string $id,
+        private readonly AssistantId $id,
         private readonly ToolCollection $tools,
         private readonly InstructionCollection $instructions,
         private readonly SourceOfKnowledgeCollection $sourcesOfKnowledge,
@@ -38,7 +38,7 @@ final class Assistant
     }
 
     /**
-     * @return array<int,mixed>
+     * @return array<string,mixed>
      */
     public function getCollectedMetadata(): array
     {

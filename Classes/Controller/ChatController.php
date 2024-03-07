@@ -12,6 +12,7 @@ use Sitegeist\Chatterbox\Application\MessageCollection;
 use Sitegeist\Chatterbox\Application\StartThread;
 use Sitegeist\Chatterbox\Application\StartThreadResponse;
 use Sitegeist\Chatterbox\Application\ThreadHistory;
+use Sitegeist\Chatterbox\Domain\AssistantId;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 use Sitegeist\SchemeOnYou\Application\OpenApiController;
@@ -112,13 +113,13 @@ class ChatController extends OpenApiController
         );
     }
 
-    private function cacheTag(string $assistantId, string $threadId): string
+    private function cacheTag(AssistantId $assistantId, string $threadId): string
     {
-        return 't_' . md5($assistantId . ':' . $threadId);
+        return 't_' . md5($assistantId->value . ':' . $threadId);
     }
 
-    private function cacheId(string $assistantId, string $threadId, string $messageId): string
+    private function cacheId(AssistantId $assistantId, string $threadId, string $messageId): string
     {
-        return 'm_' . md5($assistantId . ':' . $threadId . ':' . $messageId);
+        return 'm_' . md5($assistantId->value . ':' . $threadId . ':' . $messageId);
     }
 }
