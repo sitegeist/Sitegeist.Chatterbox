@@ -14,12 +14,8 @@ use Sitegeist\SchemeOnYou\Domain\Metadata\Schema;
 final readonly class StartThreadResponse implements \JsonSerializable
 {
     public function __construct(
-        public string $treadId,
-        public ?array $metadata,
-        public string $id,
-        public bool $bot,
-        public array $message,
-        public array $quotations,
+        public string $threadId,
+        public Message $message,
     ) {
     }
 

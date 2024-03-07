@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Controller;
 
 use Neos\Cache\Frontend\VariableFrontend;
+use Sitegeist\Chatterbox\Application\ContinueThread;
 use Sitegeist\Chatterbox\Application\GetThreadHistory;
 use Sitegeist\Chatterbox\Application\Message;
 use Sitegeist\Chatterbox\Application\MessageCollection;
@@ -57,11 +58,10 @@ class ChatController extends OpenApiController
 
         return new StartThreadResponse(
             $threadId,
-            empty($metadata) ? null : $metadata,
-            $lastMessage->id,
-            $lastMessage->role !== 'user',
-            $lastMessage->content->toApiArray(),
-            $lastMessage->quotations->toApiArray()
+            Message::fromMessageRecordAndMetadata(
+                $lastMessage,
+                $metadata
+            )
         );
     }
 
@@ -87,31 +87,28 @@ class ChatController extends OpenApiController
         );
     }
 
-    //#[Path('/chatterbox/chat/post', HttpMethod::METHOD_POST)]
-    public function postAction(string $organizationId, string $assistantId, string $threadId, string $message): string
-    {
-        $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
-        $assistant->continueThread($threadId, $message);
+    #[Path('/chatterbox/chat/post', HttpMethod::METHOD_POST)]
+    public function postAction(
+        #[Parameter(ParameterLocation::LOCATION_QUERY)]
+        ContinueThread $command
+    ): Message {
+        $organization = $this->organizationRepository->findById($command->organizationId);
+        $assistant = $organization->assistantDepartment->findAssistantById($command->assistantId);
+        $assistant->continueThread($command->threadId, $command->message);
 
-        $messageResponses = $assistant->readThread($threadId);
+        $messageResponses = $assistant->readThread($command->threadId);
         $lastMessageKey = array_key_last($messageResponses);
         $lastMessageId = $messageResponses[$lastMessageKey]->id;
         $lastMessage = $messageResponses[$lastMessageKey];
         $metadata = $assistant->getCollectedMetadata();
 
         if ($metadata) {
-            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessageId), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
+            $this->metaDataCache?->set($this->cacheId($command->assistantId, $command->threadId, $lastMessageId), $metadata, [$this->cacheTag($command->assistantId, $command->threadId)], 3600);
         }
 
-        return json_encode(
-            array_merge(
-                [
-                    'metadata' => empty($metadata) ? null : $metadata
-                ],
-                $lastMessage->toApiArray()
-            ),
-            JSON_THROW_ON_ERROR
+        return Message::fromMessageRecordAndMetadata(
+            $lastMessage,
+            $metadata
         );
     }
 

@@ -6,10 +6,12 @@ namespace Sitegeist\Chatterbox\Application;
 
 use Neos\Flow\Annotations as Flow;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
+use Sitegeist\SchemeOnYou\Domain\Metadata\PathResponse;
 use Sitegeist\SchemeOnYou\Domain\Metadata\Schema;
 
 #[Flow\Proxy(false)]
 #[Schema('A message in a thread')]
+#[PathResponse(200, '')]
 final readonly class Message implements \JsonSerializable
 {
     public function __construct(
