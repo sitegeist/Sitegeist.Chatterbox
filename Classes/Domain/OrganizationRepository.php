@@ -35,11 +35,11 @@ class OrganizationRepository
     ) {
     }
 
-    public function findById(string $id): Organization
+    public function findById(OrganizationId $id): Organization
     {
-        $config = $this->organizationsConfig[$id] ?? null;
+        $config = $this->organizationsConfig[$id->value] ?? null;
         if (!$config) {
-            throw new \Exception('Unknown organization "' . $id . '"', 1707150041);
+            throw new \Exception('Unknown organization "' . $id->value . '"', 1707150041);
         }
 
         return $this->createOrganization($id, $config);
@@ -49,7 +49,7 @@ class OrganizationRepository
     {
         $id = array_key_first($this->organizationsConfig);
 
-        return is_string($id) ? $this->createOrganization($id, $this->organizationsConfig[$id]) : null;
+        return is_string($id) ? $this->createOrganization(new OrganizationId($id), $this->organizationsConfig[$id]) : null;
     }
 
     /**
@@ -59,7 +59,7 @@ class OrganizationRepository
     {
         $organizations = [];
         foreach ($this->organizationsConfig as $organizationId => $organizationConfig) {
-            $organizations[] = $this->createOrganization($organizationId, $organizationConfig);
+            $organizations[] = $this->createOrganization(new OrganizationId($organizationId), $organizationConfig);
         }
 
         return $organizations;
@@ -68,7 +68,7 @@ class OrganizationRepository
     /**
      * @param array<string,mixed> $config
      */
-    private function createOrganization(string $id, array $config): Organization
+    private function createOrganization(OrganizationId $id, array $config): Organization
     {
         $account = $this->accountRepository->findById($config['accountId']);
         $client = $this->clientFactory->createClientForAccountRecord($account);

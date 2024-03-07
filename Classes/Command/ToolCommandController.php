@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
+use Sitegeist\Chatterbox\Domain\OrganizationId;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 use Symfony\Component\Yaml\Yaml;
 
@@ -20,7 +21,7 @@ class ToolCommandController extends CommandController
 
     public function listCommand(string $organizationId): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $tools = $organization->toolbox->findAll();
         foreach ($tools as $tool) {
             $this->outputLine($tool->getName());
@@ -29,7 +30,7 @@ class ToolCommandController extends CommandController
 
     public function showCommand(string $organizationId, string $toolName,): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $tool = $organization->toolbox->findByName($toolName);
         if (!$tool) {
             $this->outputLine('no such tool');
@@ -46,7 +47,7 @@ class ToolCommandController extends CommandController
 
     public function executeCommand(string $organizationId, string $toolName, string $parameters): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $tool = $organization->toolbox->findByName($toolName);
         if (!$tool) {
             $this->outputLine('no such tool');

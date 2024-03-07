@@ -8,6 +8,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Neos\Service\DataSource\AbstractDataSource;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
+use Sitegeist\Chatterbox\Domain\OrganizationId;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 class AssistantIdDataSource extends AbstractDataSource
@@ -31,7 +32,7 @@ class AssistantIdDataSource extends AbstractDataSource
             return [];
         }
 
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $assistants = $organization->assistantDepartment->findAllRecords();
 
         return array_map(

@@ -8,23 +8,22 @@ use Neos\Flow\Annotations as Flow;
 use OpenAI\Contracts\ClientContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
-use Sitegeist\Chatterbox\Domain\MessageEditing\EditorialOffice;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 
 #[Flow\Proxy(false)]
-class Organization
+readonly class Organization
 {
     public function __construct(
-        public readonly string $id,
-        public readonly string $label,
-        public readonly OrganizationDiscriminator $discriminator,
-        public readonly ClientContract $client,
-        public readonly AssistantDepartment $assistantDepartment,
-        public readonly Manual $manual,
-        public readonly ModelAgency $modelAgency,
-        public readonly Toolbox $toolbox,
-        public readonly Library $library,
+        public OrganizationId $id,
+        public string $label,
+        public OrganizationDiscriminator $discriminator,
+        public ClientContract $client,
+        public AssistantDepartment $assistantDepartment,
+        public Manual $manual,
+        public ModelAgency $modelAgency,
+        public Toolbox $toolbox,
+        public Library $library,
     ) {
     }
 }

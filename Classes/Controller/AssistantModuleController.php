@@ -11,6 +11,7 @@ use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
 use Sitegeist\Chatterbox\Domain\AssistantId;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
+use Sitegeist\Chatterbox\Domain\OrganizationId;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 #[Flow\Scope('singleton')]
@@ -35,7 +36,7 @@ class AssistantModuleController extends AbstractModuleController
     public function indexAction(string $organizationId = null): void
     {
         $organization = $organizationId
-            ? $this->organizationRepository->findById($organizationId)
+            ? $this->organizationRepository->findById(new OrganizationId($organizationId))
             : $this->organizationRepository->findFirst();
 
         $assistants = $organization?->assistantDepartment->findAllRecords() ?: [];
@@ -51,7 +52,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function newAction(string $organizationId): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $this->view->assignMultiple([
             'organizationId' => $organizationId,
             'models' => $organization->modelAgency->findAllAvailableModels()
@@ -60,7 +61,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function createAction(string $organizationId, string $name, string $model): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         try {
             $assistantResponse = $organization->assistantDepartment->createAssistant($name, $model);
             $this->redirect(
@@ -83,7 +84,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function editAction(string $organizationId, string $assistantId): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $this->view->assignMultiple([
             'organizationId' => $organizationId,
             'availableTools' => $organization->toolbox->findAll(),
@@ -101,7 +102,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function updateAction(string $organizationId, AssistantRecord $assistant): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $organization->assistantDepartment->updateAssistant($assistant);
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
         $this->redirect(actionName: 'index', arguments: ['organizationId' => $organizationId]);
@@ -117,7 +118,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function createThreadAction(string $organizationId, string $assistantId, string $message): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $assistant = $organization->assistantDepartment->findAssistantById(new AssistantId($assistantId));
         $threadId = $assistant->startThread();
         $this->forward('addThreadMessage', arguments: [
@@ -131,7 +132,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function addThreadMessageAction(string $organizationId, string $threadId, string $assistantId, string $message, bool $withAdditionalInstructions = false): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $assistant = $organization->assistantDepartment->findAssistantById(new AssistantId($assistantId));
         try {
             $assistant->continueThread($threadId, $message);
@@ -161,7 +162,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function showThreadAction(string $organizationId, string $threadId, string $assistantId): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
+        $organization = $this->organizationRepository->findById(new OrganizationId($organizationId));
         $assistant = $organization->assistantDepartment->findAssistantById(new AssistantId($assistantId));
 
         $this->view->assignMultiple([

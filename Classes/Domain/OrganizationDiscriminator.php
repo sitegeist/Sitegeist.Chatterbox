@@ -7,10 +7,10 @@ namespace Sitegeist\Chatterbox\Domain;
 use Neos\Flow\Annotations as Flow;
 
 #[Flow\Proxy(false)]
-class OrganizationDiscriminator
+final readonly class OrganizationDiscriminator
 {
     public function __construct(
-        public readonly string $value,
+        public string $value,
     ) {
         if (str_contains($value, '-')) {
             throw new \Exception('OrganizationDiscriminator must not contain "-" but "' . $value . '" was given');

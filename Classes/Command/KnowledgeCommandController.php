@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
+use Sitegeist\Chatterbox\Domain\OrganizationId;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
 #[Flow\Scope('singleton')]
@@ -21,7 +22,7 @@ class KnowledgeCommandController extends CommandController
     {
         $this->outputLine('Updating knowledge pool');
         $organizations = $organizationId
-            ? [$this->organizationRepository->findById($organizationId)]
+            ? [$this->organizationRepository->findById(new OrganizationId($organizationId))]
             : $this->organizationRepository->findAll();
         $numberOfSources = 0;
         foreach ($organizations as $organization) {
@@ -45,7 +46,7 @@ class KnowledgeCommandController extends CommandController
     {
         $this->outputLine('Cleaning knowledge pool');
         $organizations = $organizationId
-            ? [$this->organizationRepository->findById($organizationId)]
+            ? [$this->organizationRepository->findById(new OrganizationId($organizationId))]
             : $this->organizationRepository->findAll();
         $this->output->progressStart(count($organizations));
         foreach ($organizations as $organization) {

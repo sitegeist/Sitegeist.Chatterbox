@@ -27,7 +27,7 @@ class OrganizationIdDataSource extends AbstractDataSource
     public function getData(NodeInterface $node = null, array $arguments = [])
     {
         return array_map(
-            fn(Organization $item) => ['value' => $item->id, 'label' => $item->label],
+            fn (Organization $item) => ['value' => $item->id, 'label' => $item->label],
             $this->organizationRepository->findAll()
         );
     }
