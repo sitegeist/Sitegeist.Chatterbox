@@ -1,7 +1,7 @@
 privilegeTargets:
   'Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege':
     'Sitegeist.Chatterbox:Chat':
-      matcher: 'method(Sitegeist\Chatterbox\Controller\ChatController->(start|history|post)Action())'
+      matcher: 'method(Sitegeist\Chatterbox\Controller\ChatController->(start|history|post)Endpoint())'
   'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
     'Sitegeist.Chatterbox:ManageAssistants':
       matcher: 'management/chatterbox'
