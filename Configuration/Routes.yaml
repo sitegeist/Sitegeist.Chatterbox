@@ -29,3 +29,35 @@
     '@action': 'post'
     '@format': 'json'
   httpMethods: ['POST']
+
+##
+# Chatterbox Legacy
+
+-
+  name:  'Chatterbox Chat - start'
+  uriPattern: 'chatterbox/legacychat/start'
+  defaults:
+    '@package':    'Sitegeist.Chatterbox'
+    '@controller': 'LegacyChat'
+    '@action': 'start'
+    '@format': 'json'
+  httpMethods: ['POST']
+
+-
+  name:  'Chatterbox Chat - thread'
+  uriPattern: 'chatterbox/legacychat/history'
+  defaults:
+    '@package':    'Sitegeist.Chatterbox'
+    '@controller': 'LegacyChat'
+    '@action': 'history'
+    '@format': 'json'
+  httpMethods: ['GET']
+
+- name: 'Chatterbox Chat'
+  uriPattern: 'chatterbox/legacychat/post'
+  defaults:
+    '@package': 'Sitegeist.Chatterbox'
+    '@controller': 'LegacyChat'
+    '@action': 'post'
+    '@format': 'json'
+  httpMethods: ['POST']

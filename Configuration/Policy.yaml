@@ -1,5 +1,7 @@
 privilegeTargets:
   'Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege':
+    'Sitegeist.Chatterbox:LegacyChat':
+      matcher: 'method(Sitegeist\Chatterbox\Controller\LegacyChatController->(start|history|post)Action())'
     'Sitegeist.Chatterbox:Chat':
       matcher: 'method(Sitegeist\Chatterbox\Controller\ChatController->(start|history|post)Endpoint())'
   'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
@@ -8,6 +10,9 @@ privilegeTargets:
 roles:
   'Neos.Flow:Everybody':
     privileges:
+      -
+        privilegeTarget: 'Sitegeist.Chatterbox:LegacyChat'
+        permission: GRANT
       -
         privilegeTarget: 'Sitegeist.Chatterbox:Chat'
         permission: GRANT
