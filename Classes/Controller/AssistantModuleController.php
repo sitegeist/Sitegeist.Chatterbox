@@ -133,7 +133,7 @@ class AssistantModuleController extends AbstractModuleController
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         try {
-            $assistant->continueThread($threadId, $message, $withAdditionalInstructions);
+            $assistant->continueThread($threadId, $message);
             $metadata = $assistant->getCollectedMetadata();
             $this->view->assignMultiple([
                 'organizationId' => $organizationId,

@@ -38,7 +38,7 @@ class ChatController extends ActionController
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $threadId = $assistant->startThread();
-        $assistant->continueThread($threadId, $message, true);
+        $assistant->continueThread($threadId, $message);
 
         $messageResponses = $assistant->readThread($threadId);
         $lastMessageKey = array_key_last($messageResponses);

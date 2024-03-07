@@ -51,7 +51,7 @@ final class Assistant
         return $threadResponse->id;
     }
 
-    public function continueThread(string $threadId, string $message, bool $withAdditionalInstructions = false): void
+    public function continueThread(string $threadId, string $message): void
     {
         $this->client->threads()->messages()->create(
             $threadId,
@@ -65,9 +65,7 @@ final class Assistant
             $threadId,
             array_filter([
                 'assistant_id' => $this->id,
-                'additional_instructions' => $withAdditionalInstructions
-                    ? $this->instructions->getContent()
-                    : null
+                'additional_instructions' => $this->instructions->getContent()
             ])
         );
         $this->completeRun($threadId, $runResponse->id);
