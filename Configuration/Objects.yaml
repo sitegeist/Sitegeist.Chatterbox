@@ -7,3 +7,13 @@ Sitegeist\Chatterbox\Controller\ChatController:
         arguments:
           1:
             value: Sitegeist_Chatterbox_MetaDataCache
+
+Sitegeist\Chatterbox\Controller\LegacyChatController:
+  properties:
+    metaDataCache:
+      object:
+        factoryObjectName: Neos\Flow\Cache\CacheManager
+        factoryMethodName: getCache
+        arguments:
+          1:
+            value: Sitegeist_Chatterbox_MetaDataCache
