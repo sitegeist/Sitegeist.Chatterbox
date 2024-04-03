@@ -26,6 +26,7 @@
         }
     },
     "scripts": {
+        "fix": ["phpcbf --standard=PSR12 Classes"],
         "test:style-fix": ["phpcbf --standard=PSR12 Classes"],
         "test:style": ["phpcs --standard=PSR12 -n Classes"],
         "test:stan": ["phpstan analyse --level 8 Classes"],

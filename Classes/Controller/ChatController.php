@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Controller;
 
 use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Mvc\Controller\ActionController;
+use Neos\Flow\Security\Cryptography\HashService;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
@@ -25,6 +26,7 @@ class ChatController extends ActionController
 
     public function __construct(
         private readonly OrganizationRepository $organizationRepository,
+        private readonly HashService $hashService,
     ) {
     }
 
@@ -35,6 +37,10 @@ class ChatController extends ActionController
 
     public function startAction(string $organizationId, string $assistantId, string $message, ?string $additionalInstructions = null): string
     {
+        if ($additionalInstructions) {
+            $additionalInstructions = $this->hashService->validateAndStripHmac($additionalInstructions);
+        }
+
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $threadId = $assistant->startThread();
@@ -90,6 +96,10 @@ class ChatController extends ActionController
 
     public function postAction(string $organizationId, string $assistantId, string $threadId, string $message, ?string $additionalInstructions = null): string
     {
+        if ($additionalInstructions) {
+            $additionalInstructions = $this->hashService->validateAndStripHmac($additionalInstructions);
+        }
+
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
         $assistant->continueThread($threadId, $message, $additionalInstructions);

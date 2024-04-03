@@ -28,3 +28,6 @@ Neos:
             icon: 'icon-robot'
             controller: 'Sitegeist\Chatterbox\Controller\AssistantModuleController'
             privilegeTarget: 'Sitegeist.Chatterbox:ManageAssistants'
+  Fusion:
+    defaultContext:
+      Chatterbox.Instruction: Sitegeist\Chatterbox\Helper\InstructionHelper
