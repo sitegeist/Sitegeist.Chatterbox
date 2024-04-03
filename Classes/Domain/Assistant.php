@@ -112,7 +112,6 @@ final class Assistant
                             if ($toolInstance instanceof ToolContract) {
                                 $toolResult = $toolInstance->execute(json_decode($requiredToolCall->function->arguments, true));
                                 $toolOutputs["tool_outputs"][] = ['tool_call_id' => $requiredToolCall->id, 'output' => json_encode($toolResult->getData())];
-                                $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, ['tool_calls' => ['name' => $requiredToolCall->function->name, 'parameters' => $requiredToolCall->function->arguments]]);
                                 $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
                             }
                         }
@@ -128,19 +127,4 @@ final class Assistant
         }
         $this->logger?->info("thread run response", $threadRunResponse->toArray());
     }
-
-//        // add tool metadata
-//        if ($combinedMetadata) {
-//            $stepList = $this->client->threads()->runs()->steps()->list($threadId, $threadRunResponse->id);
-//            foreach ($stepList->data as $stepResponse) {
-//                $stepDetails = $stepResponse->stepDetails;
-//                if ($stepDetails instanceof ThreadRunStepResponseMessageCreationStepDetails) {
-//                    $messageId = $stepDetails->messageCreation->messageId;
-//                    if ($messageId) {
-//                        $this->client->threads()->messages()->modify($threadId, $messageId, ['metadata' => ['tools' => json_encode($combinedMetadata)]]);
-//                        break;
-//                    }
-//                }
-//            }
-//        }
 }

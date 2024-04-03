@@ -22,6 +22,11 @@ use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 class AssistantDepartment
 {
+    /**
+     * @var array<string, mixed>
+     */
+    private array $settings = [];
+
     public function __construct(
         private readonly OpenAiClientContract $client,
         private readonly DatabaseConnection $connection,
@@ -31,6 +36,14 @@ class AssistantDepartment
         private readonly LoggerInterface $logger,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public function injectSettings(array $settings): void
+    {
+        $this->settings = $settings;
     }
 
     public function findAssistantById(string $assistantId): Assistant
@@ -60,7 +73,7 @@ class AssistantDepartment
             $this->organizationDiscriminator,
             $this->client,
             $this->connection,
-            $this->logger
+            ($this->settings['enableLogging'] ?? false) ? $this->logger : null
         );
     }
 

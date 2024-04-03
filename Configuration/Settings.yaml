@@ -1,5 +1,6 @@
 Sitegeist:
   Chatterbox:
+    enableLogging: false
     organizations: []
     # orgId:
     #   discriminator: 'my-descriminator'
