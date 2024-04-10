@@ -10,7 +10,7 @@ use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 #[Flow\Proxy(false)]
 final class KnowledgeFilename
 {
-    private const FILE_ENDING = '.jsonl';
+    private const FILE_ENDING = '.json';
 
     public function __construct(
         public readonly KnowledgeSourceDiscriminator $knowledgeSourceDiscriminator,
