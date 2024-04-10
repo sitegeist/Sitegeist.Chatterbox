@@ -35,7 +35,7 @@ final class JsonlRecordCollection implements \IteratorAggregate, \Countable, \St
 
     public function __toString(): string
     {
-        return implode("\n", array_map(
+        return '[' . "\n" . implode("\n", array_map(
             fn (JsonlRecord $record): string => \str_replace(
                 PHP_EOL,
                 "\\\\n",
@@ -45,6 +45,6 @@ final class JsonlRecordCollection implements \IteratorAggregate, \Countable, \St
                 )
             ),
             $this->items
-        ));
+        )) . "\n" . ']';
     }
 }
