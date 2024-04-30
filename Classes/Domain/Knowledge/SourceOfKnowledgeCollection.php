@@ -53,6 +53,9 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         foreach ($annotations as $annotation) {
             if ($annotation instanceof ThreadMessageResponseContentTextAnnotationFileCitationObject) {
                 $quoteString = QuoteString::fromFileCitationObject($annotation);
+                if ($quoteString->isEmpty()) {
+                    continue;
+                }
                 $databaseRecord = $databaseConnection->executeQuery(
                     'SELECT id, knowledge_source_discriminator FROM ' . Library::TABLE_NAME
                     . ' WHERE knowledge_source_discriminator IN (:knowledgeSourceDiscriminators)

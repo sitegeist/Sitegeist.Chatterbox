@@ -40,4 +40,9 @@ final class QuoteString
 
         return '%' . $value . '%';
     }
+
+    public function isEmpty(): bool
+    {
+        return $this->value === '';
+    }
 }
