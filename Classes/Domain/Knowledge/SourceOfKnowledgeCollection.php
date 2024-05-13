@@ -10,6 +10,9 @@ use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextAnnotation
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 use Sitegeist\Chatterbox\Domain\QuotationCollection;
+use Sitegeist\Chatterbox\Domain\ResolvedAndUnresolvedQuotations;
+use Sitegeist\Chatterbox\Domain\UnresolvedQuotation;
+use Sitegeist\Chatterbox\Domain\UnresolvedQuotationCollection;
 
 /**
  * @implements \IteratorAggregate<SourceOfKnowledgeContract>
@@ -41,7 +44,7 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         ThreadMessageResponse $response,
         OrganizationDiscriminator $organizationDiscriminator,
         DatabaseConnection $databaseConnection
-    ): QuotationCollection {
+    ): ResolvedAndUnresolvedQuotations {
         $annotations = [];
         foreach ($response->content as $contentObject) {
             if ($contentObject instanceof ThreadMessageResponseContentTextObject) {
@@ -49,11 +52,13 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
             }
         }
 
-        $quotations = [];
+        $resolvedQuotations = [];
+        $unresolvedQuotations = [];
         foreach ($annotations as $annotation) {
             if ($annotation instanceof ThreadMessageResponseContentTextAnnotationFileCitationObject) {
                 $quoteString = QuoteString::fromFileCitationObject($annotation);
                 if ($quoteString->isEmpty()) {
+                    $unresolvedQuotations[] = new UnresolvedQuotation($annotation->text);
                     continue;
                 }
                 $databaseRecord = $databaseConnection->executeQuery(
@@ -74,6 +79,7 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
                     ]
                 )->fetchAssociative() ?: null;
                 if (!$databaseRecord) {
+                    $unresolvedQuotations[] = new UnresolvedQuotation($annotation->text);
                     continue;
                 }
                 $knowledgeSourceDiscriminator = KnowledgeSourceDiscriminator::fromString(
@@ -83,16 +89,20 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
                     $knowledgeSourceDiscriminator->knowledgeSourceName
                 );
                 if (!$sourceOfKnowledge) {
+                    $unresolvedQuotations[] = new UnresolvedQuotation($annotation->text);
                     continue;
                 }
                 $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $annotation->fileCitation->quote, $databaseRecord['id']);
                 if ($quotation) {
-                    $quotations[] = $quotation;
+                    $resolvedQuotations[] = $quotation;
                 }
             }
         }
 
-        return new QuotationCollection(...$quotations);
+        return new ResolvedAndUnresolvedQuotations(
+            new QuotationCollection(...$resolvedQuotations),
+            new UnresolvedQuotationCollection(...$unresolvedQuotations),
+        );
     }
 
     /**

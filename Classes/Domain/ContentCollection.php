@@ -30,12 +30,12 @@ final class ContentCollection implements \IteratorAggregate, \Countable
         return new self();
     }
 
-    public static function fromThreadMessageResponse(ThreadMessageResponse $response): self
+    public static function fromThreadMessageResponse(ThreadMessageResponse $response, UnresolvedQuotationCollection $quotationStubs): self
     {
         $contents = [];
         foreach ($response->content as $textOrImage) {
             if ($textOrImage instanceof ThreadMessageResponseContentTextObject) {
-                $contents[] = ContentText::fromThreadMessageResponseContentTextObject($textOrImage);
+                $contents[] = ContentText::fromThreadMessageResponseContentTextObject($textOrImage, $quotationStubs);
             }
         }
 

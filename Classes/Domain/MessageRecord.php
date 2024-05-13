@@ -32,15 +32,16 @@ final class MessageRecord
         OrganizationDiscriminator $organizationDiscriminator,
         DatabaseConnection $connection
     ): self {
+        $resolvedAndUnresolvedQuotations = $sourceOfKnowledgeCollection->resolveQuotations(
+            $response,
+            $organizationDiscriminator,
+            $connection
+        );
         return new self(
             $response->id,
             $response->role,
-            ContentCollection::fromThreadMessageResponse($response),
-            $sourceOfKnowledgeCollection->resolveQuotations(
-                $response,
-                $organizationDiscriminator,
-                $connection
-            ),
+            ContentCollection::fromThreadMessageResponse($response, $resolvedAndUnresolvedQuotations->unresolvedQuotations),
+            $resolvedAndUnresolvedQuotations->resolvedQuotations,
             $response->metadata
         );
     }

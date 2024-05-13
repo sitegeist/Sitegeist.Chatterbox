@@ -16,14 +16,17 @@ final class ContentText implements ContentInterface
     ) {
     }
 
-    public static function fromThreadMessageResponseContentTextObject(ThreadMessageResponseContentTextObject $response): self
-    {
+    public static function fromThreadMessageResponseContentTextObject(
+        ThreadMessageResponseContentTextObject $response,
+        UnresolvedQuotationCollection $unresolvedQuotations
+    ): self {
         $converter = new CommonMarkConverter([
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
         ]);
 
-        $html = $converter->convert($response->text->value);
+        $text = $unresolvedQuotations->removeFromText($response->text->value);
+        $html = $converter->convert($text);
         return new self($html->getContent());
     }
 
