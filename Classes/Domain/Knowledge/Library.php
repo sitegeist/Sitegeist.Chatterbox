@@ -67,6 +67,7 @@ class Library
             $sourceOfKnowledge->getName()
         );
         $filename = KnowledgeFilename::forKnowledgeSource($knowledgeSourceDiscriminator);
+        $vectorStoreName = VectorStoreName::forKnowledgeSource($knowledgeSourceDiscriminator);
         $this->databaseConnection->transactional(function () use ($content, $knowledgeSourceDiscriminator) {
             $this->databaseConnection->delete(
                 self::TABLE_NAME,
@@ -89,20 +90,34 @@ class Library
         $path = $this->environment->getPathToTemporaryDirectory() . '/' . $filename->toSystemFilename();
         \file_put_contents($path, (string)$content);
 
-        $this->client->files()->upload([
+        $createFileResponse = $this->client->files()->upload([
             'file' => fopen($path, 'r'),
             'purpose' => 'assistants'
         ]);
         \unlink($path);
+
+        $this->client->vectorStores()->create([
+            'file_ids' => [
+                $createFileResponse->id
+            ],
+            'name' => $vectorStoreName->toString(),
+        ]);
     }
 
     public function cleanKnowledgePool(AssistantDepartment $assistantDepartment): void
     {
         $filesListResponse = $this->client->files()->list();
+        $vectorStoreListResponse = $this->client->vectorStores()->list();
 
+        $usedVectorStoreIds = [];
         $usedFileIds = [];
         foreach ($assistantDepartment->findAllRecords() as $assistant) {
-            $usedFileIds = array_merge($usedFileIds, $assistant->fileIds);
+            foreach ($assistant->toolResources['file_search']['vector_store_ids'] ?? [] as $vectorStoreId) {
+                $usedVectorStoreIds[] = $vectorStoreId;
+                foreach ($this->client->vectorStores()->files()->list($vectorStoreId)->data as $vectorStoreFileResponse) {
+                    $usedFileIds[] = $vectorStoreFileResponse->id;
+                }
+            }
         }
 
         foreach ($filesListResponse->data as $fileResponse) {
@@ -115,6 +130,19 @@ class Library
             }
             if (!in_array($fileResponse->id, $usedFileIds)) {
                 $this->client->files()->delete($fileResponse->id);
+            }
+        }
+
+        foreach ($vectorStoreListResponse->data as $vectorStoreResponse) {
+            $vectorStoreName = VectorStoreName::tryFromNullableString($vectorStoreResponse->name);
+            if (
+                $vectorStoreName === null
+                || $this->organizationDiscriminator->equals($vectorStoreName->knowledgeSourceDiscriminator->organizationDiscriminator) === false
+            ) {
+                continue;
+            }
+            if (!in_array($vectorStoreResponse->id, $usedVectorStoreIds)) {
+                $this->client->vectorStores()->delete($vectorStoreResponse->id);
             }
         }
     }

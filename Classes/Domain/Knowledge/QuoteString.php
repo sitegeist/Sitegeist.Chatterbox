@@ -18,9 +18,12 @@ final class QuoteString
     ) {
     }
 
-    public static function fromFileCitationObject(
+    public static function tryFromFileCitationObject(
         ThreadMessageResponseContentTextAnnotationFileCitationObject $fileCitationObject
-    ): self {
+    ): ?self {
+        if ($fileCitationObject->fileCitation->quote === null || $fileCitationObject->fileCitation->quote === '') {
+            return null;
+        }
         return new self($fileCitationObject->fileCitation->quote);
     }
 
@@ -39,10 +42,5 @@ final class QuoteString
         $value = \str_replace('\\/', '\\\\\\/', $value);
 
         return '%' . $value . '%';
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->value === '';
     }
 }
