@@ -11,6 +11,7 @@ use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
+use Sitegeist\Chatterbox\Domain\Thread\ThreadRecordRegistry;
 
 #[Flow\Scope('singleton')]
 class AssistantModuleController extends AbstractModuleController
@@ -19,6 +20,7 @@ class AssistantModuleController extends AbstractModuleController
 
     public function __construct(
         private readonly OrganizationRepository $organizationRepository,
+        private readonly ThreadRecordRegistry $threadRecordRegistry,
     ) {
     }
 
@@ -104,6 +106,15 @@ class AssistantModuleController extends AbstractModuleController
         $organization->assistantDepartment->updateAssistant($assistant);
         $this->addFlashMessage('Assistant ' . $assistant->name . ' was updated');
         $this->redirect(actionName: 'index', arguments: ['organizationId' => $organizationId]);
+    }
+
+    public function listThreadsAction(string $organizationId, string $assistantId): void
+    {
+        $this->view->assignMultiple([
+            'threadRecords' => $this->threadRecordRegistry->findByAssistant($assistantId),
+            'assistantId' => $assistantId,
+            'organizationId' => $organizationId
+        ]);
     }
 
     public function newThreadAction(string $organizationId, string $assistantId): void

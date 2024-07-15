@@ -14,6 +14,8 @@ use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutpu
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
+use Sitegeist\Chatterbox\Domain\Thread\ThreadId;
+use Sitegeist\Chatterbox\Domain\Thread\ThreadRecordRegistry;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
@@ -33,6 +35,7 @@ final class Assistant
         private readonly OrganizationDiscriminator $organizationDiscriminator,
         private readonly OpenAiClientContract $client,
         private readonly DatabaseConnection $connection,
+        private readonly ?ThreadRecordRegistry $threadRecordRegistry,
         private readonly ?LoggerInterface $logger,
     ) {
     }
@@ -48,6 +51,12 @@ final class Assistant
     public function startThread(): string
     {
         $threadResponse = $this->client->threads()->create([]);
+        $this->threadRecordRegistry?->registerThread(
+            new ThreadId($threadResponse->id),
+            $this->id,
+            new \DateTimeImmutable()
+        );
+
         return $threadResponse->id;
     }
 

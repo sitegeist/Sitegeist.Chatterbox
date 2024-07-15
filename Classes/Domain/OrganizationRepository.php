@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
+use Sitegeist\Chatterbox\Domain\Thread\ThreadRecordRegistry;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
 use Sitegeist\Flow\OpenAiClientFactory\OpenAiClientFactory;
@@ -30,6 +31,7 @@ class OrganizationRepository
         private readonly OpenAiClientFactory $clientFactory,
         private readonly ConnectionFactory $connectionFactory,
         private readonly ObjectManagerInterface $objectManager,
+        private readonly ThreadRecordRegistry $threadRecordRegistry,
         private readonly LoggerInterface $logger,
         private readonly Environment $environment,
     ) {
@@ -92,6 +94,7 @@ class OrganizationRepository
             $library,
             $this->logger,
             $discriminator,
+            $this->threadRecordRegistry,
         );
 
         return new Organization(

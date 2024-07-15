@@ -16,6 +16,7 @@ use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceDiscriminator;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
+use Sitegeist\Chatterbox\Domain\Thread\ThreadRecordRegistry;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
@@ -35,6 +36,7 @@ class AssistantDepartment
         private readonly Library $library,
         private readonly LoggerInterface $logger,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
+        private readonly ThreadRecordRegistry $threadRecordRegistry,
     ) {
     }
 
@@ -73,7 +75,8 @@ class AssistantDepartment
             $this->organizationDiscriminator,
             $this->client,
             $this->connection,
-            ($this->settings['enableLogging'] ?? false) ? $this->logger : null
+            ($this->settings['enableThreadRegistry'] ?? false) ? $this->threadRecordRegistry : null,
+            ($this->settings['enableLogging'] ?? false) ? $this->logger : null,
         );
     }
 
