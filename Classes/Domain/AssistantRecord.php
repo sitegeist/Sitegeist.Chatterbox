@@ -7,8 +7,8 @@ namespace Sitegeist\Chatterbox\Domain;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Responses\Assistants\AssistantResponseToolCodeInterpreter;
+use OpenAI\Responses\Assistants\AssistantResponseToolFileSearch;
 use OpenAI\Responses\Assistants\AssistantResponseToolFunction;
-use OpenAI\Responses\Assistants\AssistantResponseToolRetrieval;
 
 #[Flow\Proxy(false)]
 final class AssistantRecord
@@ -19,7 +19,7 @@ final class AssistantRecord
      * @param string[] $selectedTools
      * @param string[] $selectedSourcesOfKnowledge
      * @param string[] $selectedInstructions
-     * @param string[] $fileIds
+     * @param mixed[] $toolResources
      */
     public function __construct(
         public readonly string $id,
@@ -32,7 +32,7 @@ final class AssistantRecord
         public readonly array $selectedTools = [],
         public readonly array $selectedSourcesOfKnowledge = [],
         public readonly array $selectedInstructions = [],
-        public readonly array $fileIds = [],
+        public readonly array $toolResources = [],
     ) {
     }
 
@@ -48,12 +48,12 @@ final class AssistantRecord
             $response->name,
             $response->description,
             $response->instructions,
-            array_map(fn(AssistantResponseToolCodeInterpreter|AssistantResponseToolRetrieval|AssistantResponseToolFunction $item) => $item->toArray(), $response->tools),
+            array_map(fn(AssistantResponseToolCodeInterpreter|AssistantResponseToolFileSearch|AssistantResponseToolFunction $item) => $item->toArray(), $response->tools),
             $response->metadata,
             $selectedTools,
             $selectedSourcesOfKnowledge,
             $selectedInstructions,
-            $response->fileIds,
+            $response->toolResources?->toArray() ?: [],
         );
     }
 }

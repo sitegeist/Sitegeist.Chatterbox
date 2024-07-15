@@ -56,8 +56,8 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         $unresolvedQuotations = [];
         foreach ($annotations as $annotation) {
             if ($annotation instanceof ThreadMessageResponseContentTextAnnotationFileCitationObject) {
-                $quoteString = QuoteString::fromFileCitationObject($annotation);
-                if ($quoteString->isEmpty()) {
+                $quoteString = QuoteString::tryFromFileCitationObject($annotation);
+                if (!$quoteString) {
                     $unresolvedQuotations[] = new UnresolvedQuotation($annotation->text);
                     continue;
                 }
@@ -92,7 +92,7 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
                     $unresolvedQuotations[] = new UnresolvedQuotation($annotation->text);
                     continue;
                 }
-                $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $annotation->fileCitation->quote, $databaseRecord['id']);
+                $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $annotation->fileCitation->quote ?: '', $databaseRecord['id']);
                 if ($quotation) {
                     $resolvedQuotations[] = $quotation;
                 }

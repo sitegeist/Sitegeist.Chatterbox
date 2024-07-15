@@ -12,10 +12,10 @@ use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
-use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeFilename;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceDiscriminator;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreName;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
@@ -113,7 +113,7 @@ class AssistantDepartment
                 'description' => $assistantRecord->description ?: '',
                 'instructions' => $assistantRecord->instructions ?: '',
                 'tools' => $this->createToolConfiguration($assistantRecord),
-                'file_ids' => $this->createFileIdConfiguration($assistantRecord),
+                'tool_resources' => $this->createToolResourcesConfiguration($assistantRecord),
                 'metadata' => $this->createMetadataConfiguration($assistantRecord),
             ]
         );
@@ -140,7 +140,7 @@ class AssistantDepartment
         $tools = [];
         if (!empty($assistantRecord->selectedSourcesOfKnowledge)) {
             $tools[] = [
-                'type' => 'retrieval'
+                'type' => 'file_search'
             ];
         }
         foreach ($assistantRecord->selectedTools as $toolId) {
@@ -164,38 +164,35 @@ class AssistantDepartment
     }
 
     /**
-     * @return string[]
+     * @return array<string, array<string, array<int, string>>>
      */
-    private function createFileIdConfiguration(AssistantRecord $assistantRecord): array
+    private function createToolResourcesConfiguration(AssistantRecord $assistantRecord): array
     {
-        $fileListResponse = $this->client->files()->list();
-        $fileIds = [];
+        $vectorStoreListResponse = $this->client->vectorStores()->list();
+        $vectorStoreIds = [];
         foreach ($assistantRecord->selectedSourcesOfKnowledge as $knowledgeSourceName) {
-            $knowledgeSourceNameObject = new KnowledgeSourceName($knowledgeSourceName);
             $knowledgeSourceDiscriminator = new KnowledgeSourceDiscriminator(
                 $this->organizationDiscriminator,
-                $knowledgeSourceNameObject
+                new KnowledgeSourceName($knowledgeSourceName)
             );
-            $latestFilename = null;
-            foreach ($fileListResponse->data as $fileResponse) {
-                $knowledgeFilename = KnowledgeFilename::tryFromSystemFileName($fileResponse->filename);
-                if ($knowledgeFilename === null) {
+            $latestVectorStoreName = null;
+            foreach ($vectorStoreListResponse->data as $vectorStoreResponse) {
+                $vectorStoreName = VectorStoreName::tryFromNullableString($vectorStoreResponse->name);
+                if (!$vectorStoreName?->knowledgeSourceDiscriminator->equals($knowledgeSourceDiscriminator)) {
                     continue;
                 }
 
-                if ($latestFilename instanceof KnowledgeFilename) {
-                    if ($knowledgeFilename->takesPrecedenceOver($latestFilename)) {
-                        $latestFilename = $knowledgeFilename;
-                        $fileIds[$knowledgeSourceName] = $fileResponse->id;
-                    }
-                } else {
-                    if ($knowledgeFilename->knowledgeSourceDiscriminator->equals($knowledgeSourceDiscriminator)) {
-                        $latestFilename = $knowledgeFilename;
-                        $fileIds[$knowledgeSourceName] = $fileResponse->id;
-                    }
+                if (!$latestVectorStoreName || $vectorStoreName->takesPrecedenceOver($latestVectorStoreName)) {
+                    $latestVectorStoreName = $vectorStoreName;
+                    $vectorStoreIds[$knowledgeSourceName] = $vectorStoreResponse->id;
                 }
             }
         }
-        return array_values($fileIds);
+
+        return [
+            'file_search' => [
+                'vector_store_ids' => array_values($vectorStoreIds)
+            ],
+        ];
     }
 }
