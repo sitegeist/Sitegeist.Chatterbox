@@ -164,7 +164,7 @@ class AssistantDepartment
     }
 
     /**
-     * @return string[]
+     * @return array<string, array<string, array<int, string>>>
      */
     private function createToolResourcesConfiguration(AssistantRecord $assistantRecord): array
     {

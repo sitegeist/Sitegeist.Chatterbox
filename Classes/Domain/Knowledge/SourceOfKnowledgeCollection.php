@@ -92,7 +92,7 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
                     $unresolvedQuotations[] = new UnresolvedQuotation($annotation->text);
                     continue;
                 }
-                $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $annotation->fileCitation->quote, $databaseRecord['id']);
+                $quotation = $sourceOfKnowledge->tryCreateQuotation($annotation->text, $annotation->fileCitation->quote ?: '', $databaseRecord['id']);
                 if ($quotation) {
                     $resolvedQuotations[] = $quotation;
                 }
