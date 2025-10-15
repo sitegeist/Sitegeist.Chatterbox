@@ -6,7 +6,7 @@
     "require": {
         "php": "^8.2",
         "neos/neos": "*",
-        "sitegeist/flow-openaiclientfactory": "~0.1.0",
+        "sitegeist/flow-openaiclientfactory": "dev-task/clientVersion17 as 0.17.0",
         "symfony/http-client": "^6.4",
         "league/commonmark": "~2.4",
         "league/html-to-markdown": "^5.0"
