@@ -1,7 +1,12 @@
 Sitegeist:
   Chatterbox:
     enableLogging: false
-    organizations: []
+    #tools: [ ]
+    #knowledge: []
+    #instructions: []
+
+    # @deprecated !!! to be removed after switching to conversations + responses !!!
+    # organizations: []
     # orgId:
     #   discriminator: 'my-descriminator'
     #   accountId: 'abc'

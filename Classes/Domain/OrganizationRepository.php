@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManager;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Flow\Persistence\Doctrine\ConnectionFactory;
 use Neos\Flow\Utility\Environment;
+use Neos\Media\Domain\Repository\AssetRepository;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
@@ -16,6 +19,9 @@ use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
 use Sitegeist\Flow\OpenAiClientFactory\OpenAiClientFactory;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 #[Flow\Scope('singleton')]
 class OrganizationRepository
 {
@@ -91,11 +97,12 @@ class OrganizationRepository
             $manual,
             $library,
             $this->logger,
-            $discriminator,
+            $discriminator
         );
 
         return new Organization(
             $id,
+            $config['accountId'],
             $config['label'],
             $discriminator,
             $client,

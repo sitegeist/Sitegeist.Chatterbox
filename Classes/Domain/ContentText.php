@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Actions\Responses\OutputText;
+use OpenAI\Responses\Responses\Input\InputMessageContentInputText as InputText;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 use League\CommonMark\CommonMarkConverter;
 

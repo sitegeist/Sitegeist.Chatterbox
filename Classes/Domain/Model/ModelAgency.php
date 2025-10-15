@@ -9,6 +9,9 @@ use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Model\Model;
 use Sitegeist\Chatterbox\Domain\Model\ModelCommunity;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 class ModelAgency
 {
     public function __construct(

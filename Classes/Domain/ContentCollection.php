@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Actions\Responses\OutputText;
+use OpenAI\Responses\Conversations\ConversationItem;
+use OpenAI\Responses\Conversations\Objects\Message;
+use OpenAI\Responses\Responses\Input\InputMessageContentInputText as InputText;
+use OpenAI\Responses\Responses\Output\OutputMessageContentOutputText;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 
@@ -28,6 +33,19 @@ final class ContentCollection implements \IteratorAggregate, \Countable
     public static function createEmpty(): self
     {
         return new self();
+    }
+
+    public static function fromMessageItem(Message $message): self
+    {
+        $contents = [];
+        foreach ($message->content as $contentItem) {
+            if ($contentItem instanceof InputText) {
+                $contents[] = new ContentText($contentItem->text);
+            } elseif ($contentItem instanceof OutputMessageContentOutputText) {
+                $contents[] = new ContentText($contentItem->text);
+            }
+        }
+        return new self(...$contents);
     }
 
     public static function fromThreadMessageResponse(ThreadMessageResponse $response, UnresolvedQuotationCollection $quotationStubs): self

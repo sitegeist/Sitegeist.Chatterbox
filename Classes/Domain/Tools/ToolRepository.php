@@ -2,19 +2,24 @@
 
 namespace Sitegeist\Chatterbox\Domain\Tools;
 
-use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Persistence\Doctrine\ConnectionFactory;
+use Psr\Log\LoggerInterface;
+use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
+use Sitegeist\Flow\OpenAiClientFactory\OpenAiClientFactory;
 
-/**
- * @deprecated !!! to be removed after switching to conversations + responses !!!
- */
-class Toolbox
+class ToolRepository
 {
     /**
-     * @param array<string,array{className:string, description:string, options:mixed[]}> $toolConfig
+     * @var array<string,array{className:string, description:string, options:mixed[]}> $toolConfig
      */
-    public function __construct(
-        private readonly array $toolConfig
-    ) {
+    private array $toolConfig = [];
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public function injectSettings(array $settings): void
+    {
+        $this->toolConfig = $settings['tools'] ?? [];
     }
 
     public function findAll(): ToolCollection

@@ -11,6 +11,9 @@ use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Sitegeist\Chatterbox\Domain\AssistantDepartment;
 use Sitegeist\Chatterbox\Domain\OrganizationDiscriminator;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 class Library
 {
     public const TABLE_NAME = 'sitegeist_chatterbox_domain_file_entry';

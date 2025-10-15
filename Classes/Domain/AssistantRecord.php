@@ -10,9 +10,13 @@ use OpenAI\Responses\Assistants\AssistantResponseToolCodeInterpreter;
 use OpenAI\Responses\Assistants\AssistantResponseToolFileSearch;
 use OpenAI\Responses\Assistants\AssistantResponseToolFunction;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 #[Flow\Proxy(false)]
 final class AssistantRecord
 {
+    const TABLE_NAME = 'sitegeist_chatterbox_domain_assistant';
     /**
      * @param mixed[] $tools
      * @param string[] $metadata

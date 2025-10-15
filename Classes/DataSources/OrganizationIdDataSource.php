@@ -10,6 +10,9 @@ use Neos\Neos\Service\DataSource\AbstractDataSource;
 use Sitegeist\Chatterbox\Domain\Organization;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 class OrganizationIdDataSource extends AbstractDataSource
 {
     protected static $identifier = 'Sitegeist.Chatterbox:OrganizationId';

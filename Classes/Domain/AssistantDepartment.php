@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Connection as DatabaseConnection;
+use Doctrine\ORM\EntityManager;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Utility\Algorithms;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use Psr\Log\LoggerInterface;
@@ -20,6 +23,9 @@ use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 class AssistantDepartment
 {
     /**
@@ -56,6 +62,7 @@ class AssistantDepartment
 
         return new Assistant(
             $assistantId,
+            $assistantRecord->model,
             new ToolCollection(...array_filter(
                 array_map(
                     fn (string $toolName): ?ToolContract => $this->toolbox->findByName($toolName),
@@ -76,6 +83,8 @@ class AssistantDepartment
             ($this->settings['enableLogging'] ?? false) ? $this->logger : null
         );
     }
+
+    // legacy persistence via OpenAi Assistant records
 
     public function findAllRecords(): AssistantRecordCollection
     {

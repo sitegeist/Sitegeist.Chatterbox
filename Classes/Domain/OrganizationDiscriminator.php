@@ -6,6 +6,9 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Annotations as Flow;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 #[Flow\Proxy(false)]
 class OrganizationDiscriminator
 {

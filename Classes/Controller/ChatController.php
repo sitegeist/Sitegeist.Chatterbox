@@ -7,6 +7,10 @@ namespace Sitegeist\Chatterbox\Controller;
 use Neos\Cache\Frontend\VariableFrontend;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Security\Cryptography\HashService;
+use Sitegeist\Chatterbox\Domain\Assistant;
+use Sitegeist\Chatterbox\Domain\AssistantEntity;
+use Sitegeist\Chatterbox\Domain\AssistantEntityRepository;
+use Sitegeist\Chatterbox\Domain\AssistantFactory;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
@@ -25,7 +29,8 @@ class ChatController extends ActionController
     protected ?VariableFrontend $metaDataCache = null;
 
     public function __construct(
-        private readonly OrganizationRepository $organizationRepository,
+        private readonly AssistantEntityRepository $assistantEntityRepository,
+        private readonly AssistantFactory $assistantFactory,
         private readonly HashService $hashService,
     ) {
     }
@@ -41,8 +46,7 @@ class ChatController extends ActionController
             $additionalInstructions = $this->hashService->validateAndStripHmac($additionalInstructions);
         }
 
-        $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
+        $assistant = $this->getAssistantFromAsstantId($assistantId);
         $threadId = $assistant->startThread();
         $assistant->continueThread($threadId, $message, $additionalInstructions);
 
@@ -70,8 +74,7 @@ class ChatController extends ActionController
 
     public function historyAction(string $organizationId, string $assistantId, string $threadId): string
     {
-        $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
+        $assistant = $this->getAssistantFromAsstantId($assistantId);
         $messages = $assistant->readThread($threadId);
 
         $cachedMetadata = $this->metaDataCache ? $this->metaDataCache->getByTag($this->cacheTag($assistantId, $threadId)) : [];
@@ -100,8 +103,7 @@ class ChatController extends ActionController
             $additionalInstructions = $this->hashService->validateAndStripHmac($additionalInstructions);
         }
 
-        $organization = $this->organizationRepository->findById($organizationId);
-        $assistant = $organization->assistantDepartment->findAssistantById($assistantId);
+        $assistant = $this->getAssistantFromAsstantId($assistantId);
         $assistant->continueThread($threadId, $message, $additionalInstructions);
 
         $messageResponses = $assistant->readThread($threadId);
@@ -133,5 +135,22 @@ class ChatController extends ActionController
     private function cacheId(string $assistantId, string $threadId, string $messageId): string
     {
         return 'm_' . md5($assistantId . ':' . $threadId . ':' . $messageId);
+    }
+
+    /**
+     * @param string $assistantId
+     * @return Assistant
+     * @throws \Exception
+     */
+    protected function getAssistantFromAsstantId(string $assistantId): Assistant
+    {
+        $assistantEntity = $this->assistantEntityRepository->findByIdentifier($assistantId);
+        if ($assistantEntity instanceof AssistantEntity) {
+            $assistant = $this->assistantFactory->createAssistantFromAssistantEntity($assistantEntity);
+            if ($assistant instanceof Assistant) {
+                return $assistant;
+            }
+        }
+        throw new \Exception('Assistant not found');
     }
 }

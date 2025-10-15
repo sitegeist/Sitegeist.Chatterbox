@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain;
 
 /**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
  * @implements \IteratorAggregate<int, AssistantRecord>
  */
 class AssistantRecordCollection implements \IteratorAggregate

@@ -12,11 +12,15 @@ use Sitegeist\Chatterbox\Domain\MessageEditing\EditorialOffice;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 
+/**
+ * @deprecated !!! to be removed after switching to conversations + responses !!!
+ */
 #[Flow\Proxy(false)]
 class Organization
 {
     public function __construct(
         public readonly string $id,
+        public readonly string $account,
         public readonly string $label,
         public readonly OrganizationDiscriminator $discriminator,
         public readonly ClientContract $client,

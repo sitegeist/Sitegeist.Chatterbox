@@ -8,16 +8,6 @@ Sitegeist.Chatterbox:Mixin.Assistant:
           label: 'Chatterbox AI Assistants'
           tab: default
   properties:
-    chatterboxOrganizationId:
-      type: string
-      ui:
-        label: "Organization ID"
-        inspector:
-          group: chatterbox
-          editor: Neos.Neos/Inspector/Editors/SelectBoxEditor
-          editorOptions:
-            dataSourceIdentifier: Sitegeist.Chatterbox:OrganizationId
-            allowEmpty: true
     chatterboxAssistantId:
       type: string
       ui:
@@ -25,10 +15,8 @@ Sitegeist.Chatterbox:Mixin.Assistant:
         inspector:
           group: chatterbox
           editor: Neos.Neos/Inspector/Editors/SelectBoxEditor
-          hidden: "ClientEval: node.properties.chatterboxOrganizationId ? false: true"
           editorOptions:
             dataSourceIdentifier: Sitegeist.Chatterbox:AssistantId
-            dataSourceAdditionalData: "ClientEval: node.properties.chatterboxOrganizationId ? {'organizationId': node.properties.chatterboxOrganizationId} : {}"
             allowEmpty: true
     chatterboxWelcomeMessage:
       type: string
@@ -36,7 +24,7 @@ Sitegeist.Chatterbox:Mixin.Assistant:
         label: "Welcome Message"
         inspector:
           group: chatterbox
-          hidden: "ClientEval: node.properties.chatterboxOrganizationId && node.properties.chatterboxAssistantId ? false: true"
+          hidden: "ClientEval: node.properties.chatterboxAssistantId ? false: true"
           editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
           editorOptions:
             rows: 7
@@ -46,7 +34,7 @@ Sitegeist.Chatterbox:Mixin.Assistant:
         label: "Suggestions"
         inspector:
           group: chatterbox
-          hidden: "ClientEval: node.properties.chatterboxOrganizationId && node.properties.chatterboxAssistantId ? false: true"
+          hidden: "ClientEval: node.properties.chatterboxAssistantId ? false: true"
           editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
           editorOptions:
             rows: 7

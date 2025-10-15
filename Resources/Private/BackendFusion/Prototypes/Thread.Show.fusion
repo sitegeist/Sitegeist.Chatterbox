@@ -28,13 +28,11 @@ prototype(Sitegeist.Chatterbox:Thread.Show) < prototype(Neos.Fusion:Component) {
             form.target.action="addThreadMessage"
             attributes.id="addThreadMessage"
             attributes.onsubmit="setTimeout('document.getElementById(\"addThreadMessageButton\").disabled=true;document.getElementById(\"addThreadMessageInput\").disabled=true;', 100);"
-            form.data.organizationId={organizationId}
             form.data.threadId={threadId}
-            form.data.assistantId={assistantId}
+            form.data.assistant={assistant}
         >
-            <Neos.Fusion.Form:Hidden field.name="organizationId" />
             <Neos.Fusion.Form:Hidden field.name="threadId" />
-            <Neos.Fusion.Form:Hidden field.name="assistantId" />
+            <Neos.Fusion.Form:Hidden field.name="assistant" />
             <div class="neos-control-group">
                 <label class="neos-control-label">Message</label>
                 <div class="neos-controls neos-controls-row">
@@ -42,8 +40,8 @@ prototype(Sitegeist.Chatterbox:Thread.Show) < prototype(Neos.Fusion:Component) {
                 </div>
             </div>
             <div class="neos-footer">
-                <Neos.Fusion:Link.Action href.action="index" href.arguments.organizationId={organizationId} class="neos-button" >Back</Neos.Fusion:Link.Action>
-                <Neos.Fusion:Link.Action href.action="showThread" href.arguments.organizationId={organizationId} href.arguments.assistantId={assistantId} href.arguments.threadId={threadId} class="neos-button" >Reload Thread</Neos.Fusion:Link.Action>
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
+                <Neos.Fusion:Link.Action href.action="showThread" href.arguments.assistant={assistant} href.arguments.threadId={threadId} class="neos-button" >Reload Thread</Neos.Fusion:Link.Action>
                 <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary" attributes.id="addThreadMessageButton">Post Message</Neos.Fusion.Form:Button>
             </div>
         </Neos.Fusion.Form:Form>
