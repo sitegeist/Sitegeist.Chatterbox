@@ -23,7 +23,7 @@ class AssistantCommandController extends CommandController
         parent::__construct();
     }
 
-    public function migrateAllLegacyAssistantsCommand(?string $organizationId = null): void
+    public function migrateAllLegacyCommand(?string $organizationId = null): void
     {
         $organizations = $organizationId
             ? [$this->organizationRepository->findById($organizationId)]
@@ -42,7 +42,7 @@ class AssistantCommandController extends CommandController
         }
     }
 
-    public function migrateLegacyAssistantCommand(string $organizationId, string $assistantId): void
+    public function migrateLegacyCommand(string $organizationId, string $assistantId): void
     {
         $organization = $this->organizationRepository->findById($organizationId);
         $assistant = $organization->assistantDepartment->findAssistantRecordById($assistantId);
@@ -57,6 +57,9 @@ class AssistantCommandController extends CommandController
         $assistantEntity->setModel($assistantRecord->model);
         $assistantEntity->setDescription($assistantRecord->description);
         $assistantEntity->setInstructions($assistantRecord->instructions);
+        $assistantEntity->setToolIdentifiers($assistantRecord->selectedTools);
+        $assistantEntity->setKnowledgeSourceIdentifiers($assistantRecord->selectedSourcesOfKnowledge);
+        $assistantEntity->setInstructionIdentifiers($assistantRecord->selectedInstructions);
         $this->assistantEntityRepository->add($assistantEntity);
         return $assistantEntity;
     }
