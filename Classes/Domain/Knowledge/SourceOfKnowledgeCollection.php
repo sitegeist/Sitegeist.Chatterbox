@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
 use Doctrine\DBAL\Connection as DatabaseConnection;
+use OpenAI\Responses\Conversations\ConversationItem;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextAnnotationFileCitationObject;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
@@ -38,6 +39,13 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
         }
 
         return null;
+    }
+
+    public function resolveQuotationsForConversationItem(ConversationItem $item): ResolvedAndUnresolvedQuotations {
+        return new ResolvedAndUnresolvedQuotations(
+            QuotationCollection::createEmpty(),
+            QuotationCollection::createEmpty()
+        );
     }
 
     public function resolveQuotations(

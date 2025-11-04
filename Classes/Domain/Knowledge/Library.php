@@ -82,7 +82,7 @@ class Library
                 $this->databaseConnection->insert(
                     self::TABLE_NAME,
                     [
-                        'id' => $entry->id,
+                        'id' => $entry->name,
                         'knowledge_source_discriminator' => $knowledgeSourceDiscriminator->toString(),
                         'content' => \trim(\json_encode($entry->content, JSON_THROW_ON_ERROR), '"'),
                     ]

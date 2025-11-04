@@ -96,8 +96,9 @@ class OrganizationRepository
             $toolbox,
             $manual,
             $library,
+            $this->environment,
             $this->logger,
-            $discriminator
+            $discriminator,
         );
 
         return new Organization(
@@ -110,7 +111,7 @@ class OrganizationRepository
             $manual,
             new ModelAgency($client),
             $toolbox,
-            $library
+            $library,
         );
     }
 }

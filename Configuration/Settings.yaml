@@ -1,6 +1,8 @@
 Sitegeist:
   Chatterbox:
     enableLogging: false
+    context: '%env:FLOW_CONTEXT%'
+
     #tools: [ ]
     #knowledge: []
     #instructions: []

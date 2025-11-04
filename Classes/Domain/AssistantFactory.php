@@ -11,6 +11,7 @@ use Dsr\KlimaLink\Infrastructure\ClientFactory;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\Doctrine\ConnectionFactory;
 use Neos\Flow\Utility\Algorithms;
+use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use Psr\Log\LoggerInterface;
@@ -21,6 +22,8 @@ use Sitegeist\Chatterbox\Domain\Instruction\InstructionRepository;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeContract;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeRepository;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 use Sitegeist\Chatterbox\Domain\Tools\ToolRepository;
@@ -41,6 +44,8 @@ class AssistantFactory
         private readonly InstructionRepository $instructionRepository,
         private readonly ToolRepository $toolRepository,
         private readonly SourceOfKnowledgeRepository $sourceOfKnowledgeRepository,
+        private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
+        private readonly Environment $environment,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -87,8 +92,15 @@ class AssistantFactory
             $knowledgeSources[] = $this->sourceOfKnowledgeRepository->findSourceByName($knowledgeSourceIdentifier);
         }
 
+        $vectorStoreService = new VectorStoreService(
+            $client,
+            $this->environment
+        );
+
         return new Assistant(
             $assistantEntity->getName(),
+            $assistantEntity->getAccount(),
+            $assistantEntity,
             $model,
             new ToolCollection(...array_filter($tools)),
             new InstructionCollection(...array_filter($instructions)),
@@ -96,6 +108,8 @@ class AssistantFactory
             new OrganizationDiscriminator(''),
             $client,
             $this->connectionFactory->create(),
+            $vectorStoreService,
+            $this->vectorStoreReferenceRepository,
             ($this->settings['enableLogging'] ?? false) ? $this->logger : null
         );
     }

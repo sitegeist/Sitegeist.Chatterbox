@@ -9,6 +9,7 @@ use Doctrine\DBAL\Connection as DatabaseConnection;
 use Doctrine\ORM\EntityManager;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Utility\Algorithms;
+use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Assistants\AssistantResponse;
 use Psr\Log\LoggerInterface;
@@ -19,6 +20,7 @@ use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceDiscriminator;
 use Sitegeist\Chatterbox\Domain\Knowledge\KnowledgeSourceName;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreName;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
 use Sitegeist\Chatterbox\Domain\Tools\Toolbox;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
@@ -39,6 +41,7 @@ class AssistantDepartment
         private readonly Toolbox $toolbox,
         private readonly Manual $manual,
         private readonly Library $library,
+        private readonly Environment $environment,
         private readonly LoggerInterface $logger,
         private readonly OrganizationDiscriminator $organizationDiscriminator,
     ) {
@@ -60,8 +63,14 @@ class AssistantDepartment
             throw new \Exception('Wrong assistant discriminator "' . $discriminatorName . '", I do not dare to use this');
         }
 
+        $vectorStoreService = new VectorStoreService(
+            $this->client,
+            $this->environment
+        );
+
         return new Assistant(
             $assistantId,
+            '',
             $assistantRecord->model,
             new ToolCollection(...array_filter(
                 array_map(

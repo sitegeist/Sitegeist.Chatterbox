@@ -54,11 +54,11 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return $this->description;
     }
 
-    public function getContent(): JsonlRecordCollection
+    public function getContent(): DocumentCollection
     {
         $rootNode = $this->designator->findRootNode($this->contentContextFactory, $this->contentDimensionPresetSource);
 
-        return new JsonlRecordCollection(...$this->traverseSubtree($rootNode));
+        return new DocumentCollection(...$this->traverseSubtree($rootNode));
     }
 
     public function tryCreateQuotation(string $identifier, string $quote, string $id): ?Quotation
@@ -87,7 +87,7 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
     }
 
     /**
-     * @return JsonlRecord[]
+     * @return Document[]
      */
     private function traverseSubtree(NodeInterface $documentNode): array
     {
@@ -102,16 +102,15 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return $documents;
     }
 
-    private function transformDocument(NodeInterface $documentNode): JsonlRecord
+    private function transformDocument(NodeInterface $documentNode): Document
     {
         $content = '';
         foreach ($documentNode->getChildNodes('Neos.Neos:Content,Neos.Neos:ContentCollection') as $childNode) {
             $content .= ' ' . $this->extractContent($childNode);
         }
 
-        return JsonlRecord::createFromHtmlContent(
+        return Document::createFromHtmlContent(
             $documentNode->getIdentifier(),
-            new Uri('node://' . $documentNode->getIdentifier()),
             trim($content)
         );
     }

@@ -30,6 +30,7 @@ final class MessageRecord
 
     public static function tryFromConversationItem(
         ConversationItem $item,
+        SourceOfKnowledgeCollection $sourceOfKnowledgeCollection,
     ): ?self {
         $subject = $item->item;
         if ($subject instanceof Message) {
@@ -37,7 +38,7 @@ final class MessageRecord
                 $subject->id,
                 $subject->role,
                 ContentCollection::fromMessageItem($subject),
-                QuotationCollection::createEmpty(),
+                $sourceOfKnowledgeCollection->resolveQuotationsForConversationItem($item),
                 []
             );
         } return null;

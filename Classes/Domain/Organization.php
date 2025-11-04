@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract;
 use Sitegeist\Chatterbox\Domain\Instruction\Manual;
 use Sitegeist\Chatterbox\Domain\Knowledge\Library;
@@ -28,7 +29,7 @@ class Organization
         public readonly Manual $manual,
         public readonly ModelAgency $modelAgency,
         public readonly Toolbox $toolbox,
-        public readonly Library $library,
+        public readonly Library $library
     ) {
     }
 }

@@ -16,6 +16,9 @@ use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutpu
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReference;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
@@ -32,6 +35,8 @@ final class Assistant
     public function __construct(
         /**@phpstan-ignore-next-line */
         private readonly string $id,
+        private readonly string $account,
+        private readonly ?AssistantEntity $entity,
         private readonly string $model,
         private readonly ToolCollection $tools,
         private readonly InstructionCollection $instructions,
@@ -42,6 +47,8 @@ final class Assistant
         private readonly OpenAiClientContract $client,
         /**@phpstan-ignore-next-line */
         private readonly DatabaseConnection $connection,
+        private readonly VectorStoreService $vectorStoreService,
+        private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
         private readonly ?LoggerInterface $logger,
     ) {
     }
@@ -70,6 +77,7 @@ final class Assistant
     public function continueThread(string $threadId, string $message, ?string $additionalInstructions = null): void
     {
         $tools = $this->prepareTools();
+        $fileSearchTools = array_filter($tools, fn(array $item) => $item['type'] === 'file_search');
         $instructions = $this->prepareInstructions($additionalInstructions);
 
         $input = [
@@ -86,6 +94,7 @@ final class Assistant
                 'model' => $this->model,
                 'instructions' => $instructions,
                 'tools' => $tools,
+                'include' => count ($fileSearchTools) > 0 ? ['file_search_call.results'] : []
         ]);
 
         $this->completeRun($threadId, $createResponse->id);
@@ -102,7 +111,8 @@ final class Assistant
             array_reverse(
                 array_map(
                     fn (ConversationItem $conversationItem) => MessageRecord::tryFromConversationItem(
-                        $conversationItem
+                        $conversationItem,
+                        $this->sourcesOfKnowledge
                     ),
                     $conversationItems->data
                 )
@@ -194,6 +204,26 @@ final class Assistant
             }
             $tools[] = $spec;
         }
+
+        if ($this->entity !== null) {
+            $vectorStoreIds = [];
+            foreach ($this->sourcesOfKnowledge as $sourceOfKnowledge) {
+                $reference = $this->vectorStoreReferenceRepository->findOneByAssistantAndKnowledgeSourceIdentifier(
+                    $this->entity,
+                    $sourceOfKnowledge->getName()->value,
+                );
+                if ($reference instanceof VectorStoreReference) {
+                    $vectorStoreIds[] = $reference->vectorStoreId;
+                }
+            }
+            if (count($vectorStoreIds) > 0) {
+                $tools[] = [
+                    'type' => 'file_search',
+                    'vector_store_ids' => $vectorStoreIds
+                ];
+            }
+        }
+
         return $tools;
     }
 
@@ -209,4 +239,15 @@ final class Assistant
         }
         return $instructions;
     }
+
+    public function getAccount(): string
+    {
+        return $this->account;
+    }
+
+    public function getVectorStoreService(): VectorStoreService
+    {
+        return $this->vectorStoreService;
+    }
+
 }

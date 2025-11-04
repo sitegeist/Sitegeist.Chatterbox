@@ -17,7 +17,7 @@ interface SourceOfKnowledgeContract
 
     public function getDescription(): string;
 
-    public function getContent(): JsonlRecordCollection;
+    public function getContent(): DocumentCollection;
 
     public function tryCreateQuotation(string $identifier, string $quote, string $id): ?Quotation;
 }
