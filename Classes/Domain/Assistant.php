@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
-use Sitegeist\Chatterbox\Domain\Model\ModelCommunity;
+use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
@@ -112,18 +112,25 @@ final class Assistant
 
     private function completeRun(string $threadId, string $responseId): void
     {
-        $lastResponse = $this->client->responses()->retrieve($responseId);
+        $lastResponseId = $responseId;
+        $lastResponse = $this->client->responses()->retrieve($lastResponseId);
 
         // wait for processing
         while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
             sleep(1);
-            $lastResponse = $this->client->responses()->retrieve($responseId);
+            $lastResponse = $this->client->responses()->retrieve($lastResponseId);
         }
 
-        // perform requested tool calls
-        $toolResultMessages = [];
-        foreach ($lastResponse->output as $toolCall) {
-            if ($toolCall instanceof OutputFunctionToolCall) {
+        /**
+         * @var OutputFunctionToolCall[] $pendingToolCalls
+         */
+        $pendingToolCalls = array_filter($lastResponse->output, fn($thing) => ($thing instanceof OutputFunctionToolCall));
+
+        while(count($pendingToolCalls) > 0) {
+
+            // perform requested tool calls
+            $toolResultMessages = [];
+            foreach ($pendingToolCalls as $toolCall) {
                 $this->logger?->info("chatbot tool calls", $toolCall->toArray());
                 $toolInstance = $this->tools->getToolByName($toolCall->name);
                 if ($toolInstance == null) {
@@ -136,34 +143,36 @@ final class Assistant
                     'output' => json_encode($toolResult->getData())];
                 $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
             }
-        }
 
-        // submit tool results
-        if (!empty($toolResultMessages)) {
-            $this->logger?->info("chatbot tool submit", $toolResultMessages);
-            $createResponse = $this->client->responses()->create([
-                'conversation' => $threadId,
-                'model' => $this->model,
-                'instructions' => $this->prepareInstructions(),
-                'tools' => $this->prepareTools(),
-                'input' => $toolResultMessages
-            ]);
-            $responseId = $createResponse->id;
-            $lastResponse = $this->client->responses()->retrieve($responseId);
-        }
+            // submit tool results and wit for final processing
+            if (!empty($toolResultMessages)) {
+                $this->logger?->info("chatbot tool submit", $toolResultMessages);
+                $createResponse = $this->client->responses()->create([
+                    'conversation' => $threadId,
+                    'model' => $this->model,
+                    'instructions' => $this->prepareInstructions(),
+                    'tools' => $this->prepareTools(),
+                    'input' => $toolResultMessages
+                ]);
+                $lastResponseId = $createResponse->id;
+                $lastResponse = $this->client->responses()->retrieve($lastResponseId);
 
-        // wait for final processing ... we may evaluate calling this recursive in future
-        while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
-            sleep(1);
-            $lastResponse = $this->client->responses()->retrieve($responseId);
+                while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
+                    sleep(1);
+                    $lastResponse = $this->client->responses()->retrieve($lastResponseId);
+                }
+            }
+
+            // check for tool calls in the last response
+            $pendingToolCalls = array_filter($lastResponse->output, fn($thing) => ($thing instanceof OutputFunctionToolCall));
         }
 
         $this->logger?->info("thread run response", $lastResponse->toArray());
     }
 
-    public function getAvailableModels(): ModelCommunity
+    public function getAvailableModels(): ModelCollection
     {
-        return ModelCommunity::fromApiResponse($this->client->models()->list());
+        return ModelCollection::fromApiResponse($this->client->models()->list());
     }
 
     /**
