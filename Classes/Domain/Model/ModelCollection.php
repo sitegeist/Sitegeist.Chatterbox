@@ -11,7 +11,7 @@ use Traversable;
 /**
  * @implements \IteratorAggregate<int, Model>
  */
-final class ModelCommunity implements \IteratorAggregate
+final class ModelCollection implements \IteratorAggregate
 {
     /**
      * @var Model[]

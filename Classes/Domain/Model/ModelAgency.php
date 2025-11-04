@@ -7,7 +7,7 @@ namespace Sitegeist\Chatterbox\Domain\Model;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Model\Model;
-use Sitegeist\Chatterbox\Domain\Model\ModelCommunity;
+use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 
 /**
  * @deprecated !!! to be removed after switching to conversations + responses !!!
@@ -19,10 +19,10 @@ class ModelAgency
     ) {
     }
 
-    public function findAllAvailableModels(): ModelCommunity
+    public function findAllAvailableModels(): ModelCollection
     {
         $list = $this->client->models()->list();
-        return ModelCommunity::fromApiResponse($list);
+        return ModelCollection::fromApiResponse($list);
     }
 
     public function findOneById(string $id): Model
