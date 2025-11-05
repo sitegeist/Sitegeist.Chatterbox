@@ -28,6 +28,8 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
     #[Flow\Inject]
     protected ContentDimensionPresetSourceInterface $contentDimensionPresetSource;
 
+    protected ?DocumentCollection $runtimeCache = null;
+
     public function __construct(
         private readonly KnowledgeSourceName $name,
         private readonly string $description,
@@ -56,9 +58,11 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
 
     public function getContent(): DocumentCollection
     {
-        $rootNode = $this->designator->findRootNode($this->contentContextFactory, $this->contentDimensionPresetSource);
-
-        return new DocumentCollection(...$this->traverseSubtree($rootNode));
+        if ($this->runtimeCache === null) {
+            $rootNode = $this->designator->findRootNode($this->contentContextFactory, $this->contentDimensionPresetSource);
+            $this->runtimeCache = new DocumentCollection(...$this->traverseSubtree($rootNode));
+        }
+        return $this->runtimeCache;
     }
 
     public function tryCreateQuotation(int $index, string $name, string $type): ?Quotation
@@ -95,33 +99,54 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
             $documents = array_merge($documents, $this->traverseSubtree($childDocument));
         }
 
-        return $documents;
+        return array_filter($documents);
     }
 
-    private function transformDocument(NodeInterface $documentNode): Document
+    private function transformDocument(NodeInterface $documentNode): ?Document
     {
         $content = '';
+
         foreach ($documentNode->getChildNodes('Neos.Neos:Content,Neos.Neos:ContentCollection') as $childNode) {
             $content .= ' ' . $this->extractContent($childNode);
         }
 
+        if (trim($content) === '') {
+            return null;
+        }
+
+        $header = '# ' . ($documentNode->getProperty('titleOverride') ?: $documentNode->getProperty('title') ?: '') . PHP_EOL;
+        $header .= ($documentNode->getProperty('description') ?: $documentNode->getProperty('metaDescription') ?: '') . PHP_EOL;
+        $header .= PHP_EOL;
+
         return Document::createFromHtmlContent(
             $documentNode->getIdentifier(),
-            trim($content)
+            trim(mb_convert_encoding($header . $content, 'UTF-8', 'UTF-8'))
         );
     }
 
-    private function extractContent(NodeInterface $contentNode): string
+    private function extractContent(NodeInterface $contentNode, int $level = 1): string
     {
         $content = '';
 
+        $title = $contentNode->getProperty('title') ?? null;
+        if ($title) {
+            for ($i = 0; $i < $level; $i++) {
+                $content .= '#';
+            }
+            $content .= ' ' . strip_tags($title) . PHP_EOL . PHP_EOL;
+        }
+
         if ($contentNode->getNodeType()->isOfType('Neos.Neos:ContentCollection')) {
             foreach ($contentNode->getChildNodes('Neos.Neos:Content,Neos.Neos:ContentCollection') as $childNode) {
-                $content .= $this->extractContent($childNode);
+                $content .= $this->extractContent($childNode, $level + 1);
             }
         }
+
         if ($contentNode->getNodeType()->isOfType('Neos.Neos:Content')) {
             foreach ($contentNode->getNodeType()->getProperties() as $propertyName => $propertyConfiguration) {
+                if ($propertyName === 'title') {
+                    continue;
+                }
                 if (($propertyConfiguration['type'] ?? 'string') === 'string' && ($propertyConfiguration['ui']['inlineEditable'] ?? false) === true) {
                     $content .= ' ' . $contentNode->getProperty($propertyName);
                 }

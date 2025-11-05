@@ -1,43 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Utility\Algorithms;
 use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
-use Sitegeist\Chatterbox\Domain\AssistantEntity;
 
 class VectorStoreService
 {
     /**
-     * @var string
      * @Flow\InjectConfiguration(path="context")
      */
     protected string $context;
 
-    public function __construct(
-        private readonly OpenAiClientContract $client,
-        private readonly Environment $environment,
-    ) {
-    }
+    /**
+     * @Flow\Inject
+     */
+    protected Environment $environment;
 
-    public function createStoreForKnowledgeSource(SourceOfKnowledgeContract $sourceOfKnowledge): VectorStoreId
+    public function upload(OpenAiClientContract $client, SourceOfKnowledgeContract $sourceOfKnowledge): VectorStoreId
     {
-
         $uuid = Algorithms::generateUUID();
 
-        $vectorStoreResponse = $this->client->vectorStores()->create([
-            'name' => $sourceOfKnowledge->getName()->value,
+        $vectorStoreResponse = $client->vectorStores()->create([
+            'name' => $sourceOfKnowledge->getName()->value . '-' . $this->context,
             'description' => $sourceOfKnowledge->getDescription(),
             'metadata' => [
                 'creator' => "Sitegeist.Chatterbox",
-                'context' => $this->context,
                 'knowledgeSourceName' => $sourceOfKnowledge->getName()->value,
                 'knowledgeSourceIndexUuid' => $uuid
             ]
         ]);
-
 
         /**
          * @var Document $item
@@ -47,29 +43,55 @@ class VectorStoreService
                 continue;
             }
 
-            $path = $this->environment->getPathToTemporaryDirectory() . '/' . $sourceOfKnowledge->getName()->value . '-' . $item->name . '.' . $item->type;
-            \file_put_contents($path, (string)$item->content);
+            try {
+                $path = $this->environment->getPathToTemporaryDirectory() . '/' . $sourceOfKnowledge->getName()->value . '-' . $item->name . '.' . $item->type;
+                \file_put_contents($path, (string)$item->content);
 
-            $createFileResponse = $this->client->files()->upload([
-                'file' => fopen($path, 'r'),
-                'purpose' => 'user_data'
-            ]);
-            \unlink($path);
+                $createFileResponse = $client->files()->upload([
+                    'file' => fopen($path, 'r'),
+                    'purpose' => 'user_data'
+                ]);
+                \unlink($path);
 
-            $this->client->vectorStores()->files()->create(
-                $vectorStoreResponse->id,
-                [
-                    'file_id' => $createFileResponse->id,
-                    'attributes'  => [
-                        'creator' => "Sitegeist.Chatterbox",
-                        'context' => $this->context,
-                        'knowledgeSourceName' => $sourceOfKnowledge->getName()->value,
-                        'knowledgeSourceIndexUuid' => $uuid
+                $client->vectorStores()->files()->create(
+                    $vectorStoreResponse->id,
+                    [
+                        'file_id' => $createFileResponse->id,
+                        'attributes' => [
+                            'creator' => "Sitegeist.Chatterbox",
+                            'context' => $this->context,
+                            'knowledgeSourceName' => $sourceOfKnowledge->getName()->value,
+                            'knowledgeSourceIndexUuid' => $uuid
+                        ]
                     ]
-                ]
-            );
+                );
+            } catch (\Exception) {
+            }
         }
 
         return new VectorStoreId($vectorStoreResponse->id);
+    }
+
+    public function cleanup(OpenAiClientContract $client, SourceOfKnowledgeContract $sourceOfKnowledge, VectorStoreId $vectorStoreIdToKeep): void
+    {
+        $vectorStores = $client->vectorStores()->list();
+        foreach ($vectorStores->data as $vectorStore) {
+            if (
+                $vectorStore->name === ($sourceOfKnowledge->getName()->value . '-' . $this->context)
+                && $vectorStore->id !== $vectorStoreIdToKeep->value
+            ) {
+                $files = $client->vectorStores()->files()->list($vectorStore->id);
+                foreach ($files->data as $file) {
+                    try {
+                        $client->files()->delete($file->id);
+                    } catch (\Exception) {
+                    }
+                }
+                try {
+                    $client->vectorStores()->delete($vectorStore->id);
+                } catch (\Exception) {
+                }
+            }
+        }
     }
 }

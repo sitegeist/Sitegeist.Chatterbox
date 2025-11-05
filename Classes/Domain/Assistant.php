@@ -38,7 +38,6 @@ final class Assistant
         private readonly InstructionCollection $instructions,
         private readonly SourceOfKnowledgeCollection $sourcesOfKnowledge,
         private readonly OpenAiClientContract $client,
-        private readonly VectorStoreService $vectorStoreService,
         private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
         private readonly ?LoggerInterface $logger,
     ) {
@@ -257,10 +256,5 @@ final class Assistant
     public function getAccount(): string
     {
         return $this->entity->getAccount();
-    }
-
-    public function getVectorStoreService(): VectorStoreService
-    {
-        return $this->vectorStoreService;
     }
 }

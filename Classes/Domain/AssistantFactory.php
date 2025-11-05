@@ -44,7 +44,6 @@ class AssistantFactory
         private readonly ToolRepository $toolRepository,
         private readonly SourceOfKnowledgeRepository $sourceOfKnowledgeRepository,
         private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
-        private readonly Environment $environment,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -90,18 +89,12 @@ class AssistantFactory
             $knowledgeSources[] = $this->sourceOfKnowledgeRepository->findSourceByName($knowledgeSourceIdentifier);
         }
 
-        $vectorStoreService = new VectorStoreService(
-            $client,
-            $this->environment
-        );
-
         return new Assistant(
             $assistantEntity,
             new ToolCollection(...array_filter($tools)),
             new InstructionCollection(...array_filter($instructions)),
             new SourceOfKnowledgeCollection(...array_filter($knowledgeSources)),
             $client,
-            $vectorStoreService,
             $this->vectorStoreReferenceRepository,
             ($this->settings['enableLogging'] ?? false) ? $this->logger : null
         );

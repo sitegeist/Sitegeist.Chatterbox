@@ -22,12 +22,14 @@ final class AssistantEntityRepository extends Repository
         return AssistantEntity::class;
     }
 
-    public function findOneByName(string $name): ?AssistantEntity
+    public function findOneByName(string $name): AssistantEntity
     {
         $query = $this->createQuery();
         $query->matching($query->equals('name', $name));
-        /** @var ?AssistantEntity $result */
         $result = $query->execute()->getFirst();
-        return $result;
+        if ($result instanceof AssistantEntity) {
+            return $result;
+        }
+        throw new \Exception($name . ' does not exist');
     }
 }
