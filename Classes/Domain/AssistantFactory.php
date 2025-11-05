@@ -39,7 +39,6 @@ class AssistantFactory
 
     public function __construct(
         private readonly OpenAiClientFactory $clientFactory,
-        private readonly ConnectionFactory $connectionFactory,
         private readonly AccountRepository $accountRepository,
         private readonly InstructionRepository $instructionRepository,
         private readonly ToolRepository $toolRepository,
@@ -62,7 +61,6 @@ class AssistantFactory
     {
         $account = $this->accountRepository->findById($assistantEntity->getAccount());
         $client = $this->clientFactory->createClientForAccountRecord($account);
-        $model = $assistantEntity->getModel() ?? '';
 
         /**
          * @var ToolContract[]
@@ -98,16 +96,11 @@ class AssistantFactory
         );
 
         return new Assistant(
-            $assistantEntity->getName(),
-            $assistantEntity->getAccount(),
             $assistantEntity,
-            $model,
             new ToolCollection(...array_filter($tools)),
             new InstructionCollection(...array_filter($instructions)),
             new SourceOfKnowledgeCollection(...array_filter($knowledgeSources)),
-            new OrganizationDiscriminator(''),
             $client,
-            $this->connectionFactory->create(),
             $vectorStoreService,
             $this->vectorStoreReferenceRepository,
             ($this->settings['enableLogging'] ?? false) ? $this->logger : null

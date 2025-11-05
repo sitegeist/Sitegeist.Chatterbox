@@ -33,20 +33,11 @@ final class Assistant
     private array $collectedMetadata = [];
 
     public function __construct(
-        /**@phpstan-ignore-next-line */
-        private readonly string $id,
-        private readonly string $account,
-        private readonly ?AssistantEntity $entity,
-        private readonly string $model,
+        private readonly AssistantEntity $entity,
         private readonly ToolCollection $tools,
         private readonly InstructionCollection $instructions,
-        /**@phpstan-ignore-next-line */
         private readonly SourceOfKnowledgeCollection $sourcesOfKnowledge,
-        /**@phpstan-ignore-next-line */
-        private readonly OrganizationDiscriminator $organizationDiscriminator,
         private readonly OpenAiClientContract $client,
-        /**@phpstan-ignore-next-line */
-        private readonly DatabaseConnection $connection,
         private readonly VectorStoreService $vectorStoreService,
         private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
         private readonly ?LoggerInterface $logger,
@@ -76,8 +67,8 @@ final class Assistant
 
     public function continueThread(string $threadId, string $message, ?string $additionalInstructions = null): void
     {
-        $tools = $this->prepareTools();
-        $fileSearchTools = array_filter($tools, fn(array $item) => $item['type'] === 'file_search');
+        $functionTools = $this->prepareFunctionTools();
+        $fileSearchTools = $this->prepareFileSearchTools();
         $instructions = $this->prepareInstructions($additionalInstructions);
 
         $input = [
@@ -91,10 +82,10 @@ final class Assistant
         $createResponse = $this->client->responses()->create([
                 'conversation' => $threadId,
                 'input' => $input,
-                'model' => $this->model,
+                'model' => $this->entity->getModel(),
                 'instructions' => $instructions,
-                'tools' => $tools,
-                'include' => count ($fileSearchTools) > 0 ? ['file_search_call.results'] : []
+                'tools' => array_merge($functionTools, $fileSearchTools),
+                'include' => count($fileSearchTools) > 0 ? ['file_search_call.results'] : []
         ]);
 
         $this->completeRun($threadId, $createResponse->id);
@@ -106,7 +97,6 @@ final class Assistant
     public function readThread(string $threadId): array
     {
         $conversationItems = $this->client->conversations()->items()->list($threadId);
-        // $this->logger?->info("read thread", ["threadId" => $threadId, $conversationItems->data]);
         return array_filter(
             array_reverse(
                 array_map(
@@ -118,6 +108,19 @@ final class Assistant
                 )
             )
         );
+    }
+
+    public function readLastMessageFromThread(string $threadId): ?MessageRecord
+    {
+        $lastId = $this->client->conversations()->items()->list($threadId)->lastId;
+        if ($lastId) {
+            $conversationItem = $this->client->conversations()->items()->retrieve($threadId, $lastId);
+            return MessageRecord::tryFromConversationItem(
+                $conversationItem,
+                $this->sourcesOfKnowledge
+            );
+        }
+        return null;
     }
 
     private function completeRun(string $threadId, string $responseId): void
@@ -136,8 +139,7 @@ final class Assistant
          */
         $pendingToolCalls = array_filter($lastResponse->output, fn($thing) => ($thing instanceof OutputFunctionToolCall));
 
-        while(count($pendingToolCalls) > 0) {
-
+        while (count($pendingToolCalls) > 0) {
             // perform requested tool calls
             $toolResultMessages = [];
             foreach ($pendingToolCalls as $toolCall) {
@@ -159,9 +161,9 @@ final class Assistant
                 $this->logger?->info("chatbot tool submit", $toolResultMessages);
                 $createResponse = $this->client->responses()->create([
                     'conversation' => $threadId,
-                    'model' => $this->model,
+                    'model' => $this->entity->getModel(),
                     'instructions' => $this->prepareInstructions(),
-                    'tools' => $this->prepareTools(),
+                    'tools' => $this->prepareFunctionTools(),
                     'input' => $toolResultMessages
                 ]);
                 $lastResponseId = $createResponse->id;
@@ -187,9 +189,9 @@ final class Assistant
 
     /**
      * Prepare tools for beeing sent to the open ai client
-     * @return array<int, array{type:string, name:string, description:string, parameters ?: mixed[]|null}>
+     * @return array<int, array{type:string, name: string, description: string, parameters ?: mixed[]|null}>
      */
-    protected function prepareTools(): array
+    protected function prepareFunctionTools(): array
     {
         $tools = [];
         foreach ($this->tools as $tool) {
@@ -205,23 +207,35 @@ final class Assistant
             $tools[] = $spec;
         }
 
-        if ($this->entity !== null) {
-            $vectorStoreIds = [];
-            foreach ($this->sourcesOfKnowledge as $sourceOfKnowledge) {
-                $reference = $this->vectorStoreReferenceRepository->findOneByAssistantAndKnowledgeSourceIdentifier(
-                    $this->entity,
-                    $sourceOfKnowledge->getName()->value,
-                );
-                if ($reference instanceof VectorStoreReference) {
-                    $vectorStoreIds[] = $reference->vectorStoreId;
-                }
+        return $tools;
+    }
+
+
+    /**
+     * Prepare knowledge for beeing sent to the open ai client
+     *
+     * @return array<int, array{type:string, vector_store_ids: string[]}>
+     */
+    protected function prepareFileSearchTools(): array
+    {
+        $tools = [];
+
+        $vectorStoreIds = [];
+        foreach ($this->sourcesOfKnowledge as $sourceOfKnowledge) {
+            $reference = $this->vectorStoreReferenceRepository->findOneByAssistantAndKnowledgeSourceIdentifier(
+                $this->entity->getAccount(),
+                $sourceOfKnowledge->getName()->value,
+            );
+            if ($reference instanceof VectorStoreReference) {
+                $vectorStoreIds[] = $reference->vectorStoreId;
             }
-            if (count($vectorStoreIds) > 0) {
-                $tools[] = [
-                    'type' => 'file_search',
-                    'vector_store_ids' => $vectorStoreIds
-                ];
-            }
+        }
+
+        if (count($vectorStoreIds) > 0) {
+            $tools[] = [
+                'type' => 'file_search',
+                'vector_store_ids' => $vectorStoreIds
+            ];
         }
 
         return $tools;
@@ -242,12 +256,11 @@ final class Assistant
 
     public function getAccount(): string
     {
-        return $this->account;
+        return $this->entity->getAccount();
     }
 
     public function getVectorStoreService(): VectorStoreService
     {
         return $this->vectorStoreService;
     }
-
 }

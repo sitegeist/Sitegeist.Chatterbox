@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
@@ -8,24 +9,28 @@ use Neos\Flow\Annotations as Flow;
 use Sitegeist\Chatterbox\Domain\AssistantEntity;
 
 #[Flow\Scope('singleton')]
-class VectorStoreReferenceRepository extends Repository {
-
+class VectorStoreReferenceRepository extends Repository
+{
     /**
      * @var string
      * @Flow\InjectConfiguration(path="context")
      */
     protected string $context;
 
-    public function findOneByAssistantAndKnowledgeSourceIdentifier(AssistantEntity $assistantEntity, string $knowledgeSourceIdentifier): ?VectorStoreReference
+    public function findOneByAssistantAndKnowledgeSourceIdentifier(string $account, string $knowledgeSourceIdentifier): ?VectorStoreReference
     {
         $query = $this->createQuery();
         $query->matching(
             $query->logicalAnd(
-                $query->equals('account', $assistantEntity->getAccount(), true),
-                $query->equals('context', $this->context, true),
-                $query->equals('knowledgeSourceIdentifier', $knowledgeSourceIdentifier, true)
+                [
+                    $query->equals('context', $this->context),
+                    $query->equals('account', $account),
+                    $query->equals('knowledgeSourceIdentifier', $knowledgeSourceIdentifier)
+                ]
             )
         );
-        return $query->execute()->getFirst();
+        /** @var ?VectorStoreReference $result */
+        $result = $query->execute()->getFirst();
+        return $result;
     }
 }

@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Persistence\Repository;
 use Neos\Flow\Annotations as Flow;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReference;
 
 #[Flow\Scope('singleton')]
 final class AssistantEntityRepository extends Repository
@@ -19,5 +20,14 @@ final class AssistantEntityRepository extends Repository
     public function getEntityClassName(): string
     {
         return AssistantEntity::class;
+    }
+
+    public function findOneByName(string $name): ?AssistantEntity
+    {
+        $query = $this->createQuery();
+        $query->matching($query->equals('name', $name));
+        /** @var ?AssistantEntity $result */
+        $result = $query->execute()->getFirst();
+        return $result;
     }
 }

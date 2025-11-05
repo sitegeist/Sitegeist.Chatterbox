@@ -23,7 +23,6 @@ final class MessageRecord
         public readonly string $id,
         public readonly string $role,
         public readonly ContentCollection $content,
-        public readonly QuotationCollection $quotations,
         public readonly array $metadata,
     ) {
     }
@@ -37,32 +36,12 @@ final class MessageRecord
             return new self(
                 $subject->id,
                 $subject->role,
-                ContentCollection::fromMessageItem($subject),
-                $sourceOfKnowledgeCollection->resolveQuotationsForConversationItem($item),
+                ContentCollection::fromMessageItem($subject, $sourceOfKnowledgeCollection),
                 []
             );
         } return null;
     }
 
-    public static function fromThreadMessageResponse(
-        ThreadMessageResponse $response,
-        SourceOfKnowledgeCollection $sourceOfKnowledgeCollection,
-        OrganizationDiscriminator $organizationDiscriminator,
-        DatabaseConnection $connection
-    ): self {
-        $resolvedAndUnresolvedQuotations = $sourceOfKnowledgeCollection->resolveQuotations(
-            $response,
-            $organizationDiscriminator,
-            $connection
-        );
-        return new self(
-            $response->id,
-            $response->role,
-            ContentCollection::fromThreadMessageResponse($response, $resolvedAndUnresolvedQuotations->unresolvedQuotations),
-            $resolvedAndUnresolvedQuotations->resolvedQuotations,
-            $response->metadata
-        );
-    }
 
     /**
      * @return array{bot:boolean, message: array<int, ThreadMessageResponseContentImageFileObject|ThreadMessageResponseContentTextObject>, quotations: array<mixed>}
@@ -73,7 +52,8 @@ final class MessageRecord
             'id' => $this->id,
             'bot' => $this->role !== 'user',
             'message' => $this->content->toApiArray(),
-            'quotations' => $this->quotations->toApiArray()
+            /** @deprecated */
+            'quotations' => []
         ];
     }
 }

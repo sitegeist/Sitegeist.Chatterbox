@@ -40,7 +40,7 @@ class ChatController extends ActionController
         $this->metaDataCache = $metaDataCache;
     }
 
-    public function startAction(string $organizationId, string $assistantId, string $message, ?string $additionalInstructions = null): string
+    public function startAction(string $assistantId, string $message, ?string $additionalInstructions = null): string
     {
         if ($additionalInstructions) {
             $additionalInstructions = $this->hashService->validateAndStripHmac($additionalInstructions);
@@ -50,14 +50,11 @@ class ChatController extends ActionController
         $threadId = $assistant->startThread();
         $assistant->continueThread($threadId, $message, $additionalInstructions);
 
-        $messageResponses = $assistant->readThread($threadId);
-        $lastMessageKey = array_key_last($messageResponses);
-        $lastMessageId = $messageResponses[$lastMessageKey]->id;
-        $lastMessage = $messageResponses[$lastMessageKey];
+        $lastMessage = $assistant->readLastMessageFromThread($threadId);
         $metadata = $assistant->getCollectedMetadata();
 
-        if ($metadata) {
-            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessageId), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
+        if ($lastMessage && $metadata) {
+            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
         }
 
         return json_encode(
@@ -66,18 +63,19 @@ class ChatController extends ActionController
                     'threadId' => $threadId,
                     'metadata' => empty($metadata) ? null : $metadata
                 ],
-                $lastMessage->toApiArray()
+                $lastMessage?->toApiArray() ?: []
             ),
             JSON_THROW_ON_ERROR
         );
     }
 
-    public function historyAction(string $organizationId, string $assistantId, string $threadId): string
+    public function historyAction(string $assistantId, string $threadId): string
     {
         $assistant = $this->getAssistantFromAsstantId($assistantId);
         $messages = $assistant->readThread($threadId);
 
         $cachedMetadata = $this->metaDataCache ? $this->metaDataCache->getByTag($this->cacheTag($assistantId, $threadId)) : [];
+
 
         return json_encode(
             [
@@ -97,7 +95,7 @@ class ChatController extends ActionController
         );
     }
 
-    public function postAction(string $organizationId, string $assistantId, string $threadId, string $message, ?string $additionalInstructions = null): string
+    public function postAction(string $assistantId, string $threadId, string $message, ?string $additionalInstructions = null): string
     {
         if ($additionalInstructions) {
             $additionalInstructions = $this->hashService->validateAndStripHmac($additionalInstructions);

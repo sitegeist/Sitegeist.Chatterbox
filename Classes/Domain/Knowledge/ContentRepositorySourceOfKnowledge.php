@@ -61,24 +61,20 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return new DocumentCollection(...$this->traverseSubtree($rootNode));
     }
 
-    public function tryCreateQuotation(string $identifier, string $quote, string $id): ?Quotation
+    public function tryCreateQuotation(int $index, string $name, string $type): ?Quotation
     {
-        $sourceNode = $this->designator->findRootNode(
-            $this->contentContextFactory,
-            $this->contentDimensionPresetSource
-        )->getContext()
-            ->getNodeByIdentifier($id);
-
+        $sourceNode = $this->designator->findRootNode($this->contentContextFactory, $this->contentDimensionPresetSource)
+            ->getContext()
+            ->getNodeByIdentifier($name);
         if (!$sourceNode instanceof Node) {
             return null;
         }
 
         try {
             return new Quotation(
-                $identifier,
-                $quote,
-                $sourceNode->getLabel(),
-                $sourceNode->getProperty('abstract') ?: $sourceNode->getProperty('description') ?: '',
+                $index,
+                $sourceNode->getProperty('titleOverride') ?: $sourceNode->getProperty('title') ?: $sourceNode->getLabel(),
+                $sourceNode->getProperty('abstract') ?: $sourceNode->getProperty('description') ?: $sourceNode->getProperty('metaDescription') ?: '',
                 $this->getNodeUri($sourceNode),
             );
         } catch (NoMatchingRouteException) {

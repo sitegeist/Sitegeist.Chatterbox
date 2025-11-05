@@ -10,7 +10,7 @@ namespace Sitegeist\Chatterbox\Domain\Knowledge;
 final class DocumentCollection implements \IteratorAggregate, \Countable
 {
     /**
-     * @var array<JsonlRecord>
+     * @var array<Document>
      */
     private readonly array $items;
 

@@ -3,16 +3,30 @@
 namespace Sitegeist\Chatterbox\Domain\Knowledge;
 
 use Neos\Flow\Annotations as Flow;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @Flow\Entity
  */
-class VectorStoreReference {
+class VectorStoreReference
+{
+    /**
+     * @var string
+     * @ORM\Id
+     */
+    public $account;
 
     /**
      * @var string
+     * @ORM\Id
      */
-    public $account;
+    public $context;
+
+    /**
+     * @var string
+     * @ORM\Id
+     */
+    public $knowledgeSourceIdentifier;
 
     /**
      * @var string
@@ -20,22 +34,12 @@ class VectorStoreReference {
     public $vectorStoreId;
 
     /**
-     * @var string
-     */
-    public $context;
-
-    /**
-     * @var string
-     */
-    public $knowledgeSourceIdentifier;
-
-    /**
-     * @param string $account
-     * @param string $vectorStoreId
      * @param string $context
+     * @param string $account
      * @param string $knowledgeSourceIdentifier
+     * @param string $vectorStoreId
      */
-    public function __construct(string $account, string $vectorStoreId, string $context, string $knowledgeSourceIdentifier)
+    public function __construct(string $context, string $account, string $knowledgeSourceIdentifier, string $vectorStoreId)
     {
         $this->account = $account;
         $this->vectorStoreId = $vectorStoreId;
@@ -43,5 +47,8 @@ class VectorStoreReference {
         $this->knowledgeSourceIdentifier = $knowledgeSourceIdentifier;
     }
 
-
+    public function updateVectorStoreId(string $vectorStoreId): void
+    {
+        $this->vectorStoreId = $vectorStoreId;
+    }
 }

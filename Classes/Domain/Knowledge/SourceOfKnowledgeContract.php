@@ -19,5 +19,5 @@ interface SourceOfKnowledgeContract
 
     public function getContent(): DocumentCollection;
 
-    public function tryCreateQuotation(string $identifier, string $quote, string $id): ?Quotation;
+    public function tryCreateQuotation(int $index, string $name, string $type): ?Quotation;
 }

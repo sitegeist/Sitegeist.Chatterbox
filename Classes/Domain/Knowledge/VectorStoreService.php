@@ -8,8 +8,8 @@ use Neos\Flow\Utility\Environment;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Sitegeist\Chatterbox\Domain\AssistantEntity;
 
-class VectorStoreService {
-
+class VectorStoreService
+{
     /**
      * @var string
      * @Flow\InjectConfiguration(path="context")
@@ -19,7 +19,8 @@ class VectorStoreService {
     public function __construct(
         private readonly OpenAiClientContract $client,
         private readonly Environment $environment,
-    ) {}
+    ) {
+    }
 
     public function createStoreForKnowledgeSource(SourceOfKnowledgeContract $sourceOfKnowledge): VectorStoreId
     {
@@ -42,7 +43,6 @@ class VectorStoreService {
          * @var Document $item
          */
         foreach ($sourceOfKnowledge->getContent() as $item) {
-
             if ($item->content === '') {
                 continue;
             }
