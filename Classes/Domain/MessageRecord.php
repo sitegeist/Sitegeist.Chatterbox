@@ -30,9 +30,13 @@ final class MessageRecord
     public static function tryFromConversationItem(
         ConversationItem $item,
         SourceOfKnowledgeCollection $sourceOfKnowledgeCollection,
+        bool $allowSystemMessages = false
     ): ?self {
         $subject = $item->item;
         if ($subject instanceof Message) {
+            if (in_array($subject->role, ['system', 'developer'])) {
+                return null;
+            }
             return new self(
                 $subject->id,
                 $subject->role,

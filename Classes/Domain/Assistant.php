@@ -32,6 +32,8 @@ final class Assistant
      */
     private array $collectedMetadata = [];
 
+    private MessageRecord|null $lastMessage = null;
+
     public function __construct(
         private readonly AssistantEntity $entity,
         private readonly ToolCollection $tools,
@@ -93,17 +95,21 @@ final class Assistant
     /**
      * @return array<MessageRecord>
      */
-    public function readThread(string $threadId): array
+    public function readThread(string $threadId, bool $allowSystemMessages = false): array
     {
-        $conversationItems = $this->client->conversations()->items()->list($threadId);
-        return array_filter(
-            array_reverse(
-                array_map(
-                    fn (ConversationItem $conversationItem) => MessageRecord::tryFromConversationItem(
-                        $conversationItem,
-                        $this->sourcesOfKnowledge
-                    ),
-                    $conversationItems->data
+        $conversationItems = $this->client->conversations()->items()->list($threadId)->data;
+
+        return array_values(
+            array_filter(
+                array_reverse(
+                    array_map(
+                        fn (ConversationItem $conversationItem) => MessageRecord::tryFromConversationItem(
+                            $conversationItem,
+                            $this->sourcesOfKnowledge,
+                            $allowSystemMessages
+                        ),
+                        $conversationItems
+                    )
                 )
             )
         );
@@ -129,7 +135,7 @@ final class Assistant
 
         // wait for processing
         while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
-            sleep(1);
+            sleep(10);
             $lastResponse = $this->client->responses()->retrieve($lastResponseId);
         }
 
@@ -141,7 +147,8 @@ final class Assistant
         while (count($pendingToolCalls) > 0) {
             // perform requested tool calls
             $toolResultMessages = [];
-            foreach ($pendingToolCalls as $toolCall) {
+            while (count($pendingToolCalls) > 0) {
+                $toolCall = array_shift($pendingToolCalls);
                 $this->logger?->info("chatbot tool calls", $toolCall->toArray());
                 $toolInstance = $this->tools->getToolByName($toolCall->name);
                 if ($toolInstance == null) {
@@ -155,29 +162,32 @@ final class Assistant
                 $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
             }
 
-            // submit tool results and wit for final processing
-            if (!empty($toolResultMessages)) {
-                $this->logger?->info("chatbot tool submit", $toolResultMessages);
-                $createResponse = $this->client->responses()->create([
-                    'conversation' => $threadId,
-                    'model' => $this->entity->getModel(),
-                    'instructions' => $this->prepareInstructions(),
-                    'tools' => $this->prepareFunctionTools(),
-                    'input' => $toolResultMessages
-                ]);
-                $lastResponseId = $createResponse->id;
-                $lastResponse = $this->client->responses()->retrieve($lastResponseId);
-
-                while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
-                    sleep(1);
-                    $lastResponse = $this->client->responses()->retrieve($lastResponseId);
-                }
+            if (empty($toolResultMessages)) {
+                break;
             }
 
-            // check for tool calls in the last response
+            // submit tool results and wait for final processing
+            $this->logger?->info("chatbot tool submit", $toolResultMessages);
+            $createResponse = $this->client->responses()->create([
+                'conversation' => $threadId,
+                'model' => $this->entity->getModel(),
+                'instructions' => $this->prepareInstructions(),
+                'tools' => $this->prepareFunctionTools(),
+                'input' => $toolResultMessages
+            ]);
+            $lastResponseId = $createResponse->id;
+            $lastResponse = $this->client->responses()->retrieve($lastResponseId);
+
+            while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
+                sleep(10);
+                $lastResponse = $this->client->responses()->retrieve($lastResponseId);
+            }
+
+            // check for consecutive tool calls in the last response
             $pendingToolCalls = array_filter($lastResponse->output, fn($thing) => ($thing instanceof OutputFunctionToolCall));
         }
 
+        $this->lastMessage = $lastResponse;
         $this->logger?->info("thread run response", $lastResponse->toArray());
     }
 

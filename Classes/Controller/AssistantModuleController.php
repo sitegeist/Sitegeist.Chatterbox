@@ -156,7 +156,7 @@ class AssistantModuleController extends AbstractModuleController
         $assistantObject = $this->assistantFactory->createAssistantFromAssistantEntity($assistant);
 
         $this->view->assignMultiple([
-            'messages' => $assistantObject->readThread($threadId),
+            'messages' => $assistantObject->readThread($threadId, true),
             'threadId' => $threadId,
             'assistant' => $assistant,
         ]);

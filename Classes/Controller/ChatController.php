@@ -76,7 +76,6 @@ class ChatController extends ActionController
 
         $cachedMetadata = $this->metaDataCache ? $this->metaDataCache->getByTag($this->cacheTag($assistantId, $threadId)) : [];
 
-
         return json_encode(
             [
                 'messages' => array_map(
@@ -104,14 +103,11 @@ class ChatController extends ActionController
         $assistant = $this->getAssistantFromAsstantId($assistantId);
         $assistant->continueThread($threadId, $message, $additionalInstructions);
 
-        $messageResponses = $assistant->readThread($threadId);
-        $lastMessageKey = array_key_last($messageResponses);
-        $lastMessageId = $messageResponses[$lastMessageKey]->id;
-        $lastMessage = $messageResponses[$lastMessageKey];
+        $lastMessage = $assistant->readLastMessageFromThread($threadId);
         $metadata = $assistant->getCollectedMetadata();
 
-        if ($metadata) {
-            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessageId), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
+        if ($lastMessage && $metadata) {
+            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
         }
 
         return json_encode(
