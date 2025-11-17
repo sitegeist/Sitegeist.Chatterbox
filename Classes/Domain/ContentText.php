@@ -42,7 +42,7 @@ final class ContentText implements ContentInterface
         ]);
 
         $html = $converter->convert($outputText->text);
-        return new ContentText($html->getContent(), new QuotationCollection(...array_filter($quotations)));
+        return new self($html->getContent(), new QuotationCollection(...array_filter($quotations)));
     }
 
     public function getType(): string

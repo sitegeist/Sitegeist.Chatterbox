@@ -34,7 +34,7 @@ final class MessageRecord
     ): ?self {
         $subject = $item->item;
         if ($subject instanceof Message) {
-            if (in_array($subject->role, ['system', 'developer'])) {
+            if ($allowSystemMessages === false && in_array($subject->role, ['system', 'developer'])) {
                 return null;
             }
             return new self(

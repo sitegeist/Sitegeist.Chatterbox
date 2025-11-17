@@ -32,8 +32,6 @@ final class Assistant
      */
     private array $collectedMetadata = [];
 
-    private MessageRecord|null $lastMessage = null;
-
     public function __construct(
         private readonly AssistantEntity $entity,
         private readonly ToolCollection $tools,
@@ -80,14 +78,19 @@ final class Assistant
             ]
         ];
 
-        $createResponse = $this->client->responses()->create([
-                'conversation' => $threadId,
-                'input' => $input,
-                'model' => $this->entity->getModel(),
-                'instructions' => $instructions,
-                'tools' => array_merge($functionTools, $fileSearchTools),
-                'include' => count($fileSearchTools) > 0 ? ['file_search_call.results'] : []
-        ]);
+        $responseParameters = [
+            'conversation' => $threadId,
+            'input' => $input,
+            'model' => $this->entity->getModel(),
+            'instructions' => $instructions,
+            'tools' => array_merge($functionTools, $fileSearchTools),
+            'include' => count($fileSearchTools) > 0 ? ['file_search_call.results'] : []
+        ];
+
+        $this->logger?->info("thread create response", $responseParameters);
+
+        $createResponse = $this->client->responses()->create($responseParameters);
+
 
         $this->completeRun($threadId, $createResponse->id);
     }
@@ -187,7 +190,6 @@ final class Assistant
             $pendingToolCalls = array_filter($lastResponse->output, fn($thing) => ($thing instanceof OutputFunctionToolCall));
         }
 
-        $this->lastMessage = $lastResponse;
         $this->logger?->info("thread run response", $lastResponse->toArray());
     }
 

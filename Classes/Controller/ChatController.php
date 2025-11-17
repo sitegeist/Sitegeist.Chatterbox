@@ -50,9 +50,11 @@ class ChatController extends ActionController
         $threadId = $assistant->startThread();
         $assistant->continueThread($threadId, $message, $additionalInstructions);
 
-        $lastMessage = $assistant->readLastMessageFromThread($threadId);
-        $metadata = $assistant->getCollectedMetadata();
+        $messageResponses = $assistant->readThread($threadId);
+        $lastMessageKey = array_key_last($messageResponses);
+        $lastMessage = $messageResponses[$lastMessageKey];
 
+        $metadata = $assistant->getCollectedMetadata();
         if ($lastMessage && $metadata) {
             $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
         }
@@ -63,7 +65,7 @@ class ChatController extends ActionController
                     'threadId' => $threadId,
                     'metadata' => empty($metadata) ? null : $metadata
                 ],
-                $lastMessage?->toApiArray() ?: []
+                $lastMessage->toApiArray() ?: []
             ),
             JSON_THROW_ON_ERROR
         );
@@ -103,11 +105,15 @@ class ChatController extends ActionController
         $assistant = $this->getAssistantFromAsstantId($assistantId);
         $assistant->continueThread($threadId, $message, $additionalInstructions);
 
-        $lastMessage = $assistant->readLastMessageFromThread($threadId);
+        $messageResponses = $assistant->readThread($threadId);
+        $lastMessageKey = array_key_last($messageResponses);
+        $lastMessageId = $messageResponses[$lastMessageKey]->id;
+        $lastMessage = $messageResponses[$lastMessageKey];
+
         $metadata = $assistant->getCollectedMetadata();
 
         if ($lastMessage && $metadata) {
-            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
+            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessageId), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
         }
 
         return json_encode(
