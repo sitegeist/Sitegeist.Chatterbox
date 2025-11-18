@@ -30,11 +30,24 @@ final class ContentText implements ContentInterface
     public static function createFromOutputText(OutputMessageContentOutputText $outputText, SourceOfKnowledgeCollection $sourceOfKnowledgeCollection): self
     {
         $quotations = [];
-        foreach ($outputText->annotations as $annotation) {
-            if ($annotation instanceof OutputMessageContentOutputTextAnnotationsFileCitation) {
-                list($filename, $type) = explode('.', $annotation->filename, 2);
-                $quotations[] = $sourceOfKnowledgeCollection->tryCreateQuotation($annotation->index, $filename, $type);
-            }
+
+        /**
+         * @var OutputMessageContentOutputTextAnnotationsFileCitation[] $fileCitations
+         */
+        $fileCitations = array_filter($outputText->annotations, fn(object $item) => ($item instanceof OutputMessageContentOutputTextAnnotationsFileCitation));
+
+        // make file citations unique because for some reason we get duplicates here
+        /**
+         * @var OutputMessageContentOutputTextAnnotationsFileCitation[] $fileCitationsUnique
+         */
+        $fileCitationsUnique = [];
+        foreach ($fileCitations as $fileCitation) {
+            $fileCitationsUnique[$fileCitation->index . '::' . $fileCitation->fileId] = $fileCitation;
+        }
+
+        foreach ($fileCitationsUnique as $fileCitation) {
+            list($filename, $type) = explode('.', $fileCitation->filename, 2);
+            $quotations[] = $sourceOfKnowledgeCollection->tryCreateQuotation($fileCitation->index, $filename, $type);
         }
         $converter = new CommonMarkConverter([
             'html_input' => 'strip',

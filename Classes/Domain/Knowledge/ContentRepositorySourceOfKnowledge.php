@@ -30,6 +30,11 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
 
     protected ?DocumentCollection $runtimeCache = null;
 
+    /**
+     * @var array<string, ?NodeInterface>
+     */
+    protected array $runtimeSourceNodeCache = [];
+
     public function __construct(
         private readonly KnowledgeSourceName $name,
         private readonly string $description,
@@ -67,10 +72,14 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
 
     public function tryCreateQuotation(int $index, string $name, string $type): ?Quotation
     {
-        $sourceNode = $this->designator->findRootNode($this->contentContextFactory, $this->contentDimensionPresetSource)
-            ->getContext()
-            ->getNodeByIdentifier($name);
-        if (!$sourceNode instanceof Node) {
+        $cacheid = $name . '. ' . $type;
+        if (array_key_exists($cacheid, $this->runtimeSourceNodeCache) === false) {
+            $this->runtimeSourceNodeCache[$cacheid] = $this->designator->findRootNode($this->contentContextFactory, $this->contentDimensionPresetSource)
+                   ->getContext()
+                   ->getNodeByIdentifier($name);
+        }
+        $sourceNode = $this->runtimeSourceNodeCache[$cacheid] ?? null;
+        if (!$sourceNode instanceof NodeInterface) {
             return null;
         }
 
@@ -156,7 +165,7 @@ final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContr
         return trim($content);
     }
 
-    private function getNodeUri(Node $node): Uri
+    private function getNodeUri(NodeInterface $node): Uri
     {
         $uri = ServerRequest::getUriFromGlobals();
         $uriBuilder = new UriBuilder();
