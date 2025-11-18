@@ -55,7 +55,7 @@ class ChatController extends ActionController
         $lastMessage = $messageResponses[$lastMessageKey];
 
         $metadata = $assistant->getCollectedMetadata();
-        if ($lastMessage && $metadata) {
+        if ($metadata) {
             $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
         }
 
@@ -65,7 +65,7 @@ class ChatController extends ActionController
                     'threadId' => $threadId,
                     'metadata' => empty($metadata) ? null : $metadata
                 ],
-                $lastMessage->toApiArray() ?: []
+                $lastMessage->toApiArray()
             ),
             JSON_THROW_ON_ERROR
         );
@@ -112,7 +112,7 @@ class ChatController extends ActionController
 
         $metadata = $assistant->getCollectedMetadata();
 
-        if ($lastMessage && $metadata) {
+        if ($metadata) {
             $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $lastMessageId), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
         }
 

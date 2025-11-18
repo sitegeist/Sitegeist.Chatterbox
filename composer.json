@@ -32,7 +32,8 @@
         "test:style": ["phpcs --standard=PSR12 -n Classes"],
         "test:stan": ["phpstan analyse --level 8 Classes"],
         "test:unit": [],
-        "test": ["composer install", "composer test:style", "composer test:stan", "composer test:unit"]
+        "lint": ["composer install", "composer test:style", "composer test:stan"],
+        "test": ["composer install", "composer test:unit"]
     },
     "config": {
         "allow-plugins": {
