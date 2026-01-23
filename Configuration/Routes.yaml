@@ -29,3 +29,32 @@
     '@action': 'post'
     '@format': 'json'
   httpMethods: ['POST']
+
+##
+# Chatterbox OpenAPI
+
+-
+  name:  'Chatterbox Chat - start'
+  uriPattern: 'chatterbox/openapichat/start'
+  defaults:
+    '@package':    'Sitegeist.Chatterbox'
+    '@controller': 'OpenApiChat'
+    '@action': 'start'
+  httpMethods: ['POST']
+
+-
+  name:  'Chatterbox Chat - thread'
+  uriPattern: 'chatterbox/openapichat/history'
+  defaults:
+    '@package':    'Sitegeist.Chatterbox'
+    '@controller': 'OpenApiChat'
+    '@action': 'history'
+  httpMethods: ['GET']
+
+- name: 'Chatterbox Chat'
+  uriPattern: 'chatterbox/openapichat/post'
+  defaults:
+    '@package': 'Sitegeist.Chatterbox'
+    '@controller': 'OpenApiChat'
+    '@action': 'post'
+  httpMethods: ['POST']
