@@ -15,7 +15,7 @@ use Sitegeist\Chatterbox\Dto\HistoryResponse;
 use Sitegeist\Chatterbox\Dto\Message;
 use Sitegeist\Chatterbox\Dto\MessageCollection;
 use Sitegeist\Chatterbox\Dto\MessageId;
-use Sitegeist\Chatterbox\Dto\Metadata;
+use Sitegeist\Chatterbox\Dto\MetaData;
 use Sitegeist\Chatterbox\Dto\PostResponse;
 use Sitegeist\Chatterbox\Dto\StartChatResponse;
 use Sitegeist\Chatterbox\Dto\ThreadId;
@@ -55,7 +55,7 @@ class OpenApiChatController extends OpenApiController
         $metadata = $assistant->getCollectedMetadata();
         if ($metadata) {
             $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $responseMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
-            $responseMessage = $responseMessage->withMetadata(Metadata::fromArray($metadata));
+            $responseMessage = $responseMessage->withMetadata(MetaData::fromArray($metadata));
         }
 
         return new StartChatResponse($threadId, $responseMessage);
@@ -94,7 +94,7 @@ class OpenApiChatController extends OpenApiController
         $metadata = $assistant->getCollectedMetadata();
         if ($metadata) {
             $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $responseMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
-            $responseMessage = $responseMessage->withMetadata(MetaData::fromArray($metadata));
+            $responseMessage = $responseMessage->withMetadata($metadata);
         }
 
         return new PostResponse($responseMessage);

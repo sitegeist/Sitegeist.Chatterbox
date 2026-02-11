@@ -14,7 +14,7 @@ readonly class Message
         public MessageId $id,
         public string $role,
         public ContentCollection $contents,
-        public ?Metadata $metadata,
+        public MetaDataItemCollection $metadata,
     ) {
     }
 
@@ -24,17 +24,17 @@ readonly class Message
             new MessageId($messageRecord->id),
             $messageRecord->role,
             ContentCollection::fromDomainContentCollection($messageRecord->content),
-            Metadata::fromArray($messageRecord->metadata),
+            MetaDataItemCollection::createFromMixedArray($messageRecord->metadata)
         );
     }
 
-    public function withMetadata(Metadata $metadata): self
+    public function withMetadata(array $metadata): self
     {
         return new self(
             $this->id,
             $this->role,
             $this->contents,
-            $metadata,
+            $this->metadata->addFromMixedArray($metadata),
         );
     }
 }
