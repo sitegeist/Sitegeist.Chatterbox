@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Tools;
 
+use Sitegeist\Chatterbox\Domain\MetaDataCollection;
+
 class ToolResult implements ToolResultContract
 {
     /**
      * @param array<string, mixed> $data
-     * @param array<string, mixed> $metadata
+     * @param MetaDataCollection $metadata
      */
     public function __construct(
         protected readonly array $data,
-        protected readonly array $metadata,
+        protected readonly MetaDataCollection $metadata,
     ) {
     }
 
@@ -24,10 +26,7 @@ class ToolResult implements ToolResultContract
         return $this->data;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getMetadata(): array
+    public function getMetadata(): MetaDataCollection
     {
         return $this->metadata;
     }

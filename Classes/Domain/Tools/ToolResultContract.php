@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain\Tools;
 
+use Sitegeist\Chatterbox\Domain\MetaDataCollection;
+
 interface ToolResultContract
 {
     /**
@@ -11,8 +13,5 @@ interface ToolResultContract
      */
     public function getData(): array;
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getMetadata(): array;
+    public function getMetadata(): MetaDataCollection;
 }

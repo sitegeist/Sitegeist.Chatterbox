@@ -6,6 +6,7 @@ namespace Sitegeist\Chatterbox\Dto;
 
 use Neos\Flow\Annotations as Flow;
 use Sitegeist\Chatterbox\Domain\MessageRecord;
+use Sitegeist\Chatterbox\Domain\MetaDataCollection as DomainMetaDataCollection;
 
 #[Flow\Proxy(false)]
 readonly class Message
@@ -14,7 +15,7 @@ readonly class Message
         public MessageId $id,
         public string $role,
         public ContentCollection $contents,
-        public MetaDataItemCollection $metadata,
+        public MetaDataCollection $metadata,
     ) {
     }
 
@@ -24,17 +25,17 @@ readonly class Message
             new MessageId($messageRecord->id),
             $messageRecord->role,
             ContentCollection::fromDomainContentCollection($messageRecord->content),
-            MetaDataItemCollection::createFromMixedArray($messageRecord->metadata)
+            MetaDataCollection::createFromDomainMetaDataCollection($messageRecord->metadata)
         );
     }
 
-    public function withMetadata(array $metadata): self
+    public function withAddedMetadata(MetaDataCollection $metadata): self
     {
         return new self(
             $this->id,
             $this->role,
             $this->contents,
-            $this->metadata->addFromMixedArray($metadata),
+            $this->metadata->add($metadata),
         );
     }
 }

@@ -4,33 +4,23 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
-use Doctrine\DBAL\Connection as DatabaseConnection;
-use Neos\Utility\Arrays;
-use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Conversations\ConversationItem;
 use OpenAI\Responses\Responses\Output\OutputFunctionToolCall;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
-use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
-use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutputs;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReference;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
-use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
-use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 #[Flow\Proxy(false)]
 final class Assistant
 {
-    /**
-     * @var array<int, mixed>
-     */
-    private array $collectedMetadata = [];
+    private MetaDataCollection $collectedMetadata;
 
     public function __construct(
         private readonly AssistantEntity $entity,
@@ -41,12 +31,10 @@ final class Assistant
         private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
         private readonly ?LoggerInterface $logger,
     ) {
+        $this->collectedMetadata = MetaDataCollection::createEmpty();
     }
 
-    /**
-     * @return array<int,mixed>
-     */
-    public function getCollectedMetadata(): array
+    public function getCollectedMetadata(): MetaDataCollection
     {
         return $this->collectedMetadata;
     }
@@ -162,7 +150,7 @@ final class Assistant
                     'type' => 'function_call_output',
                     'call_id' => $toolCall->callId,
                     'output' => json_encode($toolResult->getData())];
-                $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
+                $this->collectedMetadata = $this->collectedMetadata->add($toolResult->getMetadata());
             }
 
             if (empty($toolResultMessages)) {

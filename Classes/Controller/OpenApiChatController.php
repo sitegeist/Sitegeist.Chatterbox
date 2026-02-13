@@ -10,12 +10,13 @@ use Sitegeist\Chatterbox\Domain\Assistant;
 use Sitegeist\Chatterbox\Domain\AssistantEntity;
 use Sitegeist\Chatterbox\Domain\AssistantEntityRepository;
 use Sitegeist\Chatterbox\Domain\AssistantFactory;
+use Sitegeist\Chatterbox\Domain\MetaDataCollection as DomainMetaDataCollection;
 use Sitegeist\Chatterbox\Dto\AssistantId;
 use Sitegeist\Chatterbox\Dto\HistoryResponse;
 use Sitegeist\Chatterbox\Dto\Message;
 use Sitegeist\Chatterbox\Dto\MessageCollection;
 use Sitegeist\Chatterbox\Dto\MessageId;
-use Sitegeist\Chatterbox\Dto\MetaData;
+use Sitegeist\Chatterbox\Dto\MetaDataCollection;
 use Sitegeist\Chatterbox\Dto\PostResponse;
 use Sitegeist\Chatterbox\Dto\StartChatResponse;
 use Sitegeist\Chatterbox\Dto\ThreadId;
@@ -53,9 +54,11 @@ class OpenApiChatController extends OpenApiController
 
         $responseMessage = Message::fromMessageRecord($messageResponses[$lastMessageKey]);
         $metadata = $assistant->getCollectedMetadata();
-        if ($metadata) {
-            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $responseMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
-            $responseMessage = $responseMessage->withMetadata(MetaData::fromArray($metadata));
+        if (!$metadata->isEmpty()) {
+            $cacheId = $this->cacheId($assistantId, $threadId, $responseMessage->id);
+            $cacheTag = $this->cacheTag($assistantId, $threadId);
+            $this->metaDataCache?->set($cacheId, $metadata, [$cacheTag], 3600);
+            $responseMessage = $responseMessage->withAddedMetadata(MetaDataCollection::createFromDomainMetaDataCollection($metadata));
         }
 
         return new StartChatResponse($threadId, $responseMessage);
@@ -65,13 +68,15 @@ class OpenApiChatController extends OpenApiController
     {
         $assistant = $this->getAssistantFromAssistantId($assistantId);
         $threadItems = $assistant->readThread($threadId->value);
-        $cachedMetadata = $this->metaDataCache ? $this->metaDataCache->getByTag($this->cacheTag($assistantId, $threadId)) : [];
+        $cacheTag = $this->cacheTag($assistantId, $threadId);
+        $cachedMetadata = $this->metaDataCache ? $this->metaDataCache->getByTag($cacheTag) : [];
         $messages = [];
         foreach ($threadItems as $threadItem) {
             $message = Message::fromMessageRecord($threadItem);
-            $metadata = $cachedMetadata[$this->cacheId($assistantId, $threadId, $message->id)] ?? null;
-            if ($metadata) {
-                $message->withMetadata($metadata);
+            $cacheId = $this->cacheId($assistantId, $threadId, $message->id);
+            $metadata = $cachedMetadata[$cacheId] ?? null;
+            if ($metadata instanceof DomainMetaDataCollection) {
+                $message = $message->withAddedMetadata(MetaDataCollection::createFromDomainMetaDataCollection($metadata));
             }
             $messages[] = $message;
         }
@@ -92,13 +97,16 @@ class OpenApiChatController extends OpenApiController
         $responseMessage = Message::fromMessageRecord($messageResponses[$lastMessageKey]);
 
         $metadata = $assistant->getCollectedMetadata();
-        if ($metadata) {
-            $this->metaDataCache?->set($this->cacheId($assistantId, $threadId, $responseMessage->id), $metadata, [$this->cacheTag($assistantId, $threadId)], 3600);
-            $responseMessage = $responseMessage->withMetadata($metadata);
+        if (!$metadata->isEmpty()) {
+            $cacheId = $this->cacheId($assistantId, $threadId, $responseMessage->id);
+            $cacheTag = $this->cacheTag($assistantId, $threadId);
+            $this->metaDataCache?->set($cacheId, $metadata, [$cacheTag], 3600);
+            $responseMessage = $responseMessage->withAddedMetadata(MetaDataCollection::createFromDomainMetaDataCollection($metadata));
         }
 
         return new PostResponse($responseMessage);
     }
+
 
 
     private function cacheTag(AssistantId $assistantId, ThreadId $threadId): string
