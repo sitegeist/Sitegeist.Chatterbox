@@ -10,23 +10,23 @@ use Traversable;
 class ToolCollection implements \IteratorAggregate
 {
     /**
-     * @var ToolContract[]
+     * @var array<int,ToolContract|RemoteMCPServerTool>
      */
     public readonly array $items;
-    public function __construct(ToolContract ...$tools)
+    public function __construct(ToolContract|RemoteMCPServerTool ...$tools)
     {
         $this->items = $tools;
     }
 
     /**
-     * @return Traversable<int, ToolContract>
+     * @return Traversable<int, ToolContract|RemoteMCPServerTool>
      */
     public function getIterator(): Traversable
     {
         yield from $this->items;
     }
 
-    public function getToolByName(string $toolName): ?ToolContract
+    public function getToolByName(string $toolName): ToolContract|RemoteMCPServerTool|null
     {
         foreach ($this->items as $tool) {
             if ($tool->getName() === $toolName) {

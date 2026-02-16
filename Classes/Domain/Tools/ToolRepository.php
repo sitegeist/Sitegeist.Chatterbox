@@ -2,11 +2,6 @@
 
 namespace Sitegeist\Chatterbox\Domain\Tools;
 
-use Neos\Flow\Persistence\Doctrine\ConnectionFactory;
-use Psr\Log\LoggerInterface;
-use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
-use Sitegeist\Flow\OpenAiClientFactory\OpenAiClientFactory;
-
 class ToolRepository
 {
     /**
@@ -31,17 +26,20 @@ class ToolRepository
         return new ToolCollection(...array_filter($tools));
     }
 
-    public function findByName(string $name): ?ToolContract
+    public function findByName(string $name): ToolContract|RemoteMCPServerTool|null
     {
         return $this->instantiateTool($name);
     }
 
-    private function instantiateTool(string $name): ?ToolContract
+    private function instantiateTool(string $name): ToolContract|RemoteMCPServerTool|null
     {
         if (!array_key_exists($name, $this->toolConfig)) {
             return null;
         }
         $class = $this->toolConfig[$name]['className'];
+        if ($class === RemoteMCPServerTool::class) {
+            return RemoteMCPServerTool::fromArray($name, $this->toolConfig[$name]['options']);
+        }
         $description = $this->toolConfig[$name]['description'] ?? $name;
         $options = $this->toolConfig[$name]['options'] ?? [];
         if (class_exists($class) && is_a($class, ToolContract::class, true)) {

@@ -21,6 +21,7 @@ use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
+use Sitegeist\Chatterbox\Domain\Tools\RemoteMCPServerTool;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
@@ -154,7 +155,7 @@ final class Assistant
                 $toolCall = array_shift($pendingToolCalls);
                 $this->logger?->info("chatbot tool calls", $toolCall->toArray());
                 $toolInstance = $this->tools->getToolByName($toolCall->name);
-                if ($toolInstance == null) {
+                if (!$toolInstance instanceof ToolContract) {
                     continue;
                 }
                 $toolResult = $toolInstance->execute(json_decode($toolCall->arguments, true));
@@ -206,16 +207,20 @@ final class Assistant
     {
         $tools = [];
         foreach ($this->tools as $tool) {
-            $spec = [
-                'type' => 'function',
-                'name' => $tool->getName(),
-                'description' => $tool->getDescription(),
-            ];
-            $parameters = $tool->getParameterSchema();
-            if ($parameters !== null) {
-                $spec[ 'parameters' ] = $parameters;
+            if ($tool instanceof ToolContract) {
+                $spec = [
+                    'type' => 'function',
+                    'name' => $tool->getName(),
+                    'description' => $tool->getDescription(),
+                ];
+                $parameters = $tool->getParameterSchema();
+                if ($parameters !== null) {
+                    $spec[ 'parameters' ] = $parameters;
+                }
+                $tools[] = $spec;
+            } elseif ($tool instanceof RemoteMCPServerTool) {
+                $tools[] = $tool->getSchema();
             }
-            $tools[] = $spec;
         }
 
         return $tools;
