@@ -77,7 +77,11 @@ class AssistantModuleController extends AbstractModuleController
     public function editAction(AssistantEntity $assistant): void
     {
         $assistantObject = $this->assistantFactory->createAssistantFromAssistantEntity($assistant);
-        $account = $this->accountRepository->findById($assistant->getAccount());
+        try {
+            $account = $this->accountRepository->findById($assistant->getAccount());
+        } catch (\Exception $e) {
+            $account = null;
+        }
         if ($account && $account->models !== null) {
             $availableModels = ModelCollection::fromStringArray($account->models);
         } else {

@@ -23,6 +23,9 @@ final class ModelCollection implements \IteratorAggregate
         $this->members = $models;
     }
 
+    /**
+     * @param string[] $models
+     */
     public static function fromStringArray(array $models): static
     {
         return new static(
