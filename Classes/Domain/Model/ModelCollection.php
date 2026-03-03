@@ -23,14 +23,24 @@ final class ModelCollection implements \IteratorAggregate
         $this->members = $models;
     }
 
-    public static function fromApiResponse(ListResponse $data): static
+    public static function fromStringArray(array $models): static
     {
         return new static(
             ... array_map(
-                fn(RetrieveResponse $item) => Model::fromApiResponse($item),
-                $data->data
+                fn(string $item) => new Model($item, $item, null),
+                $models
             )
         );
+    }
+
+    public static function fromApiResponse(ListResponse $data): static
+    {
+        $models = array_map(
+            fn(RetrieveResponse $item) => Model::fromApiResponse($item),
+            $data->data
+        );
+        usort($models, fn(Model $a, Model $b) => $a->id <=> $b->id);
+        return new static(...$models);
     }
 
     /**
