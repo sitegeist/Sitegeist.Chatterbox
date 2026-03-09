@@ -6,8 +6,11 @@ namespace Sitegeist\Chatterbox\DataSources;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\Flow\Persistence\Doctrine\PersistenceManager;
 use Neos\Neos\Service\DataSource\AbstractDataSource;
 use OpenAI\Responses\Assistants\AssistantResponse;
+use Sitegeist\Chatterbox\Domain\AssistantEntity;
+use Sitegeist\Chatterbox\Domain\AssistantEntityRepository;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 
@@ -16,7 +19,8 @@ class AssistantIdDataSource extends AbstractDataSource
     protected static $identifier = 'Sitegeist.Chatterbox:AssistantId';
 
     public function __construct(
-        private readonly OrganizationRepository $organizationRepository,
+        private readonly AssistantEntityRepository $assistantEntityRepository,
+        private readonly PersistenceManager $persistenceManager,
     ) {
     }
 
@@ -27,17 +31,14 @@ class AssistantIdDataSource extends AbstractDataSource
      */
     public function getData(NodeInterface $node = null, array $arguments = [])
     {
-        $organizationId = $arguments['organizationId'] ?? null;
-        if (!$organizationId) {
-            return [];
-        }
-
-        $organization = $this->organizationRepository->findById($organizationId);
-        $assistants = $organization->assistantDepartment->findAllRecords();
+        $assistants = $this->assistantEntityRepository->findAll();
 
         return array_map(
-            fn(AssistantRecord $item) => ['value' => $item->id, 'label' => $item->name],
-            iterator_to_array($assistants->getIterator())
+            fn(AssistantEntity $item) => [
+                'value' => $this->persistenceManager->getIdentifierByObject($item),
+                'label' => $item->getName(),
+            ],
+            $assistants->toArray()
         );
     }
 }

@@ -36,5 +36,8 @@ jobs:
             - name: Set Neos Version
               run: composer require neos/neos ^${{ matrix.neos-versions }} --no-progress --no-interaction
 
+            - name: Run Linters
+              run: composer lint
+
             - name: Run Tests
               run: composer test

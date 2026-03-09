@@ -7,30 +7,29 @@ namespace Sitegeist\Chatterbox\Command;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
+use Sitegeist\Chatterbox\Domain\Tools\ToolRepository;
 use Symfony\Component\Yaml\Yaml;
 
 #[Flow\Scope('singleton')]
 class ToolCommandController extends CommandController
 {
     public function __construct(
-        private readonly OrganizationRepository $organizationRepository,
+        private readonly ToolRepository $toolRepository,
     ) {
         parent::__construct();
     }
 
-    public function listCommand(string $organizationId): void
+    public function listCommand(): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
-        $tools = $organization->toolbox->findAll();
+        $tools = $this->toolRepository->findAll();
         foreach ($tools as $tool) {
             $this->outputLine($tool->getName());
         }
     }
 
-    public function showCommand(string $organizationId, string $toolName,): void
+    public function showCommand(string $toolName,): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
-        $tool = $organization->toolbox->findByName($toolName);
+        $tool = $this->toolRepository->findByName($toolName);
         if (!$tool) {
             $this->outputLine('no such tool');
             $this->quit();
@@ -44,10 +43,9 @@ class ToolCommandController extends CommandController
         }
     }
 
-    public function executeCommand(string $organizationId, string $toolName, string $parameters): void
+    public function executeCommand(string $toolName, string $parameters): void
     {
-        $organization = $this->organizationRepository->findById($organizationId);
-        $tool = $organization->toolbox->findByName($toolName);
+        $tool = $this->toolRepository->findByName($toolName);
         if (!$tool) {
             $this->outputLine('no such tool');
             $this->quit();

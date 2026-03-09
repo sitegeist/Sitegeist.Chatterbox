@@ -4,23 +4,24 @@ prototype(Sitegeist.Chatterbox:Assistant.New) < prototype(Neos.Fusion:Component)
         <Neos.Fusion.Form:Form
             form.target.action="create"
         >
-            <Neos.Fusion.Form:Hidden field.name="organizationId" field.value={organizationId} />
+            <div class="neos-control-group">
+                <label class="neos-control-label" >Account</label>
+                <div class="neos-controls neos-controls-row">
+                    <Neos.Fusion.Form:Select field.name="account">
+                        <Neos.Fusion:Loop items={availableAccounts} itemName="account">
+                        <Neos.Fusion.Form:Select.Option option.value={account.name}>{account.name}</Neos.Fusion.Form:Select.Option>
+                        </Neos.Fusion:Loop>
+                    </Neos.Fusion.Form:Select>
+                </div>
+            </div>
+
             <div class="neos-control-group">
                 <label class="neos-control-label" >Name</label>
                 <div class="neos-controls neos-controls-row">
                     <Neos.Fusion.Form:Input field.name="name" />
                 </div>
             </div>
-            <div class="neos-control-group">
-                <label class="neos-control-label" >Model</label>
-                <div class="neos-controls neos-controls-row">
-                    <Neos.Fusion.Form:Select field.name="model">
-                        <Neos.Fusion:Loop items={models} itemName="model">
-                            <Neos.Fusion.Form:Select.Option option.value={model.id}>{model.name}</Neos.Fusion.Form:Select.Option>
-                        </Neos.Fusion:Loop>
-                    </Neos.Fusion.Form:Select>
-                </div>
-            </div>
+
             <div class="neos-footer">
                 <Neos.Fusion:Link.Action href.action="index" class="neos-button" >Back</Neos.Fusion:Link.Action>
                 <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">Create</Neos.Fusion.Form:Button>

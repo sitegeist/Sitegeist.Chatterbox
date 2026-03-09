@@ -8,12 +8,19 @@ use Doctrine\DBAL\Connection as DatabaseConnection;
 use Neos\Utility\Arrays;
 use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Responses\Conversations\ConversationItem;
+use OpenAI\Responses\Responses\Output\OutputFunctionToolCall;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
 use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutputs;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReference;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
+use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
+use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
+use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
@@ -26,13 +33,12 @@ final class Assistant
     private array $collectedMetadata = [];
 
     public function __construct(
-        private readonly string $id,
+        private readonly AssistantEntity $entity,
         private readonly ToolCollection $tools,
         private readonly InstructionCollection $instructions,
         private readonly SourceOfKnowledgeCollection $sourcesOfKnowledge,
-        private readonly OrganizationDiscriminator $organizationDiscriminator,
         private readonly OpenAiClientContract $client,
-        private readonly DatabaseConnection $connection,
+        private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
         private readonly ?LoggerInterface $logger,
     ) {
     }
@@ -47,84 +53,220 @@ final class Assistant
 
     public function startThread(): string
     {
-        $threadResponse = $this->client->threads()->create([]);
-        return $threadResponse->id;
+        $items = [
+            [
+                'type' => 'message',
+                'role' => 'system',
+                'content' => $this->instructions->getContent()
+            ]
+        ];
+        $conversationResponse = $this->client->conversations()->create(['items' => $items]);
+        return $conversationResponse->id;
     }
 
     public function continueThread(string $threadId, string $message, ?string $additionalInstructions = null): void
     {
-        $this->client->threads()->messages()->create(
-            $threadId,
+        $functionTools = $this->prepareFunctionTools();
+        $fileSearchTools = $this->prepareFileSearchTools();
+        $instructions = $this->prepareInstructions($additionalInstructions);
+
+        $input = [
             [
+                'type' => 'message',
                 'role' => 'user',
                 'content' => $message
             ]
-        );
+        ];
 
-        $runResponse = $this->client->threads()->runs()->create(
-            $threadId,
-            array_filter([
-                'assistant_id' => $this->id,
-                'additional_instructions' => $this->instructions->getContent() . ($additionalInstructions ? " \n" . $additionalInstructions : '')
-            ])
-        );
-        $this->completeRun($threadId, $runResponse->id);
+        $responseParameters = [
+            'conversation' => $threadId,
+            'input' => $input,
+            'model' => $this->entity->getModel(),
+            'instructions' => $instructions,
+            'tools' => array_merge($functionTools, $fileSearchTools),
+            'include' => count($fileSearchTools) > 0 ? ['file_search_call.results'] : []
+        ];
+
+        $this->logger?->info("thread create response", $responseParameters);
+
+        $createResponse = $this->client->responses()->create($responseParameters);
+
+
+        $this->completeRun($threadId, $createResponse->id);
     }
 
     /**
      * @return array<MessageRecord>
      */
-    public function readThread(string $threadId): array
+    public function readThread(string $threadId, bool $allowSystemMessages = false): array
     {
-        $threadMessageResponses = $this->client->threads()->messages()->list($threadId)->data;
+        $conversationItems = $this->client->conversations()->items()->list($threadId)->data;
 
-        $threadMessageResponsesFiltered = array_filter(
-            $threadMessageResponses,
-            fn (ThreadMessageResponse $threadMessageResponse)
-                => ($threadMessageResponse->metadata['role'] ?? null) !== 'system'
-        );
-
-        return array_reverse(
-            array_map(
-                fn (ThreadMessageResponse $threadMessageResponse) => MessageRecord::fromThreadMessageResponse(
-                    $threadMessageResponse,
-                    $this->sourcesOfKnowledge,
-                    $this->organizationDiscriminator,
-                    $this->connection
-                ),
-                $threadMessageResponsesFiltered
+        return array_values(
+            array_filter(
+                array_reverse(
+                    array_map(
+                        fn (ConversationItem $conversationItem) => MessageRecord::tryFromConversationItem(
+                            $conversationItem,
+                            $this->sourcesOfKnowledge,
+                            $allowSystemMessages
+                        ),
+                        $conversationItems
+                    )
+                )
             )
         );
     }
 
-    private function completeRun(string $threadId, string $runId): void
+    public function readLastMessageFromThread(string $threadId): ?MessageRecord
     {
-        $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
-        while ($threadRunResponse->status !== 'completed' && $threadRunResponse->status !== 'failed') {
-            if ($threadRunResponse->status === 'requires_action') {
-                $submitToolOutputs = $threadRunResponse->requiredAction?->submitToolOutputs;
-                if ($submitToolOutputs instanceof ThreadRunResponseRequiredActionSubmitToolOutputs) {
-                    $this->logger?->info("chatbot tool calls", $submitToolOutputs->toArray());
-                    $toolOutputs = [];
-                    foreach ($submitToolOutputs->toolCalls as $requiredToolCall) {
-                        if ($requiredToolCall instanceof ThreadRunResponseRequiredActionFunctionToolCall) {
-                            $toolInstance = $this->tools->getToolByName($requiredToolCall->function->name);
-                            if ($toolInstance instanceof ToolContract) {
-                                $toolResult = $toolInstance->execute(json_decode($requiredToolCall->function->arguments, true));
-                                $toolOutputs["tool_outputs"][] = ['tool_call_id' => $requiredToolCall->id, 'output' => json_encode($toolResult->getData())];
-                                $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
-                            }
-                        }
-                    }
-                    $this->logger?->info("chatbot tool submit", $toolOutputs);
-                    if (!empty($toolOutputs)) {
-                        $this->client->threads()->runs()->submitToolOutputs($threadId, $runId, $toolOutputs);
-                    }
-                }
-            }
-            sleep(1);
-            $threadRunResponse = $this->client->threads()->runs()->retrieve($threadId, $runId);
+        $lastId = $this->client->conversations()->items()->list($threadId)->lastId;
+        if ($lastId) {
+            $conversationItem = $this->client->conversations()->items()->retrieve($threadId, $lastId);
+            return MessageRecord::tryFromConversationItem(
+                $conversationItem,
+                $this->sourcesOfKnowledge
+            );
         }
-        $this->logger?->info("thread run response", $threadRunResponse->toArray());
+        return null;
+    }
+
+    private function completeRun(string $threadId, string $responseId): void
+    {
+        $lastResponseId = $responseId;
+        $lastResponse = $this->client->responses()->retrieve($lastResponseId);
+
+        // wait for processing
+        while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
+            sleep(10);
+            $lastResponse = $this->client->responses()->retrieve($lastResponseId);
+        }
+
+        /**
+         * @var OutputFunctionToolCall[] $pendingToolCalls
+         */
+        $pendingToolCalls = array_filter($lastResponse->output, fn($thing) => ($thing instanceof OutputFunctionToolCall));
+
+        while (count($pendingToolCalls) > 0) {
+            // perform requested tool calls
+            $toolResultMessages = [];
+            while (count($pendingToolCalls) > 0) {
+                $toolCall = array_shift($pendingToolCalls);
+                $this->logger?->info("chatbot tool calls", $toolCall->toArray());
+                $toolInstance = $this->tools->getToolByName($toolCall->name);
+                if ($toolInstance == null) {
+                    continue;
+                }
+                $toolResult = $toolInstance->execute(json_decode($toolCall->arguments, true));
+                $toolResultMessages[] = [
+                    'type' => 'function_call_output',
+                    'call_id' => $toolCall->callId,
+                    'output' => json_encode($toolResult->getData())];
+                $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
+            }
+
+            if (empty($toolResultMessages)) {
+                break;
+            }
+
+            // submit tool results and wait for final processing
+            $this->logger?->info("chatbot tool submit", $toolResultMessages);
+            $createResponse = $this->client->responses()->create([
+                'conversation' => $threadId,
+                'model' => $this->entity->getModel(),
+                'instructions' => $this->prepareInstructions(),
+                'tools' => $this->prepareFunctionTools(),
+                'input' => $toolResultMessages
+            ]);
+            $lastResponseId = $createResponse->id;
+            $lastResponse = $this->client->responses()->retrieve($lastResponseId);
+
+            while ($lastResponse->status !== 'completed' && $lastResponse->status !== 'failed') {
+                sleep(10);
+                $lastResponse = $this->client->responses()->retrieve($lastResponseId);
+            }
+
+            // check for consecutive tool calls in the last response
+            $pendingToolCalls = array_filter($lastResponse->output, fn($thing) => ($thing instanceof OutputFunctionToolCall));
+        }
+
+        $this->logger?->info("thread run response", $lastResponse->toArray());
+    }
+
+    public function getAvailableModels(): ModelCollection
+    {
+        return ModelCollection::fromApiResponse($this->client->models()->list());
+    }
+
+    /**
+     * Prepare tools for beeing sent to the open ai client
+     * @return array<int, array{type:string, name: string, description: string, parameters ?: mixed[]|null}>
+     */
+    protected function prepareFunctionTools(): array
+    {
+        $tools = [];
+        foreach ($this->tools as $tool) {
+            $spec = [
+                'type' => 'function',
+                'name' => $tool->getName(),
+                'description' => $tool->getDescription(),
+            ];
+            $parameters = $tool->getParameterSchema();
+            if ($parameters !== null) {
+                $spec[ 'parameters' ] = $parameters;
+            }
+            $tools[] = $spec;
+        }
+
+        return $tools;
+    }
+
+
+    /**
+     * Prepare knowledge for beeing sent to the open ai client
+     *
+     * @return array<int, array{type:string, vector_store_ids: string[]}>
+     */
+    protected function prepareFileSearchTools(): array
+    {
+        $tools = [];
+
+        $vectorStoreIds = [];
+        foreach ($this->sourcesOfKnowledge as $sourceOfKnowledge) {
+            $reference = $this->vectorStoreReferenceRepository->findOneByAssistantAndKnowledgeSourceIdentifier(
+                $this->entity->getAccount(),
+                $sourceOfKnowledge->getName()->value,
+            );
+            if ($reference instanceof VectorStoreReference) {
+                $vectorStoreIds[] = $reference->vectorStoreId;
+            }
+        }
+
+        if (count($vectorStoreIds) > 0) {
+            $tools[] = [
+                'type' => 'file_search',
+                'vector_store_ids' => $vectorStoreIds
+            ];
+        }
+
+        return $tools;
+    }
+
+    /**
+     * @param string|null $additionalInstructions
+     * @return string
+     */
+    protected function prepareInstructions(?string $additionalInstructions = null): string
+    {
+        $instructions = sprintf('The current date and time is %s', (new \DateTimeImmutable())->format('D Y-m-d H:i'));
+        if ($additionalInstructions !== null) {
+            $instructions .= PHP_EOL . $additionalInstructions;
+        }
+        return $instructions;
+    }
+
+    public function getAccount(): string
+    {
+        return $this->entity->getAccount();
     }
 }

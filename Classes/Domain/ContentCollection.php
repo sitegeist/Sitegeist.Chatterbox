@@ -5,8 +5,16 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain;
 
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Actions\Responses\OutputText;
+use OpenAI\Responses\Conversations\ConversationItem;
+use OpenAI\Responses\Conversations\Objects\Message;
+use OpenAI\Responses\Responses\Input\InputMessageContentInputText as InputText;
+use OpenAI\Responses\Responses\Output\OutputMessageContentOutputText;
+use OpenAI\Responses\Responses\Output\OutputMessageContentOutputTextAnnotationsFileCitation;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
+use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextAnnotationFileCitation;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
+use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 
 /**
  * @implements \IteratorAggregate<ContentInterface>
@@ -30,15 +38,16 @@ final class ContentCollection implements \IteratorAggregate, \Countable
         return new self();
     }
 
-    public static function fromThreadMessageResponse(ThreadMessageResponse $response, UnresolvedQuotationCollection $quotationStubs): self
+    public static function fromMessageItem(Message $message, SourceOfKnowledgeCollection $sourceOfKnowledgeCollection): self
     {
         $contents = [];
-        foreach ($response->content as $textOrImage) {
-            if ($textOrImage instanceof ThreadMessageResponseContentTextObject) {
-                $contents[] = ContentText::fromThreadMessageResponseContentTextObject($textOrImage, $quotationStubs);
+        foreach ($message->content as $contentItem) {
+            if ($contentItem instanceof InputText) {
+                $contents[] = ContentText::createFromInputText($contentItem);
+            } elseif ($contentItem instanceof OutputMessageContentOutputText) {
+                $contents[] = ContentText::createFromOutputText($contentItem, $sourceOfKnowledgeCollection);
             }
         }
-
         return new self(...$contents);
     }
 

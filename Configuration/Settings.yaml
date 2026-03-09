@@ -1,15 +1,11 @@
 Sitegeist:
   Chatterbox:
     enableLogging: false
-    organizations: []
-    # orgId:
-    #   discriminator: 'my-descriminator'
-    #   accountId: 'abc'
-    #   label: 'Neos Community'
-    #    tools: []
-    #    knowledge: []
-    #    instructions: []
-    #    messageEditors: []
+    context: '%env:FLOW_CONTEXT%'
+
+    #tools: [ ]
+    #knowledge: []
+    #instructions: []
 
 Neos:
   Flow:

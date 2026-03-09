@@ -7,15 +7,24 @@ namespace Sitegeist\Chatterbox\Domain\Instruction;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 
-class Manual
+class InstructionRepository
 {
     /**
-     * @param array<string,array{className:string, options:array<string,mixed>}> $instructionConfig
+     * @var array<string,array{className:string, options:array<string,mixed>}> $instructionConfig
      */
+    private array $instructionConfig = [];
+
     public function __construct(
         private readonly ObjectManagerInterface $container,
-        private readonly array $instructionConfig
     ) {
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public function injectSettings(array $settings): void
+    {
+        $this->instructionConfig = $settings['instructions'] ?? [];
     }
 
     public function findAll(): InstructionCollection

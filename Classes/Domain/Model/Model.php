@@ -11,7 +11,7 @@ final class Model
     public function __construct(
         public readonly string $id,
         public readonly string $name,
-        public readonly string $ownedBy,
+        public readonly ?string $ownedBy,
     ) {
     }
 

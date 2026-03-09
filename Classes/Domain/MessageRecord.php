@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Sitegeist\Chatterbox\Domain;
 
 use Doctrine\DBAL\Connection as DatabaseConnection;
+use OpenAI\Responses\Conversations\ConversationItem;
+use OpenAI\Responses\Conversations\Objects\Message;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
 use Neos\Flow\Annotations as Flow;
 use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentImageFileObject;
@@ -21,30 +23,29 @@ final class MessageRecord
         public readonly string $id,
         public readonly string $role,
         public readonly ContentCollection $content,
-        public readonly QuotationCollection $quotations,
         public readonly array $metadata,
     ) {
     }
 
-    public static function fromThreadMessageResponse(
-        ThreadMessageResponse $response,
+    public static function tryFromConversationItem(
+        ConversationItem $item,
         SourceOfKnowledgeCollection $sourceOfKnowledgeCollection,
-        OrganizationDiscriminator $organizationDiscriminator,
-        DatabaseConnection $connection
-    ): self {
-        $resolvedAndUnresolvedQuotations = $sourceOfKnowledgeCollection->resolveQuotations(
-            $response,
-            $organizationDiscriminator,
-            $connection
-        );
-        return new self(
-            $response->id,
-            $response->role,
-            ContentCollection::fromThreadMessageResponse($response, $resolvedAndUnresolvedQuotations->unresolvedQuotations),
-            $resolvedAndUnresolvedQuotations->resolvedQuotations,
-            $response->metadata
-        );
+        bool $allowSystemMessages = false
+    ): ?self {
+        $subject = $item->item;
+        if ($subject instanceof Message) {
+            if ($allowSystemMessages === false && in_array($subject->role, ['system', 'developer'])) {
+                return null;
+            }
+            return new self(
+                $subject->id,
+                $subject->role,
+                ContentCollection::fromMessageItem($subject, $sourceOfKnowledgeCollection),
+                []
+            );
+        } return null;
     }
+
 
     /**
      * @return array{bot:boolean, message: array<int, ThreadMessageResponseContentImageFileObject|ThreadMessageResponseContentTextObject>, quotations: array<mixed>}
@@ -55,7 +56,8 @@ final class MessageRecord
             'id' => $this->id,
             'bot' => $this->role !== 'user',
             'message' => $this->content->toApiArray(),
-            'quotations' => $this->quotations->toApiArray()
+            /** @deprecated */
+            'quotations' => []
         ];
     }
 }
