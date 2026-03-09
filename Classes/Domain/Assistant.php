@@ -143,9 +143,23 @@ final class Assistant
                 $this->logger?->info("chatbot tool calls", $toolCall->toArray());
                 $toolInstance = $this->tools->getToolByName($toolCall->name);
                 if ($toolInstance == null) {
+                    $this->logger?->info("chatbot tool was missing", [$toolCall->name]);
+                    $toolResultMessages[] = [
+                        'type' => 'function_call_output',
+                        'call_id' => $toolCall->callId,
+                        'output' => json_encode(['success' => false, 'message' => 'tool ' . $toolCall->name . ' was missing'])];
                     continue;
                 }
-                $toolResult = $toolInstance->execute(json_decode($toolCall->arguments, true));
+                try {
+                    $toolResult = $toolInstance->execute(json_decode($toolCall->arguments, true));
+                } catch (\Exception $e) {
+                    $this->logger?->info("chatbot tool " . $toolCall->name . " failed missing", [$toolCall->name, $toolCall->arguments, $e->getMessage()]);
+                    $toolResultMessages[] = [
+                        'type' => 'function_call_output',
+                        'call_id' => $toolCall->callId,
+                        'output' => json_encode(['success' => false, 'message' => 'tool ' . $toolCall->name . ' was missing'])];
+                    continue;
+                }
                 $toolResultMessages[] = [
                     'type' => 'function_call_output',
                     'call_id' => $toolCall->callId,
