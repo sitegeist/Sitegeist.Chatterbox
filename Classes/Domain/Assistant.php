@@ -167,10 +167,6 @@ final class Assistant
                 $this->collectedMetadata = $this->collectedMetadata->add($toolResult->getMetadata());
             }
 
-            if (empty($toolResultMessages)) {
-                break;
-            }
-
             // submit tool results and wait for final processing
             $this->logger?->info("chatbot tool submit", $toolResultMessages);
             $createResponse = $this->client->responses()->create([
