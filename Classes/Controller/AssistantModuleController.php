@@ -18,7 +18,9 @@ use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeRepository;
 use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 use Sitegeist\Chatterbox\Domain\Tools\ToolRepository;
+use Sitegeist\Chatterbox\Dto\MetaDataCollection;
 use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
+use Sitegeist\SchemeOnYou\Domain\Schema\SchemaNormalizer;
 
 #[Flow\Scope('singleton')]
 class AssistantModuleController extends AbstractModuleController
@@ -145,7 +147,7 @@ class AssistantModuleController extends AbstractModuleController
                 'messages' => $assistantObject->readThread($threadId),
                 'threadId' => $threadId,
                 'assistant' => $assistant,
-                'metadata' => empty($metadata) ? null : $metadata
+                'metadata' => SchemaNormalizer::normalizeValue(MetaDataCollection::createFromDomainMetaDataCollection($metadata))
             ]);
         } catch (\Exception $e) {
             $this->addFlashMessage('API-Error. I will reload.', 'Something went wrong', Message::SEVERITY_WARNING);

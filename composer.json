@@ -1,50 +1,66 @@
 {
-    "description": "",
-    "type": "neos-package",
-    "name": "sitegeist/chatterbox",
-    "license": "GPL-3.0-or-later",
-    "require": {
-        "php": "^8.2",
-        "neos/neos": "*",
-        "sitegeist/flow-openaiclientfactory": "dev-task/supportAzure as 0.17.0",
-        "symfony/http-client": "^6.4",
-        "league/commonmark": "~2.4",
-        "league/html-to-markdown": "^5.0"
-    },
-    "require-dev": {
-        "phpstan/phpstan": "~1.10.50",
-        "squizlabs/php_codesniffer": "~3.8",
-        "phpunit/phpunit": "~9.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Sitegeist\\Chatterbox\\": "Classes/"
-        }
-    },
-    "extra": {
-        "neos": {
-            "package-key": "Sitegeist.Chatterbox"
-        }
-    },
-    "scripts": {
-        "fix": ["phpcbf --standard=PSR12 Classes"],
-        "test:style-fix": ["phpcbf --standard=PSR12 Classes"],
-        "test:style": ["phpcs --standard=PSR12 -n Classes"],
-        "test:stan": ["phpstan analyse --level 8 Classes"],
-        "test:unit": [],
-        "lint": ["composer install", "composer test:style", "composer test:stan"],
-        "test": ["composer install", "composer test:unit"]
-    },
-    "config": {
-        "allow-plugins": {
-            "neos/composer-plugin": true,
-            "php-http/discovery": true
-        }
-    },
-    "repositories": {
-        "clientFactory": {
-            "type": "vcs",
-            "url": "https://github.com/sitegeist/Sitegeist.Flow.OpenAiClientFactory.git"
-        }
-    }
+	"description": "",
+	"type": "neos-package",
+	"name": "sitegeist/chatterbox",
+	"license": "GPL-3.0-or-later",
+	"require": {
+		"php": "^8.2",
+		"neos/neos": "*",
+		"sitegeist/flow-openaiclientfactory": "^0.19.0",
+		"sitegeist/schemeonyou": "^1.4.0",
+		"symfony/http-client": "^6.4",
+		"league/commonmark": "~2.4",
+		"league/html-to-markdown": "^5.0"
+	},
+	"require-dev": {
+		"phpstan/phpstan": "~1.10.50",
+		"squizlabs/php_codesniffer": "~3.8",
+		"phpunit/phpunit": "~9.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Sitegeist\\Chatterbox\\": "Classes/"
+		}
+	},
+	"extra": {
+		"neos": {
+			"package-key": "Sitegeist.Chatterbox"
+		}
+	},
+	"scripts": {
+		"fix": [
+			"phpcbf --standard=PSR12 Classes"
+		],
+		"test:style-fix": [
+			"phpcbf --standard=PSR12 Classes"
+		],
+		"test:style": [
+			"phpcs --standard=PSR12 -n Classes"
+		],
+		"test:stan": [
+			"phpstan analyse --level 8 Classes"
+		],
+		"test:unit": [],
+		"lint": [
+			"composer install",
+			"composer test:style",
+			"composer test:stan"
+		],
+		"test": [
+			"composer install",
+			"composer test:unit"
+		]
+	},
+	"config": {
+		"allow-plugins": {
+			"neos/composer-plugin": true,
+			"php-http/discovery": true
+		}
+	},
+	"repositories": {
+		"clientFactory": {
+			"type": "vcs",
+			"url": "https://github.com/sitegeist/Sitegeist.Flow.OpenAiClientFactory.git"
+		}
+	}
 }

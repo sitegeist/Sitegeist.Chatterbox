@@ -4,33 +4,23 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
-use Doctrine\DBAL\Connection as DatabaseConnection;
-use Neos\Utility\Arrays;
-use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use Neos\Flow\Annotations as Flow;
+use OpenAI\Contracts\ClientContract as OpenAiClientContract;
 use OpenAI\Responses\Conversations\ConversationItem;
 use OpenAI\Responses\Responses\Output\OutputFunctionToolCall;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
-use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
-use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionSubmitToolOutputs;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReference;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
-use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
 use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 use Sitegeist\Chatterbox\Domain\Tools\ToolCollection;
-use Sitegeist\Chatterbox\Domain\Tools\ToolContract;
 
 #[Flow\Proxy(false)]
 final class Assistant
 {
-    /**
-     * @var array<int, mixed>
-     */
-    private array $collectedMetadata = [];
+    private MetaDataCollection $collectedMetadata;
 
     public function __construct(
         private readonly AssistantEntity $entity,
@@ -41,12 +31,10 @@ final class Assistant
         private readonly VectorStoreReferenceRepository $vectorStoreReferenceRepository,
         private readonly ?LoggerInterface $logger,
     ) {
+        $this->collectedMetadata = MetaDataCollection::createEmpty();
     }
 
-    /**
-     * @return array<int,mixed>
-     */
-    public function getCollectedMetadata(): array
+    public function getCollectedMetadata(): MetaDataCollection
     {
         return $this->collectedMetadata;
     }
@@ -155,18 +143,28 @@ final class Assistant
                 $this->logger?->info("chatbot tool calls", $toolCall->toArray());
                 $toolInstance = $this->tools->getToolByName($toolCall->name);
                 if ($toolInstance == null) {
+                    $this->logger?->info("chatbot tool was missing", [$toolCall->name]);
+                    $toolResultMessages[] = [
+                        'type' => 'function_call_output',
+                        'call_id' => $toolCall->callId,
+                        'output' => json_encode(['success' => false, 'message' => 'tool ' . $toolCall->name . ' was missing'])];
                     continue;
                 }
-                $toolResult = $toolInstance->execute(json_decode($toolCall->arguments, true));
+                try {
+                    $toolResult = $toolInstance->execute(json_decode($toolCall->arguments, true));
+                } catch (\Exception $e) {
+                    $this->logger?->info("chatbot tool " . $toolCall->name . " failed missing", [$toolCall->name, $toolCall->arguments, $e->getMessage()]);
+                    $toolResultMessages[] = [
+                        'type' => 'function_call_output',
+                        'call_id' => $toolCall->callId,
+                        'output' => json_encode(['success' => false, 'message' => 'tool ' . $toolCall->name . ' was missing'])];
+                    continue;
+                }
                 $toolResultMessages[] = [
                     'type' => 'function_call_output',
                     'call_id' => $toolCall->callId,
                     'output' => json_encode($toolResult->getData())];
-                $this->collectedMetadata = Arrays::arrayMergeRecursiveOverrule($this->collectedMetadata, $toolResult->getMetadata());
-            }
-
-            if (empty($toolResultMessages)) {
-                break;
+                $this->collectedMetadata = $this->collectedMetadata->add($toolResult->getMetadata());
             }
 
             // submit tool results and wait for final processing

@@ -4,26 +4,19 @@ declare(strict_types=1);
 
 namespace Sitegeist\Chatterbox\Domain;
 
-use Doctrine\DBAL\Connection as DatabaseConnection;
+use Neos\Flow\Annotations as Flow;
 use OpenAI\Responses\Conversations\ConversationItem;
 use OpenAI\Responses\Conversations\Objects\Message;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponse;
-use Neos\Flow\Annotations as Flow;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentImageFileObject;
-use OpenAI\Responses\Threads\Messages\ThreadMessageResponseContentTextObject;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
 
 #[Flow\Proxy(false)]
 final class MessageRecord
 {
-    /**
-     * @param array<string, mixed> $metadata
-     */
     public function __construct(
         public readonly string $id,
         public readonly string $role,
         public readonly ContentCollection $content,
-        public readonly array $metadata,
+        public readonly MetaDataCollection $metadata,
     ) {
     }
 
@@ -41,23 +34,18 @@ final class MessageRecord
                 $subject->id,
                 $subject->role,
                 ContentCollection::fromMessageItem($subject, $sourceOfKnowledgeCollection),
-                []
+                new MetaDataCollection()
             );
         } return null;
     }
 
-
-    /**
-     * @return array{bot:boolean, message: array<int, ThreadMessageResponseContentImageFileObject|ThreadMessageResponseContentTextObject>, quotations: array<mixed>}
-     */
-    public function toApiArray(): array
+    public function withMetadata(MetaDataCollection $metadata): self
     {
-        return [
-            'id' => $this->id,
-            'bot' => $this->role !== 'user',
-            'message' => $this->content->toApiArray(),
-            /** @deprecated */
-            'quotations' => []
-        ];
+        return new self(
+            $this->id,
+            $this->role,
+            $this->content,
+            $this->metadata->add($metadata),
+        );
     }
 }
