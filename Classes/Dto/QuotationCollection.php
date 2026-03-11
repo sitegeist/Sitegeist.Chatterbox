@@ -23,10 +23,12 @@ readonly class QuotationCollection
 
     public static function fromDomainQuotationCollection(DomainQuotationCollection $domainQuotations): self
     {
-        $items = [];
+        // since there is no way to determine the reference position we ensure each domain is only shown once
+        // this may change once we have a proper definition for the index property and can link citations to text.
+        $itemsByUri = [];
         foreach ($domainQuotations as $domainQuotation) {
-            $items[] = Quotation::fromDomainQuotation($domainQuotation);
+            $itemsByUri[(string)$domainQuotation->isPartOf] = Quotation::fromDomainQuotation($domainQuotation);
         }
-        return new self(...$items);
+        return new self(...array_values($itemsByUri));
     }
 }
