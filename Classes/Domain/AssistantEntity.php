@@ -165,16 +165,25 @@ class AssistantEntity
         $this->instructionIdentifiers = $instructionIdentifiers;
     }
 
-    public function getReasoningEffort(): ?Effort
+    public function getReasoningEffort(): ?string
+    {
+        return $this->reasoningEffort;
+    }
+
+    public function setReasoningEffort(?string $reasoningEffort): void
+    {
+        // we create the enum to ensure only valid values are stored
+        $enum = Effort::from($reasoningEffort);
+        $this->reasoningEffort = $enum->value;
+    }
+
+    public function getReasoningEffortEnum(): ?Effort
     {
         return $this->reasoningEffort ? Effort::from($this->reasoningEffort) : null;
     }
 
-    public function setReasoningEffort(null|Effort|string $reasoningEffort): void
+    public function setReasoningEffortEnum(?Effort $reasoningEffort): void
     {
-        if ($reasoningEffort instanceof Effort) {
-            $reasoningEffort = $reasoningEffort->value;
-        }
-        $this->reasoningEffort = $reasoningEffort;
+        $this->reasoningEffort = $reasoningEffort->value;
     }
 }
