@@ -87,7 +87,11 @@ class AssistantModuleController extends AbstractModuleController
         if ($account && $account->models !== null) {
             $availableModels = ModelCollection::fromStringArray($account->models);
         } else {
-            $availableModels = $assistantObject->getAvailableModels();
+            try {
+                $availableModels = $assistantObject->getAvailableModels();
+            } catch (\Exception $e) {
+                $availableModels = new ModelCollection();
+            }
         }
         $this->view->assignMultiple([
             'availableAccounts' => $this->accountRepository->findAll(),
