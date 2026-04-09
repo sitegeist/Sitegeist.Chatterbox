@@ -46,6 +46,18 @@ prototype(Sitegeist.Chatterbox:Assistant.Edit) < prototype(Neos.Fusion:Component
                     </div>
 
                     <div class="neos-control-group">
+                        <label class="neos-control-label" >Reasoning</label>
+                        <div class="neos-controls neos-controls-row">
+                            <Neos.Fusion.Form:Select attributes.class="neos-span12" field.name="assistant[reasoningEffort]" >
+                                <Neos.Fusion.Form:Select.Option>auto</Neos.Fusion.Form:Select.Option>
+                                <Neos.Fusion:Loop items={['none', 'minimal', 'low', 'medium', 'high', 'xhigh']} itemName="reasoningOption">
+                                    <Neos.Fusion.Form:Select.Option option.value={reasoningOption}>{reasoningOption}</Neos.Fusion.Form:Select.Option>
+                                </Neos.Fusion:Loop>
+                            </Neos.Fusion.Form:Select>
+                        </div>
+                    </div>
+
+                    <div class="neos-control-group">
                         <label class="neos-control-label" >Account</label>
                         <div class="neos-controls neos-controls-row">
                             <Neos.Fusion.Form:Select attributes.class="neos-span12" field.name="assistant[account]" >

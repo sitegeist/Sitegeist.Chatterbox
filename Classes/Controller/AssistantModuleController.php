@@ -15,6 +15,7 @@ use Sitegeist\Chatterbox\Domain\AssistantFactory;
 use Sitegeist\Chatterbox\Domain\AssistantRecord;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionRepository;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeRepository;
+use Sitegeist\Chatterbox\Domain\Model\ModelCollection;
 use Sitegeist\Chatterbox\Domain\OrganizationRepository;
 use Sitegeist\Chatterbox\Domain\Tools\ToolRepository;
 use Sitegeist\Flow\OpenAiClientFactory\AccountRepository;
@@ -76,9 +77,14 @@ class AssistantModuleController extends AbstractModuleController
     public function editAction(AssistantEntity $assistant): void
     {
         $assistantObject = $this->assistantFactory->createAssistantFromAssistantEntity($assistant);
+        try {
+            $availableModels = $assistantObject->getAvailableModels();
+        } catch (\Exception $e) {
+            $availableModels = new ModelCollection();
+        }
         $this->view->assignMultiple([
             'availableAccounts' => $this->accountRepository->findAll(),
-            'availableModels' => $assistantObject->getAvailableModels(),
+            'availableModels' => $availableModels,
             'availableTools' => $this->toolRepository->findAll(),
             'availableSourcesOfKnowledge' => $this->sourceOfKnowledgeRepository->findAll(),
             'availableInstructions' => $this->instructionRepository->findAll(),

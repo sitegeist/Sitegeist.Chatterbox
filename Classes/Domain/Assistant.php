@@ -84,8 +84,12 @@ final class Assistant
             'model' => $this->entity->getModel(),
             'instructions' => $instructions,
             'tools' => array_merge($functionTools, $fileSearchTools),
-            'include' => count($fileSearchTools) > 0 ? ['file_search_call.results'] : []
+            'include' => count($fileSearchTools) > 0 ? ['file_search_call.results'] : [],
         ];
+
+        if ($reasoningEffort = $this->entity->getReasoningEffort()) {
+            $responseParameters['reasoning']['effort'] = $reasoningEffort->value;
+        }
 
         $this->logger?->info("thread create response", $responseParameters);
 
