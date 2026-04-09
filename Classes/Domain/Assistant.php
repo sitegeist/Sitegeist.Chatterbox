@@ -88,7 +88,7 @@ final class Assistant
         ];
 
         if ($reasoningEffort = $this->entity->getReasoningEffort()) {
-            $responseParameters['reasoning']['effort'] = $reasoningEffort->value;
+            $responseParameters['reasoning']['effort'] = $reasoningEffort;
         }
 
         $this->logger?->info("thread create response", $responseParameters);
