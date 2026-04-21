@@ -173,17 +173,23 @@ class AssistantEntity
     public function setReasoningEffort(?string $reasoningEffort): void
     {
         // we create the enum to ensure only valid values are stored
-        $enum = Effort::from($reasoningEffort);
-        $this->reasoningEffort = $enum->value;
+        if (is_string($reasoningEffort)) {
+            $effort = Effort::tryFrom($reasoningEffort);
+            if ($effort !== null) {
+                $this->reasoningEffort = $effort->value;
+                return;
+            }
+        }
+        $this->reasoningEffort = null;
     }
 
     public function getReasoningEffortEnum(): ?Effort
     {
-        return $this->reasoningEffort ? Effort::from($this->reasoningEffort) : null;
+        return $this->reasoningEffort ? Effort::tryFrom($this->reasoningEffort) : null;
     }
 
     public function setReasoningEffortEnum(?Effort $reasoningEffort): void
     {
-        $this->reasoningEffort = $reasoningEffort->value;
+        $this->reasoningEffort = $reasoningEffort?->value;
     }
 }
