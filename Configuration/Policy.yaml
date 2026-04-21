@@ -1,7 +1,7 @@
 privilegeTargets:
   'Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege':
-    'Sitegeist.Chatterbox:Chat':
-      matcher: 'method(Sitegeist\Chatterbox\Controller\ChatController->(start|history|post)Action())'
+    'Sitegeist.Chatterbox:OpenApiChat':
+      matcher: 'method(Sitegeist\Chatterbox\Controller\OpenApiChatController->(start|history|post)Action())'
   'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
     'Sitegeist.Chatterbox:ManageAssistants':
       matcher: 'management/chatterbox'
@@ -9,7 +9,7 @@ roles:
   'Neos.Flow:Everybody':
     privileges:
       -
-        privilegeTarget: 'Sitegeist.Chatterbox:Chat'
+        privilegeTarget: 'Sitegeist.Chatterbox:OpenApiChat'
         permission: GRANT
 
   'Sitegeist.Chatterbox:AssistantManager':

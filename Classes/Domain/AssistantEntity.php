@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Neos\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
+use Sitegeist\Chatterbox\Domain\Reasoning\Effort;
 
 /**
  * @Flow\Entity
@@ -41,6 +42,12 @@ class AssistantEntity
      * @ORM\Column(nullable=true, type="text")
      */
     protected $instructions;
+
+    /**
+     * @var string|null
+     * @ORM\Column(nullable=true, type="text")
+     */
+    protected $reasoningEffort;
 
     /**
      * @var string[]
@@ -156,5 +163,33 @@ class AssistantEntity
     public function setInstructionIdentifiers(array $instructionIdentifiers): void
     {
         $this->instructionIdentifiers = $instructionIdentifiers;
+    }
+
+    public function getReasoningEffort(): ?string
+    {
+        return $this->reasoningEffort;
+    }
+
+    public function setReasoningEffort(?string $reasoningEffort): void
+    {
+        // we create the enum to ensure only valid values are stored
+        if (is_string($reasoningEffort)) {
+            $effort = Effort::tryFrom($reasoningEffort);
+            if ($effort !== null) {
+                $this->reasoningEffort = $effort->value;
+                return;
+            }
+        }
+        $this->reasoningEffort = null;
+    }
+
+    public function getReasoningEffortEnum(): ?Effort
+    {
+        return $this->reasoningEffort ? Effort::tryFrom($this->reasoningEffort) : null;
+    }
+
+    public function setReasoningEffortEnum(?Effort $reasoningEffort): void
+    {
+        $this->reasoningEffort = $reasoningEffort?->value;
     }
 }

@@ -1,4 +1,4 @@
-Sitegeist\Chatterbox\Controller\ChatController:
+Sitegeist\Chatterbox\Controller\OpenApiChatController:
   properties:
     metaDataCache:
       object:

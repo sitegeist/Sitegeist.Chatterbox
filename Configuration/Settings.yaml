@@ -1,4 +1,10 @@
 Sitegeist:
+  SchemeOnYou:
+    documents:
+      chatterbox:
+        name: "Chatterbox IBE Endpoints"
+        classNames:
+          - 'Sitegeist\Chatterbox\Controller\OpenApiChatController'
   Chatterbox:
     enableLogging: false
     context: '%env:FLOW_CONTEXT%'

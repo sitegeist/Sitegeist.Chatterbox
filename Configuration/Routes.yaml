@@ -1,31 +1,26 @@
 ##
 # Chatterbox
 
--
-  name:  'Chatterbox Chat - start'
+- name:  'Chatterbox Chat - start'
   uriPattern: 'chatterbox/chat/start'
   defaults:
-    '@package':    'Sitegeist.Chatterbox'
-    '@controller': 'Chat'
+    '@package': 'Sitegeist.Chatterbox'
+    '@controller': 'OpenApiChat'
     '@action': 'start'
-    '@format': 'json'
   httpMethods: ['POST']
 
--
-  name:  'Chatterbox Chat - thread'
+- name:  'Chatterbox Chat - thread'
   uriPattern: 'chatterbox/chat/history'
   defaults:
-    '@package':    'Sitegeist.Chatterbox'
-    '@controller': 'Chat'
+    '@package': 'Sitegeist.Chatterbox'
+    '@controller': 'OpenApiChat'
     '@action': 'history'
-    '@format': 'json'
   httpMethods: ['GET']
 
-- name: 'Chatterbox Chat'
+- name: 'Chatterbox Chat - post'
   uriPattern: 'chatterbox/chat/post'
   defaults:
     '@package': 'Sitegeist.Chatterbox'
-    '@controller': 'Chat'
+    '@controller': 'OpenApiChat'
     '@action': 'post'
-    '@format': 'json'
   httpMethods: ['POST']
