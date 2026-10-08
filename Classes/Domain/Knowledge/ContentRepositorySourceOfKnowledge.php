@@ -20,7 +20,7 @@ use Neos\Neos\Domain\Service\ContentContextFactory;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
 use Sitegeist\Chatterbox\Domain\Quotation;
 
-final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContract
+final class ContentRepositorySourceOfKnowledge implements SourceOfKnowledgeContract, DynamicContentSourceOfKnowledgeContract, QuotableSourceOfKnowledgeContract
 {
     #[Flow\Inject]
     protected ContentContextFactory $contentContextFactory;

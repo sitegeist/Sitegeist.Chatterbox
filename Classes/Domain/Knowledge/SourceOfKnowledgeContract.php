@@ -16,8 +16,4 @@ interface SourceOfKnowledgeContract
     public function getName(): KnowledgeSourceName;
 
     public function getDescription(): string;
-
-    public function getContent(): DocumentCollection;
-
-    public function tryCreateQuotation(int $index, string $name, string $type): ?Quotation;
 }

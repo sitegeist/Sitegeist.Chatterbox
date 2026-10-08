@@ -40,7 +40,7 @@ final class SourceOfKnowledgeCollection implements \IteratorAggregate, \Countabl
     {
         list($sourceName, $localFilename) = explode('-', $name, 2);
         $source = $this->getKnowledgeSourceByName(new KnowledgeSourceName($sourceName));
-        if ($source) {
+        if ($source && $source instanceof QuotableSourceOfKnowledgeContract) {
             return $source->tryCreateQuotation($index, $localFilename, $type);
         }
         return null;
