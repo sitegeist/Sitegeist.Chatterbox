@@ -21,7 +21,7 @@ class VectorStoreService
      */
     protected Environment $environment;
 
-    public function upload(OpenAiClientContract $client, SourceOfKnowledgeContract $sourceOfKnowledge): VectorStoreId
+    public function upload(OpenAiClientContract $client, SourceOfKnowledgeContract&DynamicContentSourceOfKnowledgeContract $sourceOfKnowledge): VectorStoreId
     {
         $uuid = Algorithms::generateUUID();
 

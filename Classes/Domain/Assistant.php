@@ -11,6 +11,7 @@ use OpenAI\Responses\Responses\Output\OutputFunctionToolCall;
 use Psr\Log\LoggerInterface;
 use Sitegeist\Chatterbox\Domain\Instruction\InstructionCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeCollection;
+use Sitegeist\Chatterbox\Domain\Knowledge\StaticVectorStoreSourceOfKnowledgeContract;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReference;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
 use Sitegeist\Chatterbox\Domain\Model\ModelAgency;
@@ -233,14 +234,19 @@ final class Assistant
     {
         $tools = [];
 
+        /** @var string[] $vectorStoreIds */
         $vectorStoreIds = [];
         foreach ($this->sourcesOfKnowledge as $sourceOfKnowledge) {
-            $reference = $this->vectorStoreReferenceRepository->findOneByAssistantAndKnowledgeSourceIdentifier(
-                $this->entity->getAccount(),
-                $sourceOfKnowledge->getName()->value,
-            );
-            if ($reference instanceof VectorStoreReference) {
-                $vectorStoreIds[] = $reference->vectorStoreId;
+            if ($sourceOfKnowledge instanceof StaticVectorStoreSourceOfKnowledgeContract) {
+                $vectorStoreIds[] = $sourceOfKnowledge->getVectorStoreId()->value;
+            } else {
+                $reference = $this->vectorStoreReferenceRepository->findOneByAssistantAndKnowledgeSourceIdentifier(
+                    $this->entity->getAccount(),
+                    $sourceOfKnowledge->getName()->value,
+                );
+                if ($reference instanceof VectorStoreReference) {
+                    $vectorStoreIds[] = $reference->vectorStoreId;
+                }
             }
         }
 

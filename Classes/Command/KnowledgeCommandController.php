@@ -12,6 +12,7 @@ use Sitegeist\Chatterbox\Domain\AssistantEntityRepository;
 use Sitegeist\Chatterbox\Domain\Knowledge\DocumentCollection;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeContract;
 use Sitegeist\Chatterbox\Domain\Knowledge\SourceOfKnowledgeRepository;
+use Sitegeist\Chatterbox\Domain\Knowledge\DynamicContentSourceOfKnowledgeContract;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReference;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreReferenceRepository;
 use Sitegeist\Chatterbox\Domain\Knowledge\VectorStoreService;
@@ -51,13 +52,17 @@ class KnowledgeCommandController extends CommandController
     {
         $knowledge = $this->sourceOfKnowledgeRepository->findSourceByName($name);
         if ($knowledge instanceof SourceOfKnowledgeContract) {
-            $documentCollection = $knowledge->getContent();
-            foreach ($documentCollection as $document) {
-                $this->outputLine('<info>%s.%s</info>', [$document->name,$document->type]);
-                $this->outputLine();
-                $this->output($document->content);
-                $this->outputLine();
-                $this->outputLine();
+            if ($knowledge instanceof DynamicContentSourceOfKnowledgeContract) {
+                $documentCollection = $knowledge->getContent();
+                foreach ($documentCollection as $document) {
+                    $this->outputLine('<info>%s.%s</info>', [$document->name, $document->type]);
+                    $this->outputLine();
+                    $this->output($document->content);
+                    $this->outputLine();
+                    $this->outputLine();
+                }
+            } else {
+                $this->outputLine('source exists but is not updatable');
             }
         } else {
             $this->outputLine('Knowledge ´source %s was not found', [$name]);
@@ -91,13 +96,13 @@ class KnowledgeCommandController extends CommandController
         $knowledgeSourceIdentifiersToUpdate = array_keys($accountsForKnowledgeSourceIds);
 
         /**
-         * @var array<string, SourceOfKnowledgeContract> $knowledgeSources
+         * @var array<string, SourceOfKnowledgeContract&DynamicContentSourceOfKnowledgeContract> $knowledgeSources
          */
         $knowledgeSources = [];
 
         foreach ($knowledgeSourceIdentifiersToUpdate as $knowledgeSourceIdentifier) {
             $knowledgeSource = $this->sourceOfKnowledgeRepository->findSourceByName($knowledgeSourceIdentifier);
-            if ($knowledgeSource instanceof SourceOfKnowledgeContract) {
+            if ($knowledgeSource instanceof SourceOfKnowledgeContract && $knowledgeSource instanceof DynamicContentSourceOfKnowledgeContract) {
                 $knowledgeSources[$knowledgeSourceIdentifier] = $knowledgeSource;
             }
         }
